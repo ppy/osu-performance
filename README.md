@@ -14,7 +14,7 @@ Open the command line and navigate to the root folder of this repository.
     c:\osu-performance> cd Build
     c:\osu-performance\Build> cmake ..
     
-Now the Build folder should contain a [Visual Studio](https://www.visualstudio.com/) project for building the program.
+Now the _Build_ folder should contain a [Visual Studio](https://www.visualstudio.com/) project for building the program.
 
 ### Linux
 
@@ -24,6 +24,26 @@ On Linux you need to install the [MariaDB](https://mariadb.org/) MySQL connector
     /osu-performance$ cd Build
     /osu-performance/Build$ cmake ..
     /osu-performance/Build$ make
+    
+## Usage
+
+After compilation, an executable named *Client_OS* is placed in the _Bin_ folder. It accepts the following arguments:
+* `-m <id>`
+  
+  This option controls the gamemode for which pp is computed. __id__ can have the following values:
+
+  __Standard__ | __Taiko__ | __Catch the beat__ | __osu!mania__
+  --- | --- | --- | ---
+  0 | 1 | 2 | 3
+* `-r`
+  
+  If this option is present, then the pp values of all existing scores are re-computed. Otherwise, only new pp values are computed.
+
+* `-f`
+  
+  If this option is not present, then a child process is created, which starts this program a second time as a child process with the same options and -f enabled additionally. Whenever this child process terminates, after 5 seconds it is restarted. The purpose of this option is to ensure, that crashes and errors do not interrupt the computation of pp values.
+
+Configuration options beyond these parameters, such as the MySQL server configuration, can be adjusted in _Bin/Data/Config.cfg_.
 
 ## Licence
 
