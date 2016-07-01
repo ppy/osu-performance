@@ -9,7 +9,7 @@ CDatabaseConnection::CDatabaseConnection(
 	std::string username,
 	std::string password,
 	std::string database)
-	: _host{host}, _port{port}, _username{username}, _password{password}, _database{database}
+	: _host{std::move(host)}, _port{port}, _username{std::move(username)}, _password{std::move(password)}, _database{std::move(database)}
 {
 	_pMySQL = new MYSQL;
 

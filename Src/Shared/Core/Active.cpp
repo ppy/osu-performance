@@ -50,7 +50,7 @@ void CActive::Run()
 {
 	try
 	{
-		while(_isDone == false)
+		while(!_isDone)
 		{
 			// Wait for a task, pop it and execute it. Hence the double ()()
 			_tasks.WaitAndPop()();
@@ -65,7 +65,7 @@ void CActive::Run()
 #ifdef __WIN32
 	// ExitThread is required to prevent a deadlock with joining in the case, that main is returning at the same time
 	// Remove when fixed in VC - not an issue in gcc / clang
-	ExitThread(NULL);
+	ExitThread(nullptr);
 #endif
 }
 
@@ -88,10 +88,10 @@ void CActive::CheckForAndThrowException() const
 {
 	if(_isDone)
 	{
-		if(_activeException)
+		if (std::exception_ptr exception = _activeException)
 		{
-			std::rethrow_exception(_activeException);
 			_activeException = nullptr;
+			std::rethrow_exception(exception);
 		}
 		else
 		{

@@ -6,7 +6,7 @@
 CQueryResult::CQueryResult(MYSQL_RES* pRes)
 	:
 	_pRes(pRes),
-	_Row(NULL)
+	_Row(nullptr)
 {
 }
 

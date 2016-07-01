@@ -11,7 +11,7 @@ class CConfig
 public:
 
 	CConfig(const std::string& filename);
-	~CConfig();
+	~CConfig() = default;
 
 
 #define MACRO_CONFIG_INT( name, def, min, max, desc ) s32 name;

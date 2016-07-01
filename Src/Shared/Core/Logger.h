@@ -87,7 +87,7 @@ public:
 	static std::unique_ptr<CLog> CreateLogger();
 
 	//void log(byte bColor, const char* pcSys, const char* pcFmt, ...);
-	void Log(EType Flags, std::string&& Text);
+	void Log(EType Flags, std::string Text);
 
 	enum class EStream : byte
 	{
@@ -110,5 +110,5 @@ private:
 	void Write(const std::string& Text, EStream Stream);
 };
 
-void Log(CLog::EType Flags, std::string&& Text);
+void Log(CLog::EType Flags, std::string Text);
 

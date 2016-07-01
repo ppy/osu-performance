@@ -19,7 +19,7 @@ class CException
 public:
 
 	CException(std::string File, s32 Line, std::string Description);
-	~CException();
+	~CException() = default;
 
 	void Print();
 
@@ -53,7 +53,7 @@ public:
 
 
 	CLoggedException(std::string File, s32 Line, std::string Description);
-	~CLoggedException();
+	~CLoggedException() = default;
 
 	void Log();
 };
