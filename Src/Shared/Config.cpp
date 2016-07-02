@@ -1,9 +1,6 @@
 #include <Shared.h>
 
-
 #include "Config.h"
-
-
 
 CConfig::CConfig(const std::string& filename)
 {
@@ -11,20 +8,10 @@ CConfig::CConfig(const std::string& filename)
 #define MACRO_CONFIG_FLOAT( name, def, min, max, desc ) name = def;
 #define MACRO_CONFIG_STR( name, def, maxlen, desc ) strcpy(name, def);
 
-
-
 #include "configVariables.h"
-
 
 	ReadFromFile(filename.c_str());
 }
-
-
-
-CConfig::~CConfig()
-{
-}
-
 
 
 s32 config_switch(const char* str)
@@ -34,7 +21,7 @@ s32 config_switch(const char* str)
 	if(strncmp(str, "false", 5) == 0 || strncmp(str, "no", 2) == 0 || strncmp(str, "non", 3) == 0 || strncmp(str, "nein", 4) == 0)
 		return 0;
 
-	return (s32)strtol(str, NULL, 0);
+	return (s32)strtol(str, nullptr, 0);
 }
 
 void CConfig::ReadFromFile(const char* filename)
@@ -45,7 +32,6 @@ void CConfig::ReadFromFile(const char* filename)
 	if(pFile == NULL)
 	{
 		throw CConfigException(SRC_POS, StrFormat("Config file '{0}' couldn't be opened.", filename));
-		return;
 	}
 
 	// Find file size
@@ -72,7 +58,7 @@ void CConfig::ReadFromFile(const char* filename)
 	while(pos < Size)
 	{
 		// Skip spaces
-		if(buffer[pos] == ' ' || buffer[pos] == '\r' || buffer[pos] == '\t' || buffer[pos] == '\n')
+		if(std::isspace(buffer[pos]))
 		{
 			pos++;
 		}
@@ -106,10 +92,7 @@ void CConfig::ReadFromFile(const char* filename)
 				// Read token
 				i = 0;
 				while(pos < Size &&
-					  buffer[pos] != ' ' &&
-					  buffer[pos] != '\r' &&
-					  buffer[pos] != '\t' &&
-					  buffer[pos] != '\n' &&
+					  !std::isspace(buffer[pos]) &&
 					  buffer[pos] != ':')
 				{
 					szCurrentToken[i++] = buffer[pos++];
@@ -140,8 +123,6 @@ void CConfig::ReadFromFile(const char* filename)
 
 
 			case TOKEN_VALUE:
-
-
 				// Read token
 				i = 0;
 

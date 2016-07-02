@@ -5,10 +5,10 @@
 #include <sstream>
 
 
-void Log(CLog::EType Flags, std::string&& Text)
+void Log(CLog::EType Flags, std::string Text)
 {
 	static auto pLog = CLog::CreateLogger();
-	pLog->Log(Flags, std::forward<std::string>(Text));
+	pLog->Log(Flags, std::move(Text));
 }
 
 std::unique_ptr<CLog> CLog::CreateLogger()
@@ -40,9 +40,9 @@ CLog::~CLog()
 #endif
 }
 
-void CLog::Log(EType Flags, std::string&& Text)
+void CLog::Log(EType Flags, std::string Text)
 {
-	m_pActive->Send([this, Flags, Text]() { LogText(Flags, Text); });
+	m_pActive->Send([this, Flags, &Text]() { LogText(Flags, std::move(Text)); });
 }
 
 void CLog::LogText(EType Flags, std::string Text)
@@ -60,7 +60,7 @@ void CLog::LogText(EType Flags, std::string Text)
 		Stream = EStream::STDOUT;
 	}
 
-	auto TextOut = std::string{};
+	std::string TextOut;
 
 	if(!(Flags & EType::None))
 	{
@@ -135,7 +135,7 @@ void CLog::LogText(EType Flags, std::string Text)
 #endif
 
 		// start with processing
-		Write(TextOut.c_str(), Stream);
+		Write(TextOut, Stream);
 	}
 
 	// Make sure there is a linebreak in the end. We don't want duplicates!
@@ -147,7 +147,7 @@ void CLog::LogText(EType Flags, std::string Text)
 	// Reset after each message
 	Text += CONSOLE_RESET "";
 
-	Write(Text.c_str(), Stream);
+	Write(Text, Stream);
 }
 
 void CLog::Write(const std::string& Text, EStream Stream)

@@ -11,11 +11,6 @@ CException::CException(std::string File, s32 Line, std::string Description)
 	
 }
 
-CException::~CException()
-{
-
-}
-
 void CException::Print()
 {
 	std::cerr << StrFormat("Exception in: {0}:{1} - {2}\n", m_File, m_Line, m_Description);
@@ -29,10 +24,6 @@ CLoggedException::CLoggedException(std::string File, s32 Line, std::string Descr
 	//Log();
 }
 
-
-CLoggedException::~CLoggedException()
-{
-}
 
 void CLoggedException::Log()
 {
