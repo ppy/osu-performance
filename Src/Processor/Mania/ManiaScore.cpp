@@ -102,7 +102,7 @@ void CManiaScore::ComputeStrainValue(const CBeatmap& beatmap)
 	}
 	else if(_score <= 600000)
 	{
-		_strainValue *= 0.1f + static_cast<f32>(_score - 500000) / 100000.0f * 0.2f;
+		_strainValue *= static_cast<f32>(_score - 500000) / 100000.0f * 0.3f;
 	}
 	else if(_score <= 700000)
 	{
