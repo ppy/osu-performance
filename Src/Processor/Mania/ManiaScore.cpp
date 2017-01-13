@@ -95,13 +95,14 @@ void CManiaScore::ComputeStrainValue(const CBeatmap& beatmap)
 	// Longer maps are worth more
 	_strainValue *= 1 + 0.1f * std::min(1.0f, static_cast<f32>(TotalHits()) / 1500.0f);
 
+	// Counter mashing through maps
 	if(_score <= 500000)
 	{
-		_strainValue *= (static_cast<f32>(_score) / 500000.0f) * 0.1f;
+		_strainValue = 0;
 	}
 	else if(_score <= 600000)
 	{
-		_strainValue *= 0.1f + static_cast<f32>(_score - 500000) / 100000.0f * 0.2f;
+		_strainValue *= static_cast<f32>(_score - 500000) / 100000.0f * 0.3f;
 	}
 	else if(_score <= 700000)
 	{
