@@ -25,9 +25,6 @@ CManiaScore::CManiaScore(
 	const CBeatmap& beatmap)
 	: CScore{scoreId, mode, userId, beatmapId, score, maxCombo, amount300, amount100, amount50, amountMiss, amountGeki, amountKatu, mods}
 {
-	// Mask away DoubleTime 
-	_mods = static_cast<EMods>(_mods & (0xFFFFFFFF ^ EMods::DoubleTime));
-
 	ComputeStrainValue(beatmap);
 	ComputeAccValue(beatmap);
 
