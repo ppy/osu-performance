@@ -1,13 +1,9 @@
 #include <PrecompiledHeader.h>
 
-
 #include "SharedEnums.h"
 #include "TaikoScore.h"
 
-
 using namespace SharedEnums;
-
-
 
 CTaikoScore::CTaikoScore(
 	s64 scoreId,
@@ -32,12 +28,10 @@ CTaikoScore::CTaikoScore(
 	ComputeTotalValue();
 }
 
-
 f32 CTaikoScore::TotalValue() const
 {
 	return _totalValue;
 }
-
 
 void CTaikoScore::ComputeTotalValue()
 {
@@ -50,18 +44,12 @@ void CTaikoScore::ComputeTotalValue()
 		return;
 	}
 
-
 	// Custom multipliers for NoFail and SpunOut.
 	f32 multiplier = 1.1f; // This is being adjusted to keep the final pp value scaled around what it used to be when changing things
 
 	if((_mods & EMods::NoFail) > 0)
 	{
 		multiplier *= 0.90f;
-	}
-
-	if((_mods & EMods::SpunOut) > 0)
-	{
-		multiplier *= 0.95f;
 	}
 
 	if((_mods & EMods::Hidden) > 0)
@@ -121,14 +109,11 @@ void CTaikoScore::ComputeAccValue(const CBeatmap& beatmap)
 
 	// Lots of arbitrary values from testing.
 	// Considering to use derivation from perfect accuracy in a probabilistic manner - assume normal distribution
-	_accValue =
-		pow(150.0f / hitWindow300, 1.1f) * pow(Accuracy(), 15) * 22.0f;
+	_accValue = pow(150.0f / hitWindow300, 1.1f) * pow(Accuracy(), 15) * 22.0f;
 
 	// Bonus for many hitcircles - it's harder to keep good accuracy up for longer
 	_accValue *= std::min<f32>(1.15f, pow(static_cast<f32>(TotalHits()) / 1500.0f, 0.3f));
 }
-
-
 
 f32 CTaikoScore::Accuracy() const
 {
