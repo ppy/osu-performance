@@ -83,6 +83,11 @@ void CStandardScore::ComputeTotalValue()
 		multiplier *= 0.95f;
 	}
 
+	if((_mods & EMods::TouchDevice) > 0)
+	{
+		_aimValue = pow(_aimValue, 0.8f);
+	}
+
 	_totalValue =
 		std::pow(
 			std::pow(_aimValue, 1.1f) +
