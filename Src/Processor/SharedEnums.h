@@ -8,7 +8,7 @@ namespace SharedEnums
 		None = 0,
 		NoFail = 1 << 0,
 		Easy = 1 << 1,
-		//NoVideo              = 1 << 2,
+		TouchDevice = 1 << 2,
 		Hidden = 1 << 3,
 		HardRock = 1 << 4,
 		SuddenDeath = 1 << 5,

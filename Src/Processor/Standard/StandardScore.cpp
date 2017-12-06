@@ -93,7 +93,12 @@ void CStandardScore::ComputeTotalValue()
 
 void CStandardScore::ComputeAimValue(const CBeatmap& beatmap)
 {
-	_aimValue = pow(5.0f * std::max(1.0f, beatmap.DifficultyAttribute(_mods, CBeatmap::Aim) / 0.0675f) - 4.0f, 3.0f) / 100000.0f;
+	f32 rawAim = beatmap.DifficultyAttribute(_mods, CBeatmap::Aim);
+
+	if((_mods & EMods::TouchDevice) > 0)
+		rawAim = pow(rawAim, 0.8f);
+
+	_aimValue = pow(5.0f * std::max(1.0f, rawAim / 0.0675f) - 4.0f, 3.0f) / 100000.0f;
 
 	int amountTotalHits = TotalHits();
 

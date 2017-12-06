@@ -418,7 +418,8 @@ void CProcessor::PollAndProcessNewBeatmapSets()
 void CProcessor::ProcessAllScores(bool reProcess)
 {
 	// We have one connection per thread, so let's use quite a lot of them.
-	static const u32 AMOUNT_THREADS = 32;
+	// Temporarily limited to one thread maximum to reduce database (slave) load.
+	static const u32 AMOUNT_THREADS = 1;
 
 	CThreadPool threadPool{AMOUNT_THREADS};
 	std::vector<std::shared_ptr<CDatabaseConnection>> databaseConnections;
