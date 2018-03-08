@@ -150,7 +150,7 @@ void CStandardScore::ComputeAimValue(const CBeatmap& beatmap)
 	if((_mods & EMods::Flashlight) > 0)
 	{
 		// Apply length bonus again if flashlight is on simply because it becomes a lot harder on longer maps.
-		_aimValue *= 1.45f * LengthBonus;
+		_aimValue *= std::max(1.0f, 1.45f * LengthBonus);
 	}
 
 	// Scale the aim value with accuracy _slightly_
