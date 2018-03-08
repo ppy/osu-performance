@@ -104,7 +104,7 @@ void CStandardScore::ComputeAimValue(const CBeatmap& beatmap)
 
 	// Longer maps are worth more
     	f32 LengthBonus = 0.55f + 0.4f * std::min(1.0f, static_cast<f32>(amountTotalHits) / 250.0f) +
-        	(amountTotalHits > 2500 ? 0.1f * std::min(1.0f, static_cast<f32>(amountTotalHits - 250) / 250.0f) +
+        	(amountTotalHits > 250 ? 0.1f * std::min(1.0f, static_cast<f32>(amountTotalHits - 250) / 250.0f) +
         	(amountTotalHits > 500 ? 0.3f * std::min(1.0f, static_cast<f32>(amountTotalHits - 500) / 1500.0f) +
         	(amountTotalHits > 2000 ? log10(static_cast<f32>(amountTotalHits) / 2000.0f) * 0.5f : 0.0f);
 
@@ -167,7 +167,7 @@ void CStandardScore::ComputeSpeedValue(const CBeatmap& beatmap)
 
 	// Longer maps are worth more
 	_speedValue *= 0.55f + 0.4f * std::min(1.0f, static_cast<f32>(amountTotalHits) / 250.0f) +
-        	(amountTotalHits > 2500 ? 0.1f * std::min(1.0f, static_cast<f32>(amountTotalHits - 250) / 250.0f) +
+        	(amountTotalHits > 250 ? 0.1f * std::min(1.0f, static_cast<f32>(amountTotalHits - 250) / 250.0f) +
         	(amountTotalHits > 500 ? 0.3f * std::min(1.0f, static_cast<f32>(amountTotalHits - 500) / 1500.0f) +
         	(amountTotalHits > 2000 ? log10(static_cast<f32>(amountTotalHits) / 2000.0f) * 0.5f : 0.0f);
 
