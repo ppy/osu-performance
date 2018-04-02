@@ -137,7 +137,7 @@ void CManiaScore::ComputeAccValue(const CBeatmap& beatmap)
 		* pow((std::max(0.0f, static_cast<f32>(_score - 960000)) / 40000.0f), 1.1f);
 
 	// Bonus for many hitcircles - it's harder to keep good accuracy up for longer
-	_accValue *= std::min<f32>(1.15f, pow(static_cast<f32>(TotalHits()) / 1500.0f, 0.3f));
+	//_accValue *= std::min<f32>(1.15f, pow(static_cast<f32>(TotalHits()) / 1500.0f, 0.3f));
 }
 
 f32 CManiaScore::Accuracy() const
