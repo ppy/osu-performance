@@ -31,7 +31,7 @@ void CConfig::ReadFromFile(const char* filename)
 
 	if(pFile == NULL)
 	{
-		throw CConfigException(SRC_POS, StrFormat("Config file '{0}' couldn't be opened.", filename));
+		throw CConfigException(SRC_POS, StrFormat("Config file '{0}' could not be opened.", filename));
 	}
 
 	// Find file size
@@ -42,8 +42,11 @@ void CConfig::ReadFromFile(const char* filename)
 
 	char* buffer = new char[Size];
 
-	// Read
-	fread(buffer, sizeof(char), Size, pFile);
+	size_t NumBytesRead = fread(buffer, sizeof(char), Size, pFile);
+	if(NumBytesRead != Size)
+	{
+		throw CConfigException(SRC_POS, StrFormat("Config file '{0}' could not be fully read. (read {1} of {2} bytes)", filename, NumBytesRead, Size));
+	}
 
 	// No need for the file anymore
 	fclose(pFile);
