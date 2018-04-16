@@ -4,7 +4,7 @@ This is the program computing "performance points" (pp), which are used as the o
 
 ## Compiling
 
-osu!performance runs on Windows and Linux. It should also compile and run on Mac OS X, but this has not been tested. The build environment is set up using [CMake](https://cmake.org/) as follows.
+osu!performance runs on Windows and Linux. It should also compile and run on macOS, but this has not been tested. The build environment is set up using [CMake](https://cmake.org/) as follows.
 
 ### Windows
 
