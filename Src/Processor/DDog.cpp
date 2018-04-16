@@ -117,7 +117,7 @@ void CDDog::Send(std::string data, const std::vector<std::string>& tags, f32 sam
 	u_long mode = 1;
 	ioctlsocket(s, FIONBIO, &mode);
 
-	s32 bytesSent = sendto(s, data.c_str(), data.length(), 0, (sockaddr*)&_server, sizeof(_server));
+	s32 bytesSent = sendto(s, data.c_str(), (s32)data.length(), 0, (sockaddr*)&_server, sizeof(_server));
 	if(bytesSent == SOCKET_ERROR)
 	{
 		Log(CLog::Error, "Couldn't send data to datadog.");

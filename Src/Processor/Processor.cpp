@@ -513,7 +513,7 @@ void CProcessor::ProcessAllScores(bool reProcess)
 			amountPendingQueries = 0;
 			for(auto& pDBConn : databaseConnections)
 			{
-				amountPendingQueries += pDBConn->AmountPendingQueries();
+				amountPendingQueries += (u32)pDBConn->AmountPendingQueries();
 			}
 
 			_dataDog.Gauge("osu.pp.db.pending_queries", amountPendingQueries,
