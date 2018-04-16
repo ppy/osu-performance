@@ -21,8 +21,10 @@ void WrapperProcess(std::string executableName, EGamemode gamemode, bool ReProce
 
 	while(true)
 	{
-		system(ExecutionCommand.c_str());
-		std::this_thread::sleep_for(milliseconds{5000});
+		static const int RestartDelay = 5;
+		int ErrorCode = system(ExecutionCommand.c_str());
+		Log(ErrorCode != 0 ? CLog::Error : CLog::Info, StrFormat("Program terminated with error code {0}. Restarting in {1} seconds.", ErrorCode, RestartDelay));
+		std::this_thread::sleep_for(seconds{RestartDelay});
 	}
 }
 
