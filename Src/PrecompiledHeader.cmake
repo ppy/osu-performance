@@ -23,7 +23,6 @@ macro(ADD_PRECOMPILED_HEADER Name PrecompiledHeader RelPath SourcesVar)
 
 		string(REPLACE " " ";" IncludeFlags "${IncludeFlags}")
 
-		# Get definition flags (like __CLIENT, __WORLDSERVER etc.)
 		get_property(defs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY COMPILE_DEFINITIONS)
 		set(DefFlags)
 
@@ -34,14 +33,7 @@ macro(ADD_PRECOMPILED_HEADER Name PrecompiledHeader RelPath SourcesVar)
 		string(REPLACE " " ";" DefFlags "${DefFlags}")
 
 		# Get compiler flags in a parseable formatr
-		if (${CMAKE_BUILD_TYPE} STREQUAL "Release")
-			set(CompilerFlags ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_RELEASE})
-		elseif (${CMAKE_BUILD_TYPE} STREQUAL "Debug")
-			set(CompilerFlags ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_DEBUG})
-		else()
-			set(CompilerFlags ${CMAKE_CXX_FLAGS})
-		endif()
-
+		set(CompilerFlags ${CMAKE_CXX_FLAGS})
 		string(REPLACE " " ";" CompilerFlags "${CompilerFlags}")
 
 		add_custom_command(
