@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8)
 
-project(ppv2Processor)
+project(osu-performance)
 
 # Set variable for shared folder and for libraries / include folder
 set(SRC ${CMAKE_CURRENT_SOURCE_DIR}/Src)
