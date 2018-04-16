@@ -10,24 +10,28 @@ osu!performance runs on Windows and Linux. It should also compile and run on mac
 
 Open the command line and navigate to the root folder of this repository.
 
-    c:\osu-performance> mkdir Build
-    c:\osu-performance> cd Build
-    c:\osu-performance\Build> cmake ..
-    
+```sh
+osu-performance> mkdir Build
+osu-performance> cd Build
+osu-performance\Build> cmake ..
+```
+
 Now the _Build_ folder should contain a [Visual Studio](https://www.visualstudio.com/) project for building the program.
 
-### Linux
+### macOS / Linux
 
-On Linux you need to install the [MariaDB](https://mariadb.org/) MySQL connector, [cURL](https://curl.haxx.se/), and [clang](http://clang.llvm.org/) packages. Afterwards, run a terminal of your choice.
+On macOS / Linux you need to install the [MariaDB](https://mariadb.org/) MySQL connector and [cURL](https://curl.haxx.se/) packages. Afterwards, in a terminal of your choice, do
 
-    /osu-performance$ mkdir Build
-    /osu-performance$ cd Build
-    /osu-performance/Build$ cmake ..
-    /osu-performance/Build$ make
-    
+```sh
+osu-performance$ mkdir Build
+osu-performance$ cd Build
+osu-performance/Build$ cmake ..
+osu-performance/Build$ make -j
+```
+
 ## Usage
 
-After compilation, an executable named *Client_OS* is placed in the _Bin_ folder. It accepts the following arguments:
+After compilation, an executable named `osu-performance` is placed in the _Bin_ folder. It accepts the following arguments:
 * `-m <id>`
   
   This option controls the gamemode for which pp is computed. __id__ can have the following values:
