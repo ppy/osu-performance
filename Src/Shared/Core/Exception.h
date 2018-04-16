@@ -12,12 +12,9 @@
 
 #define SRC_POS __FILE__,__LINE__
 
-
 class CException
 {
-
 public:
-
 	CException(std::string File, s32 Line, std::string Description);
 	~CException() = default;
 
@@ -39,19 +36,14 @@ public:
 	}
 
 protected:
-
 	std::string m_File;
 	s32 m_Line;
 	std::string m_Description;
 };
 
-
 class CLoggedException : public CException
 {
-
 public:
-
-
 	CLoggedException(std::string File, s32 Line, std::string Description);
 	~CLoggedException() = default;
 
