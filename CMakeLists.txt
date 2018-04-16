@@ -11,7 +11,7 @@ message(STATUS "C++ compiler: ${CMAKE_CXX_COMPILER}")
 # Set variable for shared folder and for libraries / include folder
 set(SRC ${CMAKE_CURRENT_SOURCE_DIR}/Src)
 set(SHARED ${SRC}/Shared)
-set(EXTERNAL ${SRC}/External)
+set(EXTERNAL ${CMAKE_CURRENT_SOURCE_DIR}/Dependencies)
 set(BIN ${CMAKE_CURRENT_SOURCE_DIR}/Bin)
 
 if(UNIX)
