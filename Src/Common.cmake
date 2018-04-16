@@ -4,29 +4,30 @@ macro(COMMON_INCLUDE_DIRECTORIES)
 	include_directories(BEFORE ${CMAKE_CURRENT_BINARY_DIR}) # for the compiler to find PrecompiledHeader.pch
 
 	# necessary, so the proper SDK is included
-	if(MSVC)
+	if (MSVC)
 		include_directories(BEFORE $(WindowsSDK_IncludePath))
 		include_directories(BEFORE $(VCInstallDir)include)
-	endif(MSVC)
-	
+	endif()
 endmacro(COMMON_INCLUDE_DIRECTORIES)
 
-macro(GENERATE_EXECUTABLE BaseName)
-	set(PrecompiledHeaderDependency "${BaseName}_PrecompiledHeaderDependency")
-	set(SharedPrecompiledHeaderDependency "${BaseName}_SharedPrecompiledHeaderDependency")
+macro(GENERATE_EXECUTABLE ExecutableName)
+	set(PrecompiledHeaderDependency "${ExecutableName}_PrecompiledHeaderDependency")
+	set(SharedPrecompiledHeaderDependency "${ExecutableName}_SharedPrecompiledHeaderDependency")
 
 	ADD_PRECOMPILED_HEADER(
 		${PrecompiledHeaderDependency} # dependency name
 		PrecompiledHeader.h # header file
 		. # relative directory
-		SOURCES)
+		SOURCES
+	)
 
-	if(MSVC)
+	if (MSVC)
 		ADD_PRECOMPILED_HEADER(
 			${SharedPrecompiledHeaderDependency} # dependency name
 			Shared.h # header file
 			../Shared # relative directory
-			SHARED_SOURCES)
+			SHARED_SOURCES
+		)
 	endif()
 	   
 	# Precompiled sources
