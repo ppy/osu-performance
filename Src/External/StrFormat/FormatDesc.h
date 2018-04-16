@@ -6,14 +6,11 @@
 
 #pragma once
 
-
-
 namespace ts_printf
 {
 	namespace _details
 	{
 		struct SBaseFormatter {};
-
 		
 		enum class E_ALIGNMENT : u16
 		{
@@ -40,12 +37,6 @@ namespace ts_printf
 		template<typename CharType>
 		struct SFormatDesc
 		{
-			
-
-
-			
-
-
 			// Constructor for text-formats
 			SFormatDesc(const CharType* begin, const CharType* end, bool bHasEscapedChars_) throw()
 				: Flags(E_FORMATFLAGS::FORMATSTRING), Begin(begin), End(end), bHasEscapedChars(bHasEscapedChars_)
@@ -65,8 +56,6 @@ namespace ts_printf
 				Base(10)
 			{
 			}
-
-		
 
 			E_FORMATFLAGS Flags;				// see FF_* constants. Only BYTE is currently used, but DWORD is chosen for better structure alignment
 

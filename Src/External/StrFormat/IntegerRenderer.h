@@ -8,8 +8,6 @@
 
 #include "IntegerRendererHelpers.h"
 
-
-
 namespace ts_printf
 {
 	namespace _details
@@ -20,12 +18,12 @@ namespace ts_printf
 		template<class char_type>
 		class CIntegerRenderer
 		{
-			typedef SFormatDesc<char_type> SFormatDesc;
-			typedef CCharBuffer<char_type> CCharBuffer;
+			typedef SFormatDesc<char_type> FormatDesc;
+			typedef CCharBuffer<char_type> CharBuffer;
 			friend class CFloatRenderer<char_type>;
 
 			template<class T>
-			static void irender_actual(const SFormatDesc &fd, T value, CCharBuffer &buffer, size_t allocate_additional, char_type *&start, char_type *&end)
+			static void irender_actual(const FormatDesc &fd, T value, CharBuffer &buffer, size_t allocate_additional, char_type *&start, char_type *&end)
 			{
 
 #define XRENDER_COMMAND(base, mode) \
@@ -33,7 +31,6 @@ namespace ts_printf
 		end = Renderer<T, _details::mode>::prepare_buffer(buffer, allocate_additional, fd.Flags); \
 		start = Renderer<T, _details::mode>::render(value, end, fd.Flags); \
 		break;
-
 
 				switch(fd.Base)
 				{
@@ -49,18 +46,13 @@ namespace ts_printf
 
 
 #undef XRENDER_COMMAND
-
 			}
 
-
-
 		protected:
-			
-
 			// We have an integral value. Render it.
 			template<class T>
 			static std::enable_if_t<std::is_integral<std::remove_reference_t<T>>::value>
-			irender_parameter(const SFormatDesc &fd, const T &value, CCharBuffer &buffer)
+			irender_parameter(const FormatDesc &fd, const T &value, CharBuffer &buffer)
 			{
 				char_type *end, *start;
 
@@ -80,22 +72,20 @@ namespace ts_printf
 				buffer.SetOffset(start - buffer.GetData());
 			}
 
-
 			// We have a pointer to a non-char type. Forward to render as integral value (uintptr_t).
 			template<class T>
 			static std::enable_if_t<
 				(std::is_pointer<std::remove_reference_t<T>>::value || std::is_array<std::remove_reference_t<T>>::value) &&
 				!is_char_type<remove_all_t<T>>::value>
-			irender_parameter(const SFormatDesc &fd, const T &pValue, CCharBuffer &buffer)
+			irender_parameter(const FormatDesc &fd, const T &pValue, CharBuffer &buffer)
 			{
 				irender_parameter(fd, reinterpret_cast<uintptr_t>(pValue), buffer);
 			}
-
 		
 			// We have an enum value. Forward to render as integral value.
 			template<class T>
 			static std::enable_if_t<std::is_enum<bare_type_t<T>>::value>
-			irender_parameter(const SFormatDesc &fd, const T &eValue, CCharBuffer &buffer)
+			irender_parameter(const FormatDesc &fd, const T &eValue, CharBuffer &buffer)
 			{
 				typedef std::underlying_type_t<bare_type_t<T>> underlying_type;
 

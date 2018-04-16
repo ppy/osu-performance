@@ -78,7 +78,7 @@ namespace ts_printf
 		template<class CFormatter, typename CharType>
 		class CExtendedFormat
 		{
-			typedef SFormatDesc<CharType> SFormatDesc;
+			typedef SFormatDesc<CharType> FormatDesc;
 
 			template<class IteratorT>
 			static u32 _atoi(IteratorT &cur) throw()
@@ -132,14 +132,14 @@ namespace ts_printf
 							// Some text was between this and the last format description. Set the next part as this text
 							if(last != cur)
 							{
-								This.SetNextPart(SFormatDesc(last, cur, bClearEscapes));
+								This.SetNextPart(FormatDesc(last, cur, bClearEscapes));
 							}
 
 							bClearEscapes = false;
 							++cur;
 
 							// Get a reference to the next parts format description
-							SFormatDesc& fd = This.GetNextPart();
+							FormatDesc& fd = This.GetNextPart();
 
 							// The first char in the format description is the parameter index
 							fd.ParamIndex = static_cast<u16>(_atoi(cur));
@@ -323,7 +323,7 @@ endparse:			;
 				// Add the part that's left in case it isn't the end already. Then we can omit it
 				if(last != end)
 				{
-					This.SetNextPart(SFormatDesc(last, end, bClearEscapes));
+					This.SetNextPart(FormatDesc(last, end, bClearEscapes));
 				}
 			}
 
