@@ -18,6 +18,8 @@ osu!common/Properties/Strings.*.txt
 osu!/Properties/Strings.*.txt
 osu!/Constants/General_Version.cs
 
+/Build
+
 *.docstates
 
 Staging/
