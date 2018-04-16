@@ -33,7 +33,18 @@ macro(ADD_PRECOMPILED_HEADER Name PrecompiledHeader RelPath SourcesVar)
 		string(REPLACE " " ";" DefFlags "${DefFlags}")
 
 		# Get compiler flags in a parseable formatr
-		set(CompilerFlags ${CMAKE_CXX_FLAGS})
+		if (${CMAKE_BUILD_TYPE} STREQUAL "Release")
+			set(CompilerFlags ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_RELEASE})
+		elseif (${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+			set(CompilerFlags ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_DEBUG})
+		elseif (${CMAKE_BUILD_TYPE} STREQUAL "RelWithDebInfo")
+			set(CompilerFlags ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_RELWITHDEBINFO})
+		elseif (${CMAKE_BUILD_TYPE} STREQUAL "MinSizeRel")
+			set(CompilerFlags ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_MINSIZEREL})
+		else()
+			set(CompilerFlags ${CMAKE_CXX_FLAGS})
+		endif()
+
 		string(REPLACE " " ";" CompilerFlags "${CompilerFlags}")
 
 		add_custom_command(
