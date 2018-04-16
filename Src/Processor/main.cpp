@@ -1,13 +1,10 @@
 ﻿#include <PrecompiledHeader.h>
 
-
 #include "Processor.h"
 #include "SharedEnums.h"
 
-
 using namespace std::chrono;
 using namespace SharedEnums;
-
 
 void WrapperProcess(std::string executableName, EGamemode gamemode, bool ReProcess)
 {
@@ -29,8 +26,6 @@ void WrapperProcess(std::string executableName, EGamemode gamemode, bool ReProce
 	}
 }
 
-
-
 int main(s32 argc, char* argv[])
 {
 	srand(static_cast<unsigned int>(time(NULL)));
@@ -49,7 +44,6 @@ int main(s32 argc, char* argv[])
 	bool ReProcess = false;
 	EGamemode Gamemode = EGamemode::Standard;
 	
-
 	// Process arguments. Can ignore first one which is the executable name
 	for(s32 i = 1; i < argc; ++i)
 	{
@@ -86,8 +80,6 @@ int main(s32 argc, char* argv[])
 		WrapperProcess(argv[0], Gamemode, ReProcess);
 		return 0;
 	}
-	
-
 
 	try
 	{
@@ -97,22 +89,17 @@ int main(s32 argc, char* argv[])
 	catch(CLoggedException& e)
 	{
 		e.Log();
+		return 1;
 	}
 	catch(CException& e)
 	{
 		e.Print();
+		return 1;
 	}
-	/*catch( ... )
+	catch(const std::exception& e)
 	{
-		Log(CLog::EType::CriticalError, "Unspecified exception occurred. Terminating.");
-	}*/
-
-
-	// Only pause on windows... this is for ease of debugging.
-	// Since we execute this in an existing terminal on unix systems anyways,
-	// we don't have to fear for the console content to disappear.
-#ifdef __WIN32
-	system("PAUSE");
-#endif
+		std::cerr << "Uncaught exception: " << e.what() << std::endl;
+		return 1;
+	}
 }
 

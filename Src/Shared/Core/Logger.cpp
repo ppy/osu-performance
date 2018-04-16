@@ -33,16 +33,14 @@ CLog::CLog()
 CLog::~CLog()
 {
 #ifndef __WIN32
-
 	// Reset
 	Log(EType::None, CONSOLE_RESET);
-
 #endif
 }
 
 void CLog::Log(EType Flags, std::string Text)
 {
-	m_pActive->Send([this, Flags, &Text]() { LogText(Flags, std::move(Text)); });
+	m_pActive->Send([this, Flags, Text]() { LogText(Flags, std::move(Text)); });
 }
 
 void CLog::LogText(EType Flags, std::string Text)

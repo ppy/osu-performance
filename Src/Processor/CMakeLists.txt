@@ -103,28 +103,22 @@ include_directories(${EXTERNAL}/StrFormat)
 link_directories(${EXTERNAL}/MySQL/lib)
 link_directories(${EXTERNAL}/curl/lib)
 
-# Windows specific libraries
-if(WIN32)
+if (WIN32)
 	set(LIBRARIES
 		${LIBRARIES}
 		ws2_32
 		libmariadb
 		libcurl
 	)
-endif(WIN32)
-
-# Linux specific libraries
-if(UNIX)
-	# pthread
+elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES "GNU")
 	find_package(Threads REQUIRED)
-	
 	set(LIBRARIES
 		${LIBRARIES}
 		${CMAKE_THREAD_LIBS_INIT}
 		mysqlclient
 		curl
 	)
-endif(UNIX)
+endif()
 
 COMMON_INCLUDE_DIRECTORIES()
 GENERATE_EXECUTABLE(osu-performance)

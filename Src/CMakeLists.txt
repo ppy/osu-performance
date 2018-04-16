@@ -9,7 +9,13 @@ include(${SRC}/Common.cmake)
 
 # Tells the compilers to put the binaries in the BIN folder
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${BIN})
-set(CMAKE_BUILD_TYPE Release)
+
+# Set a default configuration if none was specified
+if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+    message(STATUS "No release type specified. Setting to 'Release'.")
+    set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build." FORCE)
+    set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "RelWithDebInfo")
+endif()
 
 message(STATUS "Build configuration: ${CMAKE_BUILD_TYPE}")
 
