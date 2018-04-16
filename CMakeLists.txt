@@ -2,9 +2,6 @@ cmake_minimum_required(VERSION 2.8)
 
 project(ppv2Processor)
 
-# Specify custom module search path
-set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules/" ${CMAKE_MODULE_PATH})
-
 message(STATUS "C compiler: ${CMAKE_C_COMPILER}")
 message(STATUS "C++ compiler: ${CMAKE_CXX_COMPILER}")
 
