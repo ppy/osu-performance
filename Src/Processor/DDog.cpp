@@ -88,8 +88,9 @@ void CDDog::UpdateStats(std::string metric, s64 delta, const std::vector<std::st
 
 void CDDog::Send(std::string data, const std::vector<std::string>& tags, f32 sampleRate)
 {
-	static thread_local std::default_random_engine generator{
-		std::hash<std::thread::id>()(std::this_thread::get_id())};
+	static thread_local std::mt19937_64 generator{
+		std::hash<std::thread::id>()(std::this_thread::get_id())
+	};
 	static thread_local std::uniform_real_distribution<f32> distribution{0.0f, 1.0f};
 
 	if(sampleRate < 1.0f)

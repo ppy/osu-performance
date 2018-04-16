@@ -3,8 +3,6 @@
 #include "UUID.h"
 #include "CCURL.h"
 
-
-
 size_t EmptyCURLWriteData(void *buffer, size_t size, size_t nmemb, void *userp)
 {
 	return size * nmemb;
@@ -146,4 +144,3 @@ void CCURL::SendToSentry(
 
 	Log(CLog::Success, "Submitted exception to sentry.");
 }
-
