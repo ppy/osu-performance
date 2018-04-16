@@ -61,12 +61,6 @@ void CActive::Run()
 		_activeException = std::current_exception();
 		_isDone = true;
 	}
-
-#ifdef __WIN32
-	// ExitThread is required to prevent a deadlock with joining in the case, that main is returning at the same time
-	// Remove when fixed in VC - not an issue in gcc / clang
-	ExitThread(nullptr);
-#endif
 }
 
 void CActive::Send(std::function<void()> callback, bool checkForException)
