@@ -1,6 +1,5 @@
 cmake_minimum_required(VERSION 2.8)
 
-
 include(${SRC}/PrecompiledHeader.cmake)
 
 # contains common macros for the sub-projects. That is
@@ -13,6 +12,5 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${BIN})
 set(CMAKE_BUILD_TYPE Release)
 
 message(STATUS "Build configuration: ${CMAKE_BUILD_TYPE}")
-
 
 add_subdirectory(Processor)

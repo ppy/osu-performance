@@ -25,7 +25,6 @@ namespace ts_printf
 		class CFloatRendererBase
 		{
 		protected:
-
 			template<typename FloatType> struct TypeMap; // undefined for general case
 			template<typename FloatType>
 			using TypeMap_t = typename TypeMap<FloatType>::type;
@@ -45,15 +44,12 @@ namespace ts_printf
 		{
 			typedef long long type;
 		};
-		
-		
-
 
 		template<class CharType>
 		class CFloatRenderer : public CFloatRendererBase
 		{
-			typedef SFormatDesc<CharType> SFormatDesc;
-			typedef CCharBuffer<CharType> CCharBuffer;
+			typedef SFormatDesc<CharType> FormatDesc;
+			typedef CCharBuffer<CharType> CharBuffer;
 
 			static CharType GetDecimalPoint()
 			{
@@ -61,14 +57,10 @@ namespace ts_printf
 				return DecimalPoint;
 			}
 
-
 		protected:
-
-
-
 			template<class FloatType>
 			static std::enable_if_t<std::is_floating_point<FloatType>::value>
-				irender_parameter(const SFormatDesc& Format, const FloatType& Value, CCharBuffer& CharBuffer)
+				irender_parameter(const FormatDesc& Format, const FloatType& Value, CharBuffer& CharBuffer)
 			{
 				CharType* Start;
 				CharType* End;
@@ -140,7 +132,5 @@ namespace ts_printf
 				CharBuffer.SetOffset(Start - CharBuffer.GetData());
 			}
 		};
-		
-		
 	};
 };

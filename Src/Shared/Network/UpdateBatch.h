@@ -27,7 +27,7 @@ private:
 	void Reset();
 	const std::string& Query();
 
-	u32 Size() const { return _query.size(); }
+	u32 Size() const { return (u32)_query.size(); }
 
 	void Execute();
 

@@ -2,12 +2,10 @@ cmake_minimum_required(VERSION 2.8)
 
 # Processor
 set(SOURCES
-
 	${SOURCES}
 	
 	${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
 
-	
 	${CMAKE_CURRENT_SOURCE_DIR}/Beatmap.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/CCURL.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/DDog.cpp
@@ -29,9 +27,7 @@ set(SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/Mania/ManiaScore.cpp
 )
 
-
 set(SHARED_SOURCES
-
 	${SHARED_SOURCES}
 
 	${SHARED}/Config.cpp
@@ -47,11 +43,9 @@ set(SHARED_SOURCES
 	${SHARED}/Network/UpdateBatch.cpp
 )
 
-
 set(HEADERS
-   
-    ${HEADERS}
-   
+	${HEADERS}
+
 	# precompiled header
 	${CMAKE_CURRENT_SOURCE_DIR}/PrecompiledHeader.h
 
@@ -76,7 +70,6 @@ set(HEADERS
 	# mania
 	${CMAKE_CURRENT_SOURCE_DIR}/Mania/ManiaScore.h
 	
-	 
 	# shared stuff
 	${SHARED}/Config.h
 	${SHARED}/configVariables.h
@@ -110,37 +103,28 @@ include_directories(${EXTERNAL}/StrFormat)
 link_directories(${EXTERNAL}/MySQL/lib)
 link_directories(${EXTERNAL}/curl/lib)
 
-
 # Windows specific libraries
 if(WIN32)
-
 	set(LIBRARIES
-
 		${LIBRARIES}
 		ws2_32
 		libmariadb
 		libcurl
 	)
-	
 endif(WIN32)
 
 # Linux specific libraries
-if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_COMPILER_IS_CLANGXX)
-
+if(UNIX)
 	# pthread
 	find_package(Threads REQUIRED)
 	
 	set(LIBRARIES
-
 		${LIBRARIES}
-		
 		${CMAKE_THREAD_LIBS_INIT}
-		libmysqlclient.so
-		libcurl.so
+		mysqlclient
+		curl
 	)
-
-endif(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_COMPILER_IS_CLANGXX)
-
+endif(UNIX)
 
 COMMON_INCLUDE_DIRECTORIES()
 GENERATE_EXECUTABLE(Client)

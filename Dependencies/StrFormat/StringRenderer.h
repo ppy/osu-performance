@@ -12,16 +12,14 @@ namespace ts_printf
 {
 	namespace _details
 	{
-		
-
 		template<typename CharType>
 		class CStringRenderer
 		{
-			typedef SFormatDesc<CharType> SFormatDesc;
-			typedef CCharBuffer<CharType> CCharBuffer;
+			typedef SFormatDesc<CharType> FormatDesc;
+			typedef CCharBuffer<CharType> CharBuffer;
 
 			template<typename T>
-			static void RenderString(CCharBuffer& Output, const T* pData, size_t Length)
+			static void RenderString(CharBuffer& Output, const T* pData, size_t Length)
 			{
 				// No need to allocate any buffer, we already have the buffer right here!
 				// TODO: implement
@@ -42,7 +40,7 @@ namespace ts_printf
 
 			// char pointer
 			template<typename T>
-			static void StringDispatcher(const T *const &r, CCharBuffer &Output)
+			static void StringDispatcher(const T *const &r, CharBuffer &Output)
 			{
 				RenderString(Output, r, std::char_traits<T>::length(r));
 			}
@@ -50,7 +48,7 @@ namespace ts_printf
 
 			// char array
 			template<typename T, size_t N>
-			static void StringDispatcher(const T(&p)[N], CCharBuffer &Output)
+			static void StringDispatcher(const T(&p)[N], CharBuffer &Output)
 			{
 				// we don't need the trailing zero character
 				RenderString(Output, p, N - 1);
@@ -60,7 +58,7 @@ namespace ts_printf
 			// For basic_string of all types
 			template<class CString>
 			static typename std::enable_if<!std::is_pod<typename std::remove_reference<CString>::type>::value>::type
-				StringDispatcher(const CString& String, CCharBuffer &Output)
+				StringDispatcher(const CString& String, CharBuffer &Output)
 			{
 				RenderString(Output, String.c_str(), String.length());
 			}
@@ -85,7 +83,7 @@ namespace ts_printf
 			
 			>::type
 
-			irender_parameter(const SFormatDesc& FormatDescription, StringType&& String, CCharBuffer& Output)
+			irender_parameter(const FormatDesc& FormatDescription, StringType&& String, CharBuffer& Output)
 			{
 				//FormatDescription;
 				StringDispatcher(std::forward<StringType>(String), Output);

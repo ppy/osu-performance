@@ -143,7 +143,7 @@ CThreadPool::CThreadPool(const u32 NumThreads)
 
 CThreadPool::~CThreadPool()
 {
-	ShutdownThreads(m_Threads.size());
+	ShutdownThreads((u32)m_Threads.size());
 
 	Log(CLog::EType::Threads, "All threads terminated.");
 }
@@ -152,7 +152,7 @@ CThreadPool::~CThreadPool()
 void CThreadPool::StartThreads(const u32 Amount)
 {
 	m_NumThreads += Amount;
-	for(u32 i = m_Threads.size(); i < m_NumThreads; ++i)
+	for(u32 i = (u32)m_Threads.size(); i < m_NumThreads; ++i)
 	{
 		m_Threads.emplace_back(
 			[this, i]
@@ -264,7 +264,7 @@ void CThreadPool::FlushQueue()
 {
 	std::lock_guard<std::mutex> lock{m_TaskQueueMutex};
 
-	m_NumTasksInSystem -= m_TaskQueue.size();
+	m_NumTasksInSystem -= (u32)m_TaskQueue.size();
 
 	// Clear the task queue
 	m_TaskQueue.clear();
