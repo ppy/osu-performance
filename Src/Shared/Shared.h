@@ -16,7 +16,7 @@
 // Apple and Linux both imply Unix
 #if defined(__APPLE) || defined(__LINUX)
 	#define __UNIX
-#endif // defined(__APPLE) || defined(__LINUX)
+#endif
 
 // Some compiler-specific directives which might turn out useful.
 // Wrapper macros to make code portable between compilers.
@@ -25,17 +25,17 @@
 	#define UNREACHABLE __assume(false)
 	#define ASSUME __assume
 	#define THREAD_LOCAL __declspec(thread) // c++11 thread_local not yet supported by win32
-#else // __WIN32
+#else
 	#define INLINE inline
 	#define UNREACHABLE __builtin_unreachable()
 	#define ASSUME(cond) do { if (!(cond)) __builtin_unreachable(); } while (0)
 	#define THREAD_LOCAL thread_local
-#endif // __WIN32
+#endif
 
 // Define a debug switch with the same consistency as the other defines
 #ifdef _DEBUG
 	#define __DEBUG
-#endif // _Debug
+#endif
 
 // Make a string out of a macro argument.
 #define STRINGIFY(x) #x
@@ -49,7 +49,7 @@
 	// Networking. That is winsock for windows
 	#define _WINSOCK_DEPRECATED_NO_WARNINGS
 	#include <WinSock2.h>
-#else // __WIN32
+#else
 	#include <unistd.h>
 	#include <fcntl.h>
 	#include <sys/mman.h>
@@ -61,7 +61,7 @@
 	#include <netinet/in.h>
 	#include <netdb.h>
 	#include <arpa/inet.h>
-#endif // __WIN32
+#endif
 
 #include <cassert>
 
@@ -118,13 +118,11 @@ typedef unsigned int uint;
 // Base types: int = s32, ...
 #include "Core/Types.h"
 
-// Fast formatting with type checks
 #include <StrFormat.h>
 
 #include "Core/Exception.h"
 #include "Core/StringUtil.h"
 
-// Math stuff
 #include "Math/Math.h"
 
 // The logger requires CVector2d<s32> for positions in the console, thus it comes
