@@ -2,21 +2,15 @@
 
 #include "QueryResult.h"
 
-
 CQueryResult::CQueryResult(MYSQL_RES* pRes)
-	:
-	_pRes(pRes),
-	_Row(nullptr)
+: _pRes(pRes), _Row(nullptr)
 {
 }
-
 
 CQueryResult::CQueryResult(CQueryResult&& other)
 {
 	if(_pRes)
-	{
 		mysql_free_result(_pRes);
-	}
 
 	_pRes = other._pRes;
 	_Row = other._Row;
@@ -24,13 +18,10 @@ CQueryResult::CQueryResult(CQueryResult&& other)
 	other._pRes = 0;
 }
 
-
 CQueryResult& CQueryResult::operator=(CQueryResult&& other)
 {
 	if(_pRes)
-	{
 		mysql_free_result(_pRes);
-	}
 
 	_pRes = other._pRes;
 	_Row = other._Row;
@@ -40,14 +31,11 @@ CQueryResult& CQueryResult::operator=(CQueryResult&& other)
 	return *this;
 }
 
-
 CQueryResult::~CQueryResult()
 {
 	// Clean up properly!
 	if(_pRes)
-	{
 		mysql_free_result(_pRes);
-	}
 }
 
 bool CQueryResult::NextRow()

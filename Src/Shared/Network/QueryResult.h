@@ -2,7 +2,6 @@
 
 #include <Shared.h>
 
-
 inline int xtoi(const char *_str)
 {
 	return ::atoi(_str);
@@ -33,11 +32,9 @@ inline double xtod(const char *_str)
 	return ::atof(_str);
 }
 
-
 class CQueryResult
 {
 public:
-
 	CQueryResult(CQueryResult&& other);
 	CQueryResult(CQueryResult& other) = delete;
 
@@ -65,9 +62,7 @@ public:
 	inline float         F32(u32 dwField) const { return xtof(_Row[dwField]); }
 	inline double        F64(u32 dwField) const { return xtod(_Row[dwField]); }
 
-
 private:
-
 	CQueryResult(MYSQL_RES* pRes);
 
 	MYSQL_RES* _pRes;
