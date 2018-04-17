@@ -1,7 +1,6 @@
 #include <Shared.h>
 #include "Threading.h"
 
-
 void CPriorityMutex::LockLowPrio()
 {
 	L.lock();
@@ -16,7 +15,6 @@ void CPriorityMutex::UnlockLowPrio()
 	L.unlock();
 }
 
-
 void CPriorityMutex::LockHighPrio()
 {
 	N.lock();
@@ -29,9 +27,8 @@ void CPriorityMutex::UnlockHighPrio()
 	M.unlock();
 }
 
-
 CPriorityLock::CPriorityLock(CPriorityMutex* pPriorityMutex, bool isHighPriority)
-	: _pPriorityMutex{pPriorityMutex}, _isHighPriority{isHighPriority}, _isLocked{false}
+: _pPriorityMutex{pPriorityMutex}, _isHighPriority{isHighPriority}, _isLocked{false}
 {
 	Lock();
 }
@@ -44,18 +41,12 @@ CPriorityLock::~CPriorityLock()
 void CPriorityLock::Lock()
 {
 	if (_isLocked)
-	{
 		return;
-	}
 
 	if(_isHighPriority)
-	{
 		_pPriorityMutex->LockHighPrio();
-	}
 	else
-	{
 		_pPriorityMutex->LockLowPrio();
-	}
 
 	_isLocked = true;
 }
@@ -63,22 +54,15 @@ void CPriorityLock::Lock()
 void CPriorityLock::Unlock()
 {
 	if(!_isLocked)
-	{
 		return;
-	}
 
 	if(_isHighPriority)
-	{
 		_pPriorityMutex->UnlockHighPrio();
-	}
 	else
-	{
 		_pPriorityMutex->UnlockLowPrio();
-	}
 
 	_isLocked = false;
 }
-
 
 CRWLock::CRWLock(CRWMutex* pRWMutex, bool isWriter)
 	: _pRWMutex{pRWMutex}, _isWriter{isWriter}, _isLocked{false}
@@ -94,18 +78,12 @@ CRWLock::~CRWLock()
 void CRWLock::Lock()
 {
 	if(_isLocked)
-	{
 		return;
-	}
 
 	if(_isWriter)
-	{
 		_pRWMutex->WriterLock();
-	}
 	else
-	{
 		_pRWMutex->ReaderLock();
-	}
 
 	_isLocked = true;
 }
@@ -113,27 +91,19 @@ void CRWLock::Lock()
 void CRWLock::Unlock()
 {
 	if(!_isLocked)
-	{
 		return;
-	}
 
 	if(_isWriter)
-	{
 		_pRWMutex->WriterUnlock();
-	}
 	else
-	{
 		_pRWMutex->ReaderUnlock();
-	}
 
 	_isLocked = false;
 }
 
-
 CThreadPool::CThreadPool()
-	: CThreadPool{0}
+: CThreadPool{0}
 {
-
 }
 
 CThreadPool::CThreadPool(const u32 NumThreads)
@@ -144,18 +114,15 @@ CThreadPool::CThreadPool(const u32 NumThreads)
 CThreadPool::~CThreadPool()
 {
 	ShutdownThreads((u32)m_Threads.size());
-
 	Log(CLog::EType::Threads, "All threads terminated.");
 }
-
 
 void CThreadPool::StartThreads(const u32 Amount)
 {
 	m_NumThreads += Amount;
 	for(u32 i = (u32)m_Threads.size(); i < m_NumThreads; ++i)
 	{
-		m_Threads.emplace_back(
-			[this, i]
+		m_Threads.emplace_back([this, i]
 		{
 			Log(CLog::Threads, StrFormat("Worker thread {0} started.", i));
 
@@ -174,9 +141,7 @@ void CThreadPool::StartThreads(const u32 Amount)
 				}
 
 				if(i >= this->m_NumThreads)
-				{
 					break;
-				}
 
 				std::function<void()> task{std::move(this->m_TaskQueue.front())};
 				this->m_TaskQueue.pop_front();
@@ -199,18 +164,14 @@ void CThreadPool::StartThreads(const u32 Amount)
 					std::unique_lock<std::mutex> lock{this->m_SystemBusyMutex};
 
 					if(m_NumTasksInSystem == 0)
-					{
 						this->m_SystemBusyCondition.notify_all();
-					}
 				}
 			}
 
 			Log(CLog::Threads, StrFormat("Worker thread {0} stopped.", i));
-		}
-		);
+		});
 	}
 }
-
 
 void CThreadPool::ShutdownThreads(const u32 Amount)
 {
@@ -233,32 +194,25 @@ void CThreadPool::ShutdownThreads(const u32 Amount)
 	}
 }
 
-
 void CThreadPool::WaitUntilFinished()
 {
 	std::unique_lock<std::mutex> lock{m_SystemBusyMutex};
 
 	if(m_NumTasksInSystem == 0)
-	{
 		return;
-	}
 
 	m_SystemBusyCondition.wait(lock);
 }
-
 
 void CThreadPool::WaitUntilFinishedFor(const std::chrono::microseconds Duration)
 {
 	std::unique_lock<std::mutex> lock{m_SystemBusyMutex};
 
 	if(m_NumTasksInSystem == 0)
-	{
 		return;
-	}
 
 	m_SystemBusyCondition.wait_for(lock, Duration);
 }
-
 
 void CThreadPool::FlushQueue()
 {
@@ -268,5 +222,4 @@ void CThreadPool::FlushQueue()
 
 	// Clear the task queue
 	m_TaskQueue.clear();
-
 }
