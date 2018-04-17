@@ -25,8 +25,10 @@ ForwardIt unique_own(ForwardIt first, ForwardIt last, BinaryPredicate p)
 CUser::SPPRecord CUser::ComputePPRecord()
 {
 	// Eliminate duplicate beatmaps with lower pp
-	std::sort(std::begin(_scores), std::end(_scores),
-		[](const CScore::SPPRecord& a, const CScore::SPPRecord& b) { return a.BeatmapId < b.BeatmapId || (a.BeatmapId == b.BeatmapId && b.Value < a.Value); });
+	std::sort(std::begin(_scores), std::end(_scores), [](const CScore::SPPRecord& a, const CScore::SPPRecord& b)
+	{
+		return a.BeatmapId < b.BeatmapId || (a.BeatmapId == b.BeatmapId && b.Value < a.Value);
+	});
 
 	_scores.erase(
 		unique_own(
@@ -34,11 +36,14 @@ CUser::SPPRecord CUser::ComputePPRecord()
 			_scores.end(),
 			[](const CScore::SPPRecord& a, const CScore::SPPRecord& b) { return a.BeatmapId == b.BeatmapId; }
 		),
-		_scores.end());
+		_scores.end()
+	);
 
 	// Sort values in descending order
-	std::sort(std::begin(_scores), std::end(_scores),
-		[](const CScore::SPPRecord& a, const CScore::SPPRecord& b) { return b.Value < a.Value; });
+	std::sort(std::begin(_scores), std::end(_scores), [](const CScore::SPPRecord& a, const CScore::SPPRecord& b)
+	{
+		return b.Value < a.Value;
+	});
 
 	_rating = SPPRecord{};
 
@@ -57,10 +62,8 @@ CUser::SPPRecord CUser::ComputePPRecord()
 
 	// We want our accuracy to be normalized.
 	if(_scores.size() > 0)
-	{
 		// We want the percentage, not a factor in [0, 1], hence we divide 20 by 100
 		_rating.Accuracy *= 100.0 / (20 * (1 - pow(0.95, _scores.size())));
-	}
 
 	return _rating;
 }
@@ -68,9 +71,7 @@ CUser::SPPRecord CUser::ComputePPRecord()
 CScore::SPPRecord CUser::XthBestScorePPRecord(unsigned int i)
 {
 	if(i >= _scores.size())
-	{
 		return CScore::SPPRecord{0, 0, 0, 0};
-	}
 
 	return _scores[i];
 }
