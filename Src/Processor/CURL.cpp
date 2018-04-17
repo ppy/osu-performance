@@ -1,7 +1,7 @@
 #include <PrecompiledHeader.h>
 
 #include "UUID.h"
-#include "CCURL.h"
+#include "CURL.h"
 
 size_t EmptyCURLWriteData(void *buffer, size_t size, size_t nmemb, void *userp)
 {
@@ -29,18 +29,22 @@ void CCURL::SendToSlack(
 	std::string message)
 {
 	std::string url = StrFormat(
-		"https://{0}/services/hooks/incoming-webhook?token={1}", domain, key);
+		"https://{0}/services/hooks/incoming-webhook?token={1}", domain, key
+	);
 
 	curl_easy_setopt(_pCURL, CURLOPT_URL, url.c_str());
 
-	std::string PostData = StrFormat(R"(
+	std::string PostData = StrFormat(
+		R"(
 			{{
 				"channel":"{0}",
 				"username":"{1}",
 				"icon_url":"{2}",
 				"text":"{3}"
 			}
-	)", channel, username, iconURL, message);
+		)",
+		channel, username, iconURL, message
+	);
 
 	curl_easy_setopt(_pCURL, CURLOPT_CUSTOMREQUEST, "POST");
 	curl_easy_setopt(_pCURL, CURLOPT_POSTFIELDS, PostData.c_str());
@@ -90,24 +94,25 @@ void CCURL::SendToSentry(
 	std::replace(std::begin(file), std::end(file), '\\', '/');
 
 	std::string postData = StrFormat(
-	R"({{
-		"event_id":"{0}",
-		"message":"{1}",
-		"level":"{2}",
-		"tags": {{
-			"mode":"{3}"
-		},
-		"extra": {{
-			"file":"{4}",
-			"line":"{5}"
-		}
-	})",
-	CUUID::V4().ToString(),
-	e.Description(),
-	warning ? "warning" : "error",
-	mode,
-	file,
-	e.Line());
+		R"({{
+			"event_id":"{0}",
+			"message":"{1}",
+			"level":"{2}",
+			"tags": {{
+				"mode":"{3}"
+			},
+			"extra": {{
+				"file":"{4}",
+				"line":"{5}"
+			}
+		})",
+		CUUID::V4().ToString(),
+		e.Description(),
+		warning ? "warning" : "error",
+		mode,
+		file,
+		e.Line()
+	);
 
 	curl_easy_setopt(_pCURL, CURLOPT_CUSTOMREQUEST, "POST");
 	curl_easy_setopt(_pCURL, CURLOPT_POSTFIELDS, postData.c_str());

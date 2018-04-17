@@ -1,13 +1,10 @@
 #pragma once
 
-
-
 typedef void CURL;
 
 class CCURL
 {
 public:
-
 	CCURL();
 	~CCURL();
 
@@ -29,6 +26,5 @@ public:
 		bool warning = false);
 
 private:
-
 	CURL* _pCURL = nullptr;
 };

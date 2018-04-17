@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Beatmap.h"
-#include "CCURL.h"
+#include "CURL.h"
 #include "DDog.h"
 #include "User.h"
 #include "SharedEnums.h"
