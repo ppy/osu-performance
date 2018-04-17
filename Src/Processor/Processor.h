@@ -1,6 +1,5 @@
 #pragma once
 
-
 #include "Beatmap.h"
 #include "CCURL.h"
 #include "DDog.h"
@@ -10,13 +9,10 @@
 #include "../Shared/Config.h"
 #include "../Shared/Network/DatabaseConnection.h"
 
-
 DEFINE_LOGGED_EXCEPTION(CProcessorException);
-
 
 // Specify user id to test
 //#define PLAYER_TESTING 124493
-
 
 struct SScore;
 
@@ -43,10 +39,7 @@ public:
 		return s_gamemodeTags.at(gamemode);
 	}
 
-
 private:
-
-
 	static const std::array<const std::string, SharedEnums::AmountGamemodes> s_gamemodeSuffixes;
 	static const std::array<const std::string, SharedEnums::AmountGamemodes> s_gamemodeNames;
 	static const std::array<const std::string, SharedEnums::AmountGamemodes> s_gamemodeTags;
@@ -64,14 +57,11 @@ private:
 		return StrFormat("pp_last_user_id{0}", GamemodeSuffix(_gamemode));
 	}
 
-
 	CConfig _config;
 	static const std::string s_configFile;
 
-
 	std::shared_ptr<CDatabaseConnection> NewDBConnectionMaster();
 	std::shared_ptr<CDatabaseConnection> NewDBConnectionSlave();
-
 
 	// Difficulty data is held in RAM.
 	// A few hundred megabytes.
@@ -86,7 +76,6 @@ private:
 
 	void ProcessAllScores(bool reProcess);
 
-
 	std::shared_ptr<CDatabaseConnection> _pDB;
 	std::shared_ptr<CDatabaseConnection> _pDBSlave;
 
@@ -98,19 +87,21 @@ private:
 	void PollAndProcessNewScores();
 	void PollAndProcessNewBeatmapSets();
 
-	std::unique_ptr<CScore> NewScore(s64 scoreId,
-									 SharedEnums::EGamemode mode,
-									 s32 userId,
-									 s32 beatmapId,
-									 s32 score,
-									 s32 maxCombo,
-									 s32 amount300,
-									 s32 amount100,
-									 s32 amount50,
-									 s32 amountMiss,
-									 s32 amountGeki,
-									 s32 amountKatu,
-									 SharedEnums::EMods mods);
+	std::unique_ptr<CScore> NewScore(
+		s64 scoreId,
+		SharedEnums::EGamemode mode,
+		s32 userId,
+		s32 beatmapId,
+		s32 score,
+		s32 maxCombo,
+		s32 amount300,
+		s32 amount100,
+		s32 amount50,
+		s32 amountMiss,
+		s32 amountGeki,
+		s32 amountKatu,
+		SharedEnums::EMods mods
+	);
 
 	std::unordered_set<s32> _blacklistedBeatmapIds;
 	void QueryBeatmapBlacklist();
@@ -124,14 +115,11 @@ private:
 		std::shared_ptr<CDatabaseConnection> pDB,
 		std::shared_ptr<CUpdateBatch> newUsers,
 		std::shared_ptr<CUpdateBatch> newScores,
-		s64 userId);
-
+		s64 userId
+	);
 
 	void StoreCount(CDatabaseConnection& db, std::string key, s64 value);
 	s64 RetrieveCount(CDatabaseConnection& db, std::string key);
-
-
-	void SuperviseStalls();
 
 	SharedEnums::EGamemode _gamemode;
 
