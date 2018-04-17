@@ -4,13 +4,11 @@
 
 #include "QueryResult.h"
 
-
 DEFINE_LOGGED_EXCEPTION(CDatabaseException);
 
 class CDatabaseConnection
 {
 public:
-
 	CDatabaseConnection(
 		std::string host,
 		s16 port,
@@ -18,7 +16,6 @@ public:
 		std::string password,
 		std::string database);
 	~CDatabaseConnection();
-
 
 	void NonQueryBackground(const std::string& queryString);
 	void NonQuery(const std::string& queryString);
@@ -33,7 +30,6 @@ public:
 	//returns the number of rows e.g. returned by a SELECT
 	u32 AffectedRows();
 
-
 	inline void escape(char* dest, char* src)
 	{
 		mysql_real_escape_string(_pMySQL, dest, src, strlen(src));
@@ -44,16 +40,12 @@ public:
 		return mysql_field_count(_pMySQL);
 	}
 
-
 	size_t AmountPendingQueries()
 	{
 		return _pActive->AmountPending();
 	}
 
-
 private:
-
-	//connects to a MySQL server
 	void connect();
 
 	std::unique_ptr<CActive> _pActive;
