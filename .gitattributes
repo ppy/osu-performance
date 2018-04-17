@@ -1,5 +1,5 @@
-# This won't normalise line endings, but it will ensure that merge drivers use CRLF
-* -text eol=crlf
+# This won't normalise line endings, but it will ensure that merge drivers use lf
+* -text eol=lf
 
 # Exceptions for generated LF files
 osu!.sln.DotSettings                   eol=lf
