@@ -15,9 +15,7 @@ void WrapperProcess(std::string executableName, EGamemode gamemode, bool ReProce
 #endif
 
 	if(ReProcess)
-	{
 		ExecutionCommand += " -r";
-	}
 
 	while(true)
 	{
@@ -50,14 +48,10 @@ int main(s32 argc, char* argv[])
 	for(s32 i = 1; i < argc; ++i)
 	{
 		if(std::string{"-f"} == argv[i])
-		{
 			Force = true;
-		}
 
 		if(std::string{"-r"} == argv[i])
-		{
 			ReProcess = true;
-		}
 
 		if(std::string{"-m"} == argv[i])
 		{
@@ -104,4 +98,3 @@ int main(s32 argc, char* argv[])
 		return 1;
 	}
 }
-
