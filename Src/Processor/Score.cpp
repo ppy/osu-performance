@@ -1,6 +1,5 @@
 #include <PrecompiledHeader.h>
 
-
 #include "Processor.h"
 
 #include "Score.h"
@@ -8,9 +7,7 @@
 
 #include "../Shared/Network/UpdateBatch.h"
 
-
 using namespace SharedEnums;
-
 
 CScore::CScore(
 	s64 scoreId,
@@ -25,7 +22,8 @@ CScore::CScore(
 	s32 amountMiss,
 	s32 amountGeki,
 	s32 amountKatu,
-	EMods mods)
+	EMods mods
+)
 :
 _scoreId{scoreId},
 _mode{mode},
@@ -51,5 +49,6 @@ void CScore::AppendToUpdateBatch(CUpdateBatch& batch)
 		"WHERE `score_id`={2};",
 		CProcessor::GamemodeSuffix(_mode),
 		TotalValue(),
-		_scoreId));
+		_scoreId
+	));
 }

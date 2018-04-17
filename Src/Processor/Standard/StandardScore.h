@@ -1,8 +1,6 @@
 #pragma once
 
-
 #include "Score.h"
-
 
 class CStandardScore : public CScore
 {
@@ -22,7 +20,8 @@ public:
 		s32 amountGeki,
 		s32 amountKatu,
 		SharedEnums::EMods mods,
-		const CBeatmap& beatmap);
+		const CBeatmap& beatmap
+	);
 
 	f32 TotalValue() const override;
 	f32 Accuracy() const override;
@@ -30,7 +29,6 @@ public:
 	s32 TotalSuccessfulHits() const override;
 
 private:
-
 	f32 _aimValue;
 	f32 _speedValue;
 	f32 _accValue;

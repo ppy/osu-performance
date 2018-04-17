@@ -1,13 +1,10 @@
 #pragma once
 
-
-
 class CDatabaseConnection;
 
 class CUpdateBatch
 {
 public:
-
 	CUpdateBatch(std::shared_ptr<CDatabaseConnection> pDB, u32 sizeThreshold);
 	~CUpdateBatch();
 
@@ -17,7 +14,6 @@ public:
 	std::mutex& Mutex() { return _batchMutex; }
 
 private:
-
 	void Append(const std::string& values)
 	{
 		_empty = false;

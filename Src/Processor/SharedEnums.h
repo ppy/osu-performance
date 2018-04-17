@@ -1,6 +1,5 @@
 #pragma once
 
-
 namespace SharedEnums
 {
 	enum EMods : u32
@@ -52,6 +51,3 @@ namespace SharedEnums
 		AmountGamemodes,
 	};
 }
-
-
-

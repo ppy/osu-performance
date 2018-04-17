@@ -3,14 +3,13 @@
 #include "DDog.h"
 
 #ifndef __WIN32
-#include <arpa/inet.h>
-#include <netinet/in.h>
-#include <stdio.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <unistd.h>
+	#include <arpa/inet.h>
+	#include <netinet/in.h>
+	#include <stdio.h>
+	#include <sys/types.h>
+	#include <sys/socket.h>
+	#include <unistd.h>
 #endif
-
 
 CDDog::CDDog(std::string host, s16 port)
 : _host{host}, _port{port}
@@ -61,16 +60,12 @@ void CDDog::Set(std::string metric, s64 value, std::vector<std::string> tags, f3
 void CDDog::AddTags(std::string& message, const std::vector<std::string>& tags)
 {
 	if(tags.empty())
-	{
 		return;
-	}
 
 	message.push_back('|');
 
 	for(const std::string& s : tags)
-	{
 		message += StrFormat("#{0},", s);
-	}
 
 	message.pop_back();
 }
@@ -79,9 +74,7 @@ void CDDog::AddTags(std::string& message, const std::vector<std::string>& tags)
 void CDDog::UpdateStats(std::string metric, s64 delta, const std::vector<std::string>& tags, f32 sampleRate)
 {
 	if (delta == 0)
-	{
 		return;
-	}
 
 	Send(StrFormat("{0}:{1}|c", metric, delta), tags, sampleRate);
 }
@@ -96,9 +89,7 @@ void CDDog::Send(std::string data, const std::vector<std::string>& tags, f32 sam
 	if(sampleRate < 1.0f)
 	{
 		if (distribution(generator) >= sampleRate)
-		{
 			return;
-		}
 
 		data += StrFormat("|@{0p2}", sampleRate);
 	}
@@ -119,9 +110,7 @@ void CDDog::Send(std::string data, const std::vector<std::string>& tags, f32 sam
 
 	s32 bytesSent = sendto(s, data.c_str(), (s32)data.length(), 0, (sockaddr*)&_server, sizeof(_server));
 	if(bytesSent == SOCKET_ERROR)
-	{
 		Log(CLog::Error, "Couldn't send data to datadog.");
-	}
 
 	closesocket(s);
 #else
@@ -138,9 +127,7 @@ void CDDog::Send(std::string data, const std::vector<std::string>& tags, f32 sam
 
 	s32 bytesSent = sendto(s, data.c_str(), data.length(), 0, (sockaddr*)&_server, sizeof(_server));
 	if(bytesSent == -1)
-	{
 		Log(CLog::Error, "Couldn't send data to datadog.");
-	}
 
 	close(s);
 #endif

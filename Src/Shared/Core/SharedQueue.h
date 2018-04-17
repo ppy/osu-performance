@@ -1,16 +1,13 @@
 #pragma once
 
-
 #include <deque>
 #include <mutex>
 #include <condition_variable>
-
 
 template <typename T>
 class CSharedQueue
 {
 public:
-
 	bool Empty() const
 	{
 		std::lock_guard<std::mutex> lock{ m_Mutex };
@@ -45,10 +42,7 @@ public:
 		return Result;
 	}
 
-
-
 private:
-
 	std::deque<T> m_RawQueue;
 	mutable std::mutex m_Mutex;
 	std::condition_variable m_DataCondition;

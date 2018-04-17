@@ -4,11 +4,9 @@
 
 DEFINE_LOGGED_EXCEPTION(CActiveException);
 
-
 class CActive
 {
 public:
-
 	CActive(const CActive&) = delete;
 	CActive& operator=(const CActive&) = delete;
 
@@ -21,7 +19,6 @@ public:
 	bool IsBusy() const;
 
 private:
-
 	// See Create
 	CActive();
 	void Run();

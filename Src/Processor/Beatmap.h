@@ -1,20 +1,14 @@
 #pragma once
 
-
-
 #include "SharedEnums.h"
-
 
 DEFINE_LOGGED_EXCEPTION(CBeatmapException);
 
-
 class CInsertionBatch;
-
 
 class CBeatmap
 {
 public:
-
 	CBeatmap(s32 id);
 
 	enum EDifficultyAttributeType : byte
@@ -59,15 +53,14 @@ public:
 		return s_difficultyAttributes.at(difficultyAttributeName);
 	}
 
-
 private:
-
 	static const SharedEnums::EMods s_relevantDifficultyMods = static_cast<SharedEnums::EMods>(
 		SharedEnums::EMods::DoubleTime |
 		SharedEnums::EMods::HalfTime |
 		SharedEnums::EMods::HardRock |
 		SharedEnums::EMods::Easy |
-		SharedEnums::EMods::keyMod);
+		SharedEnums::EMods::keyMod
+	);
 
 	static SharedEnums::EMods MaskRelevantDifficultyMods(SharedEnums::EMods mods)
 	{
@@ -81,8 +74,13 @@ private:
 	SharedEnums::EGamemode _mode = SharedEnums::EGamemode::Standard;
 
 	// Calculated difficulty
-	using difficulty_t =
-		std::unordered_map<std::underlying_type_t<SharedEnums::EMods>, std::unordered_map<std::underlying_type_t<EDifficultyAttributeType>, f32>>;
+	using difficulty_t = std::unordered_map<
+		std::underlying_type_t<SharedEnums::EMods>,
+		std::unordered_map<
+			std::underlying_type_t<EDifficultyAttributeType>,
+			f32
+		>
+	>;
 
 	difficulty_t _difficulty;
 

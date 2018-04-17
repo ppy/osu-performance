@@ -4,7 +4,6 @@
 #include <iomanip>
 #include <sstream>
 
-
 void Log(CLog::EType Flags, std::string Text)
 {
 	static auto pLog = CLog::CreateLogger();
@@ -46,17 +45,10 @@ void CLog::Log(EType Flags, std::string Text)
 void CLog::LogText(EType Flags, std::string Text)
 {
 	EStream Stream;
-	if(Flags & EType::Error ||
-	   Flags & EType::CriticalError ||
-	   Flags & EType::SQL ||
-	   Flags & EType::Exception)
-	{
+	if(Flags & EType::Error || Flags & EType::CriticalError || Flags & EType::SQL || Flags & EType::Exception)
 		Stream = EStream::STDERR;
-	}
 	else
-	{
 		Stream = EStream::STDOUT;
-	}
 
 	std::string TextOut;
 
@@ -78,51 +70,28 @@ void CLog::LogText(EType Flags, std::string Text)
 #endif
 	}
 
-
 	if(Flags & EType::Success)
-	{
 		TextOut += CONSOLE_GREEN "SUCCESS" CONSOLE_RESET;
-	}
 	else if(Flags & EType::SQL)
-	{
 		TextOut += CONSOLE_BOLD_BLUE "SQL" CONSOLE_RESET;
-	}
 	else if(Flags & EType::Threads)
-	{
 		TextOut += CONSOLE_BOLD_MAGENTA "THREADS" CONSOLE_RESET;
-	}
 	else if(Flags & EType::Info)
-	{
 		TextOut += CONSOLE_CYAN "INFO" CONSOLE_RESET;
-	}
 	else if(Flags & EType::Notice)
-	{
 		TextOut += CONSOLE_BOLD_WHITE "NOTICE" CONSOLE_RESET;
-	}
 	else if(Flags & EType::Warning)
-	{
 		TextOut += CONSOLE_BOLD_YELLOW "WARNING" CONSOLE_RESET;
-	}
 	else if(Flags & EType::Debug)
-	{
 		TextOut += CONSOLE_BOLD_CYAN "DEBUG" CONSOLE_RESET;
-	}
 	else if(Flags & EType::Error)
-	{
 		TextOut += CONSOLE_RED "ERROR" CONSOLE_RESET;
-	}
 	else if(Flags & EType::CriticalError)
-	{
 		TextOut += CONSOLE_RED "CRITICAL" CONSOLE_RESET;
-	}
 	else if(Flags & EType::Exception)
-	{
 		TextOut += CONSOLE_BOLD_RED "EXCEPT" CONSOLE_RESET;
-	}
 	else if(Flags & EType::Graphics)
-	{
 		TextOut += CONSOLE_BOLD_BLUE "GRAPHICS" CONSOLE_RESET;
-	}
 
 	if(!(Flags & EType::None))
 	{
@@ -138,9 +107,7 @@ void CLog::LogText(EType Flags, std::string Text)
 
 	// Make sure there is a linebreak in the end. We don't want duplicates!
 	if(Text.empty() || Text.back() != '\n')
-	{
 		Text += '\n';
-	}
 
 	// Reset after each message
 	Text += CONSOLE_RESET "";
@@ -151,15 +118,9 @@ void CLog::LogText(EType Flags, std::string Text)
 void CLog::Write(const std::string& Text, EStream Stream)
 {
 	if(Stream == EStream::STDERR)
-	{
 		fwrite(Text.c_str(), sizeof(char), Text.length(), stderr);
-	}
 	else if(Stream == EStream::STDOUT)
-	{
 		fwrite(Text.c_str(), sizeof(char), Text.length(), stdout);
-	}
 	else
-	{
 		std::cerr << "Unknown stream specified.\n";
-	}
 }

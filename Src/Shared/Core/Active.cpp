@@ -38,7 +38,6 @@ bool CActive::IsBusy() const
 	return AmountPending() > 0;
 }
 
-
 CActive::CActive()
 {
 	// This is required here, because atomic doesn't allow
@@ -51,10 +50,8 @@ void CActive::Run()
 	try
 	{
 		while(!_isDone)
-		{
 			// Wait for a task, pop it and execute it. Hence the double ()()
 			_tasks.WaitAndPop()();
-		}
 	}
 	catch(...)
 	{
@@ -66,9 +63,7 @@ void CActive::Run()
 void CActive::Send(std::function<void()> callback, bool checkForException)
 {
 	if(checkForException)
-	{
 		CheckForAndThrowException();
-	}
 
 	_tasks.Push(callback);
 }
@@ -88,8 +83,6 @@ void CActive::CheckForAndThrowException() const
 			std::rethrow_exception(exception);
 		}
 		else
-		{
 			throw CActiveException{SRC_POS, "Active object is already done."};
-		}
 	}
 }

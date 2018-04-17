@@ -3,7 +3,6 @@
 #include "DatabaseConnection.h"
 #include "UpdateBatch.h"
 
-
 CUpdateBatch::CUpdateBatch(std::shared_ptr<CDatabaseConnection> pDB, u32 sizeThreshold)
 : _pDB{std::move(pDB)}, _sizeThreshold{sizeThreshold}
 {
@@ -19,14 +18,11 @@ CUpdateBatch::~CUpdateBatch()
 	}
 }
 
-
 void CUpdateBatch::AppendAndCommit(const std::string& values)
 {
 	std::lock_guard<std::mutex> lock{_batchMutex};
-
 	AppendAndCommitNonThreadsafe(values);
 }
-
 
 void CUpdateBatch::AppendAndCommitNonThreadsafe(const std::string& values)
 {
@@ -45,11 +41,9 @@ void CUpdateBatch::Reset()
 	_empty = true;
 }
 
-
 const std::string& CUpdateBatch::Query()
 {
 	//m_Query += "COMMIT;";
-
 	return _query;
 }
 
@@ -65,4 +59,3 @@ void CUpdateBatch::Execute()
 		fclose(pFile);
 	}*/
 }
-

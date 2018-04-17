@@ -1,11 +1,8 @@
 #pragma once
 
-
-
 class CPriorityMutex
 {
 public:
-
 	void LockLowPrio();
 	void UnlockLowPrio();
 
@@ -13,17 +10,14 @@ public:
 	void UnlockHighPrio();
 
 private:
-
 	std::mutex M;
 	std::mutex N;
 	std::mutex L;
 };
 
-
 class CPriorityLock
 {
 public:
-
 	CPriorityLock(CPriorityMutex* pPriorityMutex, bool isHighPriority);
 	~CPriorityLock();
 
@@ -31,12 +25,10 @@ public:
 	void Unlock();
 
 private:
-
 	CPriorityMutex* _pPriorityMutex;
 	bool _isHighPriority;
 	bool _isLocked;
 };
-
 
 class CRWMutex
 {
@@ -98,20 +90,15 @@ public:
 			read.notify_all();
 	}
 
-
 private:
-
 	std::mutex mutex;
 	std::condition_variable read, write;
 	unsigned readers, writers, read_waiters, write_waiters;
 };
 
-
-
 class CRWLock
 {
 public:
-
 	CRWLock(CRWMutex* pRWMutex, bool isWriter);
 	~CRWLock();
 
@@ -119,23 +106,17 @@ public:
 	void Unlock();
 
 private:
-
 	CRWMutex* _pRWMutex;
 	bool _isWriter;
 	bool _isLocked;
 };
 
-
-
 class CThreadPool
 {
 public:
-
 	CThreadPool();
 	CThreadPool(const u32 NumThreads);
 	~CThreadPool();
-
-
 
 	template<class F, class... Args>
 	std::future<typename std::result_of<F(Args...)>::type> EnqueueTask(F && f, Args && ... args)
@@ -162,9 +143,6 @@ public:
 		return res;
 	}
 
-
-
-
 	void StartThreads(const u32 Amount);
 	void ShutdownThreads(const u32 Amount);
 
@@ -173,15 +151,11 @@ public:
 		return m_NumTasksInSystem;
 	}
 
-
 	void WaitUntilFinished();
 	void WaitUntilFinishedFor(const std::chrono::microseconds Duration);
 	void FlushQueue();
 
-
 private:
-
-
 	u32 m_NumThreads = 0; // We don't have any threads running on startup
 	std::vector<std::thread> m_Threads;
 
@@ -192,9 +166,4 @@ private:
 	std::atomic<u32> m_NumTasksInSystem{0}; // We have no tasks in the system on startup
 	std::mutex m_SystemBusyMutex;
 	std::condition_variable m_SystemBusyCondition;
-
 };
-
-
-
-

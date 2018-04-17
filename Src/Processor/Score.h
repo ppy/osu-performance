@@ -1,20 +1,15 @@
 #pragma once
 
-
 #include "Beatmap.h"
 #include "SharedEnums.h"
-
-
 
 class CDatabaseConnection;
 class CInsertionBatch;
 class CUpdateBatch;
 
-
 class CScore
 {
 public:
-
 	struct SPPRecord
 	{
 		s64 ScoreId;
@@ -36,28 +31,23 @@ public:
 		s32 amountMiss,
 		s32 amountGeki,
 		s32 amountKatu,
-		SharedEnums::EMods mods);
+		SharedEnums::EMods mods
+	);
 	~CScore() = default;
-
 
 	s32 UserId() const { return _userId; }
 	s32 BeatmapId() const { return _beatmapId; }
-
-
 
 	virtual f32 TotalValue() const = 0;
 	virtual f32 Accuracy() const = 0;
 	virtual s32 TotalHits() const = 0;
 	virtual s32 TotalSuccessfulHits() const = 0;
 
-
 	void AppendToUpdateBatch(CUpdateBatch& batch);
 
 	SPPRecord PPRecord() { return SPPRecord{_scoreId, _beatmapId, TotalValue(), Accuracy()}; }
 
 protected:
-
-
 	s64 _scoreId;
 	SharedEnums::EGamemode _mode;
 	s32 _userId;
@@ -75,5 +65,3 @@ protected:
 
 	SharedEnums::EMods _mods;
 };
-
-
