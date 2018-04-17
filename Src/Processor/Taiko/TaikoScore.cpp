@@ -19,8 +19,8 @@ CTaikoScore::CTaikoScore(
 	s32 amountGeki,
 	s32 amountKatu,
 	SharedEnums::EMods mods,
-	const CBeatmap& beatmap)
-	: CScore{scoreId, mode, userId, beatmapId, score, maxCombo, amount300, amount100, amount50, amountMiss, amountGeki, amountKatu, mods}
+	const CBeatmap& beatmap
+) : CScore{scoreId, mode, userId, beatmapId, score, maxCombo, amount300, amount100, amount50, amountMiss, amountGeki, amountKatu, mods}
 {
 	ComputeStrainValue(beatmap);
 	ComputeAccValue(beatmap);
@@ -48,14 +48,10 @@ void CTaikoScore::ComputeTotalValue()
 	f32 multiplier = 1.1f; // This is being adjusted to keep the final pp value scaled around what it used to be when changing things
 
 	if((_mods & EMods::NoFail) > 0)
-	{
 		multiplier *= 0.90f;
-	}
 
 	if((_mods & EMods::Hidden) > 0)
-	{
 		multiplier *= 1.10f;
-	}
 
 	_totalValue =
 		std::pow(
@@ -78,21 +74,14 @@ void CTaikoScore::ComputeStrainValue(const CBeatmap& beatmap)
 	// Combo scaling
 	float maxCombo = beatmap.DifficultyAttribute(_mods, CBeatmap::MaxCombo);
 	if(maxCombo > 0)
-	{
-		_strainValue *=
-			std::min(static_cast<f32>(pow(_maxCombo, 0.5f) / pow(maxCombo, 0.5f)), 1.0f);
-	}
+		_strainValue *= std::min(static_cast<f32>(pow(_maxCombo, 0.5f) / pow(maxCombo, 0.5f)), 1.0f);
 
 	if((_mods & EMods::Hidden) > 0)
-	{
 		_strainValue *= 1.025f;
-	}
 
 	if((_mods & EMods::Flashlight) > 0)
-	{
 		// Apply length bonus again if flashlight is on simply because it becomes a lot harder on longer maps.
 		_strainValue *= 1.05f * lengthBonus;
-	}
 
 	// Scale the speed value with accuracy _slightly_
 	_strainValue *= Accuracy();
@@ -118,9 +107,7 @@ void CTaikoScore::ComputeAccValue(const CBeatmap& beatmap)
 f32 CTaikoScore::Accuracy() const
 {
 	if(TotalHits() == 0)
-	{
 		return 0;
-	}
 
 	return 
 		clamp(static_cast<f32>(_amount100 * 150 + _amount300 * 300)
