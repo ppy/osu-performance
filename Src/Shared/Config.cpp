@@ -39,14 +39,11 @@ void CConfig::ReadFromFile(const char* filename)
 	u32 Size = ftell(pFile);
 	rewind(pFile);
 
-
 	char* buffer = new char[Size];
 
 	size_t NumBytesRead = fread(buffer, sizeof(char), Size, pFile);
 	if(NumBytesRead != Size)
-	{
 		throw CConfigException(SRC_POS, StrFormat("Config file '{0}' could not be fully read. (read {1} of {2} bytes)", filename, NumBytesRead, Size));
-	}
 
 	// No need for the file anymore
 	fclose(pFile);
@@ -62,26 +59,20 @@ void CConfig::ReadFromFile(const char* filename)
 	{
 		// Skip spaces
 		if(std::isspace(buffer[pos]))
-		{
 			pos++;
-		}
 		// // Comment
 		else if(buffer[pos] == '/' && buffer[pos + 1] == '/')
 		{
 			// Skip until newline
 			while(pos < Size && buffer[pos] != '\n')
-			{
 				pos++;
-			}
 		}
 		// /* */ Comment
 		else if(buffer[pos] == '/' && buffer[pos + 1] == '*')
 		{
 			// Skip until end of comment
 			while(pos < Size && !(buffer[pos] == '*' && buffer[pos + 1] == '/'))
-			{
 				pos++;
-			}
 
 			// Skip the "*/"
 			pos += 2;
@@ -94,12 +85,8 @@ void CConfig::ReadFromFile(const char* filename)
 			case TOKEN_NAME:
 				// Read token
 				i = 0;
-				while(pos < Size &&
-					  !std::isspace(buffer[pos]) &&
-					  buffer[pos] != ':')
-				{
+				while(pos < Size && !std::isspace(buffer[pos]) && buffer[pos] != ':')
 					szCurrentToken[i++] = buffer[pos++];
-				}
 				szCurrentToken[i] = '\0';
 
 				// Check if we need the find seperator state
@@ -109,21 +96,17 @@ void CConfig::ReadFromFile(const char* filename)
 					readingState = TOKEN_VALUE;
 				}
 				else
-				{
 					readingState = FIND_SEPERATOR;
-				}
-				break;
 
+				break;
 
 			case FIND_SEPERATOR:
 				if(buffer[pos] != ':')
-				{
 					Log(CLog::Warning, StrFormat("Config '{0}' is corrupted. (Wrong seperator.)", filename));
-				}
+
 				pos++;
 				readingState = TOKEN_VALUE;
 				break;
-
 
 			case TOKEN_VALUE:
 				// Read token
@@ -137,9 +120,7 @@ void CConfig::ReadFromFile(const char* filename)
 
 					// Read until end '"'
 					while(pos < Size && buffer[pos] != '"')
-					{
 						szCurrentValue[i++] = buffer[pos++];
-					}
 					szCurrentValue[i] = '\0';
 
 					// Skip the end '"'
@@ -160,9 +141,7 @@ void CConfig::ReadFromFile(const char* filename)
 
 					// Dismiss trailing ' '
 					while(szCurrentValue[i - 1] == ' ')
-					{
 						i--;
-					}
 					szCurrentValue[i] = '\0';
 				}
 
@@ -180,21 +159,15 @@ void CConfig::ReadFromFile(const char* filename)
 				{ if(i > maxlen) i = maxlen; \
 				strncpy(name, szCurrentValue, i); name[i] = '\0'; break; }
 
-
-
 #include "configVariables.h"
-
-
 
 				break;
 			}
 		}
 	}
 
-
 	delete[] buffer;
 }
-
 
 void CConfig::WriteToFile(const char* Filename)
 {

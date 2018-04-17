@@ -1,6 +1,3 @@
-
-
-
 #ifndef MACRO_CONFIG_INT
 #define MACRO_CONFIG_INT( name, def, min, max, desc )
 #endif
@@ -12,7 +9,6 @@
 #ifndef MACRO_CONFIG_STR
 #define MACRO_CONFIG_STR( name, def, maxlen, desc )
 #endif
-
 
 MACRO_CONFIG_STR(MySQL_db_host, "db", 100, "MySQL db host")
 MACRO_CONFIG_INT(MySQL_db_port, 3306, 0, 100000, "MySQL db port")
