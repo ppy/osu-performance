@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 2.8)
 # Processor
 set(SOURCES
 	${SOURCES}
-	
+
 	${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
 
 	${CMAKE_CURRENT_SOURCE_DIR}/Beatmap.cpp
@@ -13,16 +13,16 @@ set(SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/Score.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/User.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/UUID.cpp
-	
+
 	# standard
 	${CMAKE_CURRENT_SOURCE_DIR}/Standard/StandardScore.cpp
-	
+
 	# ctb
 	${CMAKE_CURRENT_SOURCE_DIR}/CatchTheBeat/CatchTheBeatScore.cpp
-	
+
 	# taiko
 	${CMAKE_CURRENT_SOURCE_DIR}/Taiko/TaikoScore.cpp
-	
+
 	# mania
 	${CMAKE_CURRENT_SOURCE_DIR}/Mania/ManiaScore.cpp
 )
@@ -37,7 +37,7 @@ set(SHARED_SOURCES
 	${SHARED}/Core/Logger.cpp
 	${SHARED}/Core/StringUtil.cpp
 	${SHARED}/Core/Threading.cpp
-   
+
 	${SHARED}/Network/DatabaseConnection.cpp
 	${SHARED}/Network/QueryResult.cpp
 	${SHARED}/Network/UpdateBatch.cpp
@@ -57,19 +57,19 @@ set(HEADERS
 	${CMAKE_CURRENT_SOURCE_DIR}/SharedEnums.h
 	${CMAKE_CURRENT_SOURCE_DIR}/User.h
 	${CMAKE_CURRENT_SOURCE_DIR}/UUID.h
-	
+
 	# standard
 	${CMAKE_CURRENT_SOURCE_DIR}/Standard/StandardScore.h
-	
+
 	# ctb
 	${CMAKE_CURRENT_SOURCE_DIR}/CatchTheBeat/CatchTheBeatScore.h
-	
+
 	# taiko
 	${CMAKE_CURRENT_SOURCE_DIR}/Taiko/TaikoScore.h
-	
+
 	# mania
 	${CMAKE_CURRENT_SOURCE_DIR}/Mania/ManiaScore.h
-	
+
 	# shared stuff
 	${SHARED}/Config.h
 	${SHARED}/configVariables.h

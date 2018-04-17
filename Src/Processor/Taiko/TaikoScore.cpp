@@ -109,7 +109,7 @@ f32 CTaikoScore::Accuracy() const
 	if(TotalHits() == 0)
 		return 0;
 
-	return 
+	return
 		clamp(static_cast<f32>(_amount100 * 150 + _amount300 * 300)
 		/ (TotalHits() * 300), 0.0f, 1.0f);
 }

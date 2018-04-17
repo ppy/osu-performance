@@ -49,7 +49,7 @@ CUser::SPPRecord CUser::ComputePPRecord()
 
 	// Build the diminishing sum
 	f64 factor = 1;
-	
+
 	for(const auto& score : _scores)
 	{
 		_rating.Value += score.Value * factor;

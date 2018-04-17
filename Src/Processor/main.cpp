@@ -43,7 +43,7 @@ int main(s32 argc, char* argv[])
 	bool Force = false;
 	bool ReProcess = false;
 	EGamemode Gamemode = EGamemode::Standard;
-	
+
 	// Process arguments. Can ignore first one which is the executable name
 	for(s32 i = 1; i < argc; ++i)
 	{

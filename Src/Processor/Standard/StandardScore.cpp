@@ -109,7 +109,7 @@ void CStandardScore::ComputeAimValue(const CBeatmap& beatmap)
 	float maxCombo = beatmap.DifficultyAttribute(_mods, CBeatmap::MaxCombo);
 	if(maxCombo > 0)
 		_aimValue *= std::min(static_cast<f32>(pow(_maxCombo, 0.8f) / pow(maxCombo, 0.8f)), 1.0f);
-	
+
 	f32 approachRate = beatmap.DifficultyAttribute(_mods, CBeatmap::AR);
 	f32 approachRateFactor = 1.0f;
 	if(approachRate > 10.33f)
