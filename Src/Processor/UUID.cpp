@@ -2,8 +2,6 @@
 
 #include "UUID.h"
 
-
-
 namespace
 {
 	uint32_t rand32()
