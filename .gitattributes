@@ -4,15 +4,15 @@
 * text=auto
 
 # Check out with lf (UNIX) line endings
-*.cfg text diff=csharp eol=lf
-*.txt text diff=csharp eol=lf
-*.c text diff=csharp eol=lf
-*.cpp text diff=csharp eol=lf
-*.h text diff=csharp eol=lf
-*.hpp text diff=csharp eol=lf
-*.cmake text diff=csharp eol=lf
+*.c text diff=cpp eol=lf
+*.cpp text diff=cpp eol=lf
+*.h text diff=cpp eol=lf
+*.hpp text diff=cpp eol=lf
+*.cmake text eol=lf
+*.cfg text eol=lf
+*.txt text eol=lf
 *.sh text eol=lf
-*.md text diff=csharp eol=lf
+*.md text eol=lf
 .gitignore text eol=lf
 .gitattributes text eol=lf
 .travis.yml text eol=lf
