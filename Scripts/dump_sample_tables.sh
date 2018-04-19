@@ -87,7 +87,7 @@ dump "osu_user_stats${table_suffix}"    "user_id in (SELECT user_id FROM ${sampl
 dump "osu_beatmapsets"                  "beatmapset_id in (SELECT beatmapset_id FROM ${sample_beatmapsets_table})"
 dump "osu_beatmaps"                     "beatmap_id in (SELECT beatmap_id FROM ${sample_beatmaps_table})"
 
-# beatmap difficulty tables (following same ranked/approved/loved rule as above, plus only for the intended game mdoe)
+# beatmap difficulty tables (following same ranked/approved/loved rule as above, plus only for the intended game mode)
 dump "osu_beatmap_difficulty"           "mode = $mode_index AND beatmap_id in (SELECT beatmap_id FROM ${sample_beatmaps_table})"
 dump "osu_beatmap_difficulty_attribs"   "mode = $mode_index AND beatmap_id in (SELECT beatmap_id FROM ${sample_beatmaps_table})"
 
