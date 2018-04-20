@@ -6,26 +6,6 @@
 using namespace std::chrono;
 using namespace SharedEnums;
 
-void WrapperProcess(std::string executableName, EGamemode gamemode, bool ReProcess)
-{
-#ifdef __WIN32
-	auto ExecutionCommand = StrFormat("{0} -f -m {1}", executableName, gamemode);
-#else
-	auto ExecutionCommand = StrFormat("./{0} -f -m {1}", executableName, gamemode);
-#endif
-
-	if(ReProcess)
-		ExecutionCommand += " -r";
-
-	while(true)
-	{
-		static const int RestartDelay = 5;
-		int ErrorCode = system(ExecutionCommand.c_str());
-		Log(ErrorCode != 0 ? CLog::Error : CLog::Info, StrFormat("Program terminated with error code {0}. Restarting in {1} seconds.", ErrorCode, RestartDelay));
-		std::this_thread::sleep_for(seconds{RestartDelay});
-	}
-}
-
 int main(s32 argc, char* argv[])
 {
 	srand(static_cast<unsigned int>(time(NULL)));
@@ -68,14 +48,6 @@ int main(s32 argc, char* argv[])
 		}
 	}
 
-	// If there is no force parameter, then we are a wrapper process, ensuring, that there will always be an actual process running
-	// This is no excuse for poor exception handling - but a worst-case measure to prevent downtime.
-	// TODO: Proper logging of crashes, including core dumps
-	if(!Force)
-	{
-		WrapperProcess(argv[0], Gamemode, ReProcess);
-		return 0;
-	}
 
 	try
 	{
