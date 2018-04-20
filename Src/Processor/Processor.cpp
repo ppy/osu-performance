@@ -142,9 +142,10 @@ void CProcessor::Run(bool reProcess)
 			SRC_POS, StrFormat("Couldn't find maximum score id for mode {0}.", GamemodeName(_gamemode))
 		);
 
+
 	_currentScoreId = res.S64(0);
 	s64 lastScoreId = RetrieveCount(*_pDB, LastScoreIdKey());
-	
+
 	// If we are too far behind, then force a reprocess
 	if(_currentScoreId - lastScoreId > s_maximumScoreIdDifference)
 	{
@@ -160,10 +161,7 @@ void CProcessor::Run(bool reProcess)
 	res = _pDBSlave->Query("SELECT MAX(`approved_date`) FROM `osu_beatmapsets` WHERE 1");
 
 	if(!res.NextRow())
-		throw CProcessorException(
-			SRC_POS,
-			"Couldn't find maximum approved date."
-		);
+		throw CProcessorException(SRC_POS, "Couldn't find maximum approved date.");
 
 	_lastApprovedDate = res.String(0);
 
@@ -397,7 +395,7 @@ void CProcessor::ProcessAllScores(bool reProcess)
 	std::vector<std::shared_ptr<CDatabaseConnection>> databaseConnections;
 	std::vector<std::shared_ptr<CUpdateBatch>> newUsersBatches;
 	std::vector<std::shared_ptr<CUpdateBatch>> newScoresBatches;
-	
+
 	for(int i = 0; i < AMOUNT_THREADS; ++i)
 	{
 		databaseConnections.push_back(NewDBConnectionMaster());
@@ -480,7 +478,7 @@ void CProcessor::ProcessAllScores(bool reProcess)
 
 		u32 amountPendingQueries = 0;
 
-		do 
+		do
 		{
 			amountPendingQueries = 0;
 			for(auto& pDBConn : databaseConnections)
@@ -770,7 +768,7 @@ void CProcessor::ProcessSingleUser(
 		"UPDATE `osu_user_stats{0}` "
 		"SET `{1}`= CASE "
 			// Set pp to 0 if the user is inactive or restricted.
-			"WHEN (CURDATE() > DATE_ADD(`last_played`, INTERVAL 3 MONTH) OR (SELECT `user_warnings` FROM `phpbb_users` WHERE `user_id`={4}) > 0) THEN 0 "
+			"WHEN (CURDATE() > DATE_ADD(`last_played`, INTERVAL 3 MONTH) THEN 0 "
 			"ELSE {2} "
 		"END,"
 		"`accuracy_new`={3} "
