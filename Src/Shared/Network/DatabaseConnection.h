@@ -49,7 +49,7 @@ private:
 	void connect();
 
 	std::unique_ptr<CActive> _pActive;
-	std::mutex _dbMutex;
+	std::recursive_mutex _dbMutex;
 
 	std::string _host;
 	s16 _port;

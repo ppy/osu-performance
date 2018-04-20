@@ -16,7 +16,6 @@ CDatabaseConnection::CDatabaseConnection(
 	{
 		// Clean up in case of error
 		delete _pMySQL;
-
 		throw CDatabaseException(SRC_POS, StrFormat("MySQL struct could not be initialized. ({0})", Error()));
 	}
 
@@ -54,7 +53,7 @@ void CDatabaseConnection::NonQueryBackground(const std::string& queryString)
 void CDatabaseConnection::NonQuery(const std::string& queryString)
 {
 	// We don't want concurrent queries
-	std::lock_guard<std::mutex> lock{_dbMutex};
+	std::lock_guard<std::recursive_mutex> lock{_dbMutex};
 
 	while(mysql_query(_pMySQL, queryString.c_str()) != 0)
 	{
@@ -88,7 +87,7 @@ void CDatabaseConnection::NonQuery(const std::string& queryString)
 CQueryResult CDatabaseConnection::Query(const std::string& queryString)
 {
 	// We don't want concurrent queries
-	std::lock_guard<std::mutex> lock{_dbMutex};
+	std::lock_guard<std::recursive_mutex> lock{_dbMutex};
 
 	while(mysql_query(_pMySQL, queryString.c_str()) != 0)
 	{
@@ -106,7 +105,7 @@ CQueryResult CDatabaseConnection::Query(const std::string& queryString)
 bool CDatabaseConnection::ping()
 {
 	// We don't want concurrent queries
-	std::lock_guard<std::mutex> lock{_dbMutex};
+	std::lock_guard<std::recursive_mutex> lock{_dbMutex};
 
 	while(mysql_ping(_pMySQL) != 0)
 		connect();
@@ -117,13 +116,13 @@ bool CDatabaseConnection::ping()
 const char *CDatabaseConnection::Error()
 {
 	// We don't want concurrent queries
-	std::lock_guard<std::mutex> lock{_dbMutex};
+	std::lock_guard<std::recursive_mutex> lock{_dbMutex};
 	return mysql_error(_pMySQL);
 }
 
 u32 CDatabaseConnection::AffectedRows()
 {
 	// We don't want concurrent queries
-	std::lock_guard<std::mutex> lock{_dbMutex};
+	std::lock_guard<std::recursive_mutex> lock{_dbMutex};
 	return u32(mysql_affected_rows(_pMySQL));
 }
