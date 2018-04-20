@@ -428,23 +428,31 @@ void CProcessor::ProcessAllScores(bool reProcess)
 
 	Log(CLog::Info, StrFormat("Querying all scores, starting from user id {0}.", begin));
 
+	auto res = _pDBSlave->Query(StrFormat(
+		"SELECT MAX(`user_id`) FROM `osu_user_stats{0}` WHERE 1",
+		GamemodeSuffix(_gamemode)
+	));
+
+	if(!res.NextRow())
+		throw CProcessorException(SRC_POS, "Couldn't find maximum user ID.");
+
+	const s64 maxUserId = res.S64(0);
+
 	u32 currentConnection = 0;
 
 	// We will break out as soon as there are no more results
-	while(true)
+	while(begin <= maxUserId)
 	{
 		s64 end = begin + userIdStep;
 		Log(CLog::Info, StrFormat("Updating users {0} - {1}.", begin, end));
 
-		auto res = pDBSlave->Query(StrFormat(
+		res = pDBSlave->Query(StrFormat(
 			"SELECT "
 			"`user_id`"
-			"FROM `phpbb_users` "
-			"WHERE `user_id` BETWEEN {0} AND {1}", begin, end));
-
-		// We are done if there are no users left
-		if(res.AmountRows() == 0)
-			break;
+			"FROM `osu_user_stats{0}` "
+			"WHERE `user_id` BETWEEN {1} AND {2}",
+			GamemodeSuffix(_gamemode), begin, end
+		));
 
 		while(res.NextRow())
 		{
