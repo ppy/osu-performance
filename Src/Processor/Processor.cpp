@@ -768,7 +768,7 @@ void CProcessor::ProcessSingleUser(
 		"UPDATE `osu_user_stats{0}` "
 		"SET `{1}`= CASE "
 			// Set pp to 0 if the user is inactive or restricted.
-			"WHEN (CURDATE() > DATE_ADD(`last_played`, INTERVAL 3 MONTH) THEN 0 "
+			"WHEN CURDATE() > DATE_ADD(`last_played`, INTERVAL 3 MONTH) THEN 0 "
 			"ELSE {2} "
 		"END,"
 		"`accuracy_new`={3} "
