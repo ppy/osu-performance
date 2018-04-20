@@ -19,10 +19,8 @@ struct SScore;
 class CProcessor
 {
 public:
-
 	CProcessor(SharedEnums::EGamemode gamemode, bool reProcess);
 	~CProcessor();
-
 
 	static const std::string& GamemodeSuffix(SharedEnums::EGamemode gamemode)
 	{
