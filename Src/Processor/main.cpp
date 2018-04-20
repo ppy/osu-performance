@@ -3,6 +3,8 @@
 #include "Processor.h"
 #include "SharedEnums.h"
 
+#include <args.hxx>
+
 using namespace std::chrono;
 using namespace SharedEnums;
 
@@ -20,39 +22,84 @@ int main(s32 argc, char* argv[])
 	}
 #endif
 
-	bool Force = false;
-	bool ReProcess = false;
-	EGamemode Gamemode = EGamemode::Standard;
-
-	// Process arguments. Can ignore first one which is the executable name
-	for(s32 i = 1; i < argc; ++i)
+	std::vector<std::string> arguments;
+	for(int i = 1; i < argc; ++i)
 	{
-		if(std::string{"-f"} == argv[i])
-			Force = true;
-
-		if(std::string{"-r"} == argv[i])
-			ReProcess = true;
-
-		if(std::string{"-m"} == argv[i])
-		{
-			++i;
-
-			// An errornous input... better report
-			if(i >= argc)
-			{
-				Log(CLog::Error, "Missing mode specifier after \"-m\".");
-				return 0;
-			}
-
-			Gamemode = static_cast<EGamemode>(std::atoi(argv[i]));
-		}
+		std::string arg = argv[i];
+		// macOS sometimes (seemingly sporadically) passes the
+		// process serial number via a command line parameter.
+		// We would like to ignore this.
+		if (arg.find("-psn") != 0)
+			arguments.emplace_back(argv[i]);
 	}
 
+	args::ArgumentParser Parser{
+		"Computes performance points (pp) for the rhythm game osu!",
+		"",
+	};
+
+	args::HelpFlag HelpFlag{
+		Parser,
+		"help",
+		"Display this help menu",
+		{'h', "help"},
+	};
+
+	args::Flag RecomputeFlag{
+		Parser,
+		"recompute",
+		"Forces recomputation of pp for all players. Useful if the underlying algorithm changed.",
+		{'r', "recompute"},
+	};
+
+	args::ValueFlag<u32> ModeFlag{
+		Parser,
+		"mode",
+		"The game mode to compute pp for.",
+		{'m', "mode"},
+	};
+
+	// Parse command line arguments and react to parsing
+	// errors using exceptions.
+	try
+	{
+		Parser.ParseArgs(arguments);
+	}
+	catch(args::Help)
+	{
+		std::cout << Parser;
+		return 0;
+	}
+	catch(args::ParseError e)
+	{
+		std::cerr << e.what() << std::endl;
+		std::cerr << Parser;
+		return -1;
+	}
+	catch(args::ValidationError e)
+	{
+		std::cerr << e.what() << std::endl;
+		std::cerr << Parser;
+		return -2;
+	}
 
 	try
 	{
+		EGamemode Gamemode = EGamemode::Standard;
+		if(ModeFlag)
+		{
+			u32 ModeId = args::get(ModeFlag);
+			if(ModeId < EGamemode::AmountGamemodes)
+				Gamemode = (EGamemode)ModeId;
+			else
+				throw CLoggedException(SRC_POS, StrFormat("Invalid gamemode ID {0} supplied.", ModeId));
+		}
+
 		// Create game object
-		CProcessor Processor{Gamemode, ReProcess};
+		CProcessor Processor{
+			Gamemode,
+			RecomputeFlag,
+		};
 	}
 	catch(CLoggedException& e)
 	{
