@@ -32,12 +32,12 @@ public:
 
 	inline void escape(char* dest, char* src)
 	{
-		mysql_real_escape_string(_pMySQL, dest, src, strlen(src));
+		mysql_real_escape_string(&_mySQL, dest, src, strlen(src));
 	}
 
 	inline s32 get_FieldCount()
 	{
-		return mysql_field_count(_pMySQL);
+		return mysql_field_count(&_mySQL);
 	}
 
 	size_t AmountPendingQueries()
@@ -57,5 +57,5 @@ private:
 	std::string _password;
 	std::string _database;
 
-	MYSQL* _pMySQL;
+	MYSQL _mySQL;
 };
