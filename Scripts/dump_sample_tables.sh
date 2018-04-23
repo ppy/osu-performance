@@ -55,7 +55,7 @@ date=$(date +"%Y_%m_%d")
 output_folder="${date}_performance${suffix}"
 
 # WHERE clause to exclude invalid beatmaps
-beatmap_set_validity_check="approved > 0 AND download_disabled_url IS NULL AND download_disabled = 0 AND deleted_at IS NULL"
+beatmap_set_validity_check="approved > 0 AND deleted_at IS NULL"
 beatmap_validity_check="approved > 0 AND deleted_at IS NULL"
 user_validity_check="user_warnings = 0 AND user_type != 1"
 
