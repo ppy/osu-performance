@@ -80,16 +80,16 @@ mkdir -p ${output_folder}
 echo
 
 # user stats (using sample users retrieved above)
-dump "osu_scores${table_suffix}_high"   "user_id in (SELECT user_id FROM ${sample_users_table})"
-dump "osu_user_stats${table_suffix}"    "user_id in (SELECT user_id FROM ${sample_users_table})"
+dump "osu_scores${table_suffix}_high"   "user_id IN (SELECT user_id FROM ${sample_users_table})"
+dump "osu_user_stats${table_suffix}"    "user_id IN (SELECT user_id FROM ${sample_users_table})"
 
 # beatmap tables (we only care about ranked/approved/loved beatmaps)
-dump "osu_beatmapsets"                  "beatmapset_id in (SELECT beatmapset_id FROM ${sample_beatmapsets_table})"
-dump "osu_beatmaps"                     "beatmap_id in (SELECT beatmap_id FROM ${sample_beatmaps_table})"
+dump "osu_beatmapsets"                  "beatmapset_id IN (SELECT beatmapset_id FROM ${sample_beatmapsets_table})"
+dump "osu_beatmaps"                     "beatmap_id IN (SELECT beatmap_id FROM ${sample_beatmaps_table})"
 
 # beatmap difficulty tables (following same ranked/approved/loved rule as above, plus only for the intended game mode)
-dump "osu_beatmap_difficulty"           "mode = $mode_index AND beatmap_id in (SELECT beatmap_id FROM ${sample_beatmaps_table})"
-dump "osu_beatmap_difficulty_attribs"   "mode = $mode_index AND beatmap_id in (SELECT beatmap_id FROM ${sample_beatmaps_table})"
+dump "osu_beatmap_difficulty"           "mode = $mode_index AND beatmap_id IN (SELECT beatmap_id FROM ${sample_beatmaps_table})"
+dump "osu_beatmap_difficulty_attribs"   "mode = $mode_index AND beatmap_id IN (SELECT beatmap_id FROM ${sample_beatmaps_table})"
 
 # misc tables
 dump "osu_difficulty_attribs"
