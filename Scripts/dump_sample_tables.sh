@@ -94,6 +94,7 @@ dump "osu_beatmap_difficulty_attribs"   "mode = $mode_index AND beatmap_id in (S
 # misc tables
 dump "osu_difficulty_attribs"
 dump "osu_beatmap_performance_blacklist"
+dump "osu_counts"
 
 echo
 
