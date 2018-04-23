@@ -19,7 +19,7 @@ struct SScore;
 class CProcessor
 {
 public:
-	CProcessor(EGamemode gamemode, bool reProcess);
+	CProcessor(EGamemode gamemode);
 	~CProcessor();
 
 	static const std::string& GamemodeSuffix(EGamemode gamemode)
@@ -36,6 +36,9 @@ public:
 	{
 		return s_gamemodeTags.at(gamemode);
 	}
+
+	void MonitorNewScores();
+	void ProcessAllScores(bool reProcess);
 
 private:
 	static const std::array<const std::string, NumGamemodes> s_gamemodeSuffixes;
@@ -67,12 +70,8 @@ private:
 	std::unordered_map<s32, CBeatmap> _beatmaps;
 	std::string _lastApprovedDate;
 
-	void Run(bool reProcess);
-
 	void QueryBeatmapDifficulty();
 	bool QueryBeatmapDifficulty(s32 startId, s32 endId = 0);
-
-	void ProcessAllScores(bool reProcess);
 
 	std::shared_ptr<CDatabaseConnection> _pDB;
 	std::shared_ptr<CDatabaseConnection> _pDBSlave;
@@ -122,8 +121,6 @@ private:
 	EGamemode _gamemode;
 
 	CRWMutex _beatmapMutex;
-	std::thread _backgroundScoreProcessingThread;
-	std::thread _stallSupervisorThread;
 	bool _shallShutdown = false;
 
 	CCURL _curl;

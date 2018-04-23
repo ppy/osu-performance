@@ -37,44 +37,26 @@ const std::array<const std::string, NumGamemodes> CProcessor::s_gamemodeTags =
 	"osu_mania",
 };
 
-CProcessor::CProcessor(EGamemode gamemode, bool reProcess)
+CProcessor::CProcessor(EGamemode gamemode)
 : _gamemode{gamemode}, _config{s_configFile}, _dataDog{"127.0.0.1", 8125}
 {
 	Log(CLog::None,           "---------------------------------------------------");
 	Log(CLog::None, StrFormat("---- pp processor for gamemode {0}", GamemodeName(gamemode)));
 	Log(CLog::None,           "---------------------------------------------------");
 
-	try
-	{
-		Run(reProcess);
-	}
-	catch (CException& e)
-	{
-#ifndef PLAYER_TESTING
-		_curl.SendToSentry(
-			_config.SentryDomain,
-			_config.SentryProjectID,
-			_config.SentryPublicKey,
-			_config.SentryPrivateKey,
-			e,
-			GamemodeName(gamemode)
-		);
-#endif
+	_dataDog.Increment("osu.pp.startups", 1, {StrFormat("mode:{0}", GamemodeTag(_gamemode))});
 
-		// We just logged this exception. Let's re-throw since this wasn't actually handled.
-		throw;
-	}
+	_pDB = NewDBConnectionMaster();
+	_pDBSlave = NewDBConnectionSlave();
+
+	QueryBeatmapBlacklist();
+	QueryBeatmapDifficultyAttributes();
+	QueryBeatmapDifficulty();
 }
 
 CProcessor::~CProcessor()
 {
-	_shallShutdown = true;
-
-	if (_backgroundScoreProcessingThread.joinable())
-		_backgroundScoreProcessingThread.join();
-
-	if (_stallSupervisorThread.joinable())
-		_stallSupervisorThread.join();
+	Log(CLog::Info, "Shutting down.");
 }
 
 std::shared_ptr<CDatabaseConnection> CProcessor::NewDBConnectionMaster()
@@ -99,74 +81,19 @@ std::shared_ptr<CDatabaseConnection> CProcessor::NewDBConnectionSlave()
 	);
 }
 
-void CProcessor::Run(bool reProcess)
+void CProcessor::MonitorNewScores()
 {
-	// Force reprocess if there are more than 10,000 scores to catch up to
-	static const s64 s_maximumScoreIdDifference = 10000;
-
-	_dataDog.Increment("osu.pp.startups", 1, {StrFormat("mode:{0}", GamemodeTag(_gamemode))});
-
 	_lastScorePollTime = steady_clock::now();
 	_lastBeatmapSetPollTime = steady_clock::now();
 
-	_stallSupervisorThread = std::thread{[this]()
-	{
-		while (!_shallShutdown)
-		{
-			if (steady_clock::now() - _lastBeatmapSetPollTime > milliseconds{_config.StallTimeThreshold})
-			{
-				_dataDog.Increment("osu.pp.stalls", 1, {StrFormat("mode:{0}", GamemodeTag(_gamemode))});
-				Log(CLog::CriticalError, StrFormat("Scores didn't update for over {0} milliseconds. Emergency shut down.", _config.StallTimeThreshold));
+	_currentScoreId = RetrieveCount(*_pDB, LastScoreIdKey());
 
-				// We need to terminate here. No way around it.
-				exit(1);
-			}
-
-			// It's enough to check this "rarely"
-			std::this_thread::sleep_for(std::chrono::milliseconds(100));
-		}
-	}};
-
-	_pDB = NewDBConnectionMaster();
-	_pDBSlave = NewDBConnectionSlave();
-
-	// Obtain current maximum score id so we have a starting point
-	auto res = _pDBSlave->Query(StrFormat(
-		"SELECT MAX(`score_id`) FROM `osu_scores{0}_high` WHERE 1",
-		GamemodeSuffix(_gamemode)
-	));
-
-	if (!res.NextRow())
-		throw CProcessorException(
-			SRC_POS, StrFormat("Couldn't find maximum score id for mode {0}.", GamemodeName(_gamemode))
-		);
-
-
-	_currentScoreId = res.S64(0);
-	s64 lastScoreId = RetrieveCount(*_pDB, LastScoreIdKey());
-
-	// If we are too far behind, then force a reprocess
-	if (_currentScoreId - lastScoreId > s_maximumScoreIdDifference)
-	{
-		reProcess = true;
-
-		// We should immediately store where we left off to make sure on restart we won't skip things by choosing the maximum again
-		StoreCount(*_pDB, LastScoreIdKey(), _currentScoreId);
-	}
-	// Otherwise take the value where we stopped last time and resume polling
-	else
-		_currentScoreId = lastScoreId;
-
-	res = _pDBSlave->Query("SELECT MAX(`approved_date`) FROM `osu_beatmapsets` WHERE 1");
+	auto res = _pDBSlave->Query("SELECT MAX(`approved_date`) FROM `osu_beatmapsets` WHERE 1");
 
 	if (!res.NextRow())
 		throw CProcessorException(SRC_POS, "Couldn't find maximum approved date.");
 
 	_lastApprovedDate = res.String(0);
-
-	QueryBeatmapBlacklist();
-	QueryBeatmapDifficultyAttributes();
-	QueryBeatmapDifficulty();
 
 #ifdef PLAYER_TESTING
 	std::shared_ptr<CUpdateBatch> newUsers = std::make_shared<CUpdateBatch>(_pDB, 0);  // We want the updates to occur immediately
@@ -179,8 +106,6 @@ void CProcessor::Run(bool reProcess)
 		newScores,
 		PLAYER_TESTING);
 #else
-	_backgroundScoreProcessingThread = std::thread{[reProcess, this]() { this->ProcessAllScores(reProcess); }};
-
 	std::thread beatmapPollThread{[this]()
 	{
 		while (!_shallShutdown)
@@ -206,8 +131,6 @@ void CProcessor::Run(bool reProcess)
 	scorePollThread.join();
 	beatmapPollThread.join();
 #endif
-
-	Log(CLog::Info, "Shutting down.");
 }
 
 void CProcessor::QueryBeatmapDifficulty()

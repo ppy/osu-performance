@@ -37,6 +37,24 @@ int main(s32 argc, char* argv[])
 		"",
 	};
 
+	args::Positional<std::string> targetPositional{
+		parser,
+		"target",
+		"The target osu-performance is meant to compute pp for. Can be one of\n"
+		"  new      - monitor and process new scores\n"
+		"  all      - recompute existing scores\n"
+		"  continue - continue previous 'all'\n"
+		"  users    - recompute specific users",
+		"new",
+		args::Options::Required,
+	};
+
+	args::PositionalList<std::string> usersPositional{
+		parser,
+		"users",
+		"Users to recompute pp for if the target 'users' has been chosen.",
+	};
+
 	args::HelpFlag helpFlag{
 		parser,
 		"help",
@@ -44,18 +62,18 @@ int main(s32 argc, char* argv[])
 		{'h', "help"},
 	};
 
-	args::Flag recomputeFlag{
-		parser,
-		"recompute",
-		"Forces recomputation of pp for all players. Useful if the underlying algorithm changed.",
-		{'r', "recompute"},
-	};
-
 	args::ValueFlag<u32> modeFlag{
 		parser,
 		"mode",
 		"The game mode to compute pp for.",
 		{'m', "mode"},
+	};
+
+	args::Flag recomputeFlag{
+		parser,
+		"recompute",
+		"Forces recomputation of pp for all players. Useful if the underlying algorithm changed.",
+		{'r', "recompute"},
 	};
 
 	// Parse command line arguments and react to parsing
@@ -71,13 +89,13 @@ int main(s32 argc, char* argv[])
 	}
 	catch (args::ParseError e)
 	{
-		std::cerr << e.what() << std::endl;
+		std::cerr << e.what() << std::endl << std::endl;
 		std::cerr << parser;
 		return -1;
 	}
 	catch (args::ValidationError e)
 	{
-		std::cerr << e.what() << std::endl;
+		std::cerr << e.what() << std::endl << std::endl;
 		std::cerr << parser;
 		return -2;
 	}
@@ -94,11 +112,20 @@ int main(s32 argc, char* argv[])
 				throw CLoggedException(SRC_POS, StrFormat("Invalid gamemode ID {0} supplied.", modeId));
 		}
 
-		// Create game object
-		CProcessor Processor{
-			gamemode,
-			recomputeFlag,
-		};
+		// Fail early if an invalid target was supplied
+		auto target = args::get(targetPositional);
+		if (target != "new" && target != "all" && target != "continue" && target != "users")
+			throw CLoggedException(SRC_POS, StrFormat("Invalid target '{0}' supplied.", target));
+
+		CProcessor processor{gamemode};
+		if (target == "new")
+			processor.MonitorNewScores();
+		else if (target == "all")
+			processor.ProcessAllScores(true);
+		else if (target == "continue")
+			processor.ProcessAllScores(false);
+		else if (target == "users")
+			throw CLoggedException(SRC_POS, "Not yet implemented");
 	}
 	catch (CLoggedException& e)
 	{
