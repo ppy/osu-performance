@@ -4,7 +4,7 @@ This is the program computing "performance points" (pp), which are used as the o
 
 ## Compiling
 
-osu!performance runs on Windows and Linux. It should also compile and run on macOS, but this has not been tested. The build environment is set up using [CMake](https://cmake.org/) as follows.
+osu!performance runs on Windows, macOS, and Linux. The build environment is set up using [CMake](https://cmake.org/) as follows.
 
 ### Windows
 
@@ -42,10 +42,6 @@ After compilation, an executable named `osu-performance` is placed in the _Bin_ 
 * `-r`
   
   If this option is present, then the pp values of all existing scores are re-computed. Otherwise, only new pp values are computed.
-
-* `-f`
-  
-  If this option is not present, then a child process is created, which starts this program a second time as a child process with the same options and -f enabled additionally. Whenever this child process terminates, after 5 seconds it is restarted. The purpose of this option is to ensure, that crashes and errors do not interrupt the computation of pp values.
 
 Configuration options beyond these parameters, such as the MySQL server configuration, can be adjusted in _Bin/Data/Config.cfg_.
 
