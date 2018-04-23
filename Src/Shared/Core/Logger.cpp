@@ -4,10 +4,10 @@
 #include <iomanip>
 #include <sstream>
 
-void Log(CLog::EType Flags, std::string Text)
+void Log(CLog::EType flags, std::string text)
 {
 	static auto pLog = CLog::CreateLogger();
-	pLog->Log(Flags, std::move(Text));
+	pLog->Log(flags, std::move(text));
 }
 
 std::unique_ptr<CLog> CLog::CreateLogger()
@@ -26,7 +26,7 @@ std::unique_ptr<CLog> CLog::CreateLogger()
 
 CLog::CLog()
 {
-	m_pActive = CActive::Create();
+	_pActive = CActive::Create();
 }
 
 CLog::~CLog()
@@ -37,90 +37,88 @@ CLog::~CLog()
 #endif
 }
 
-void CLog::Log(EType Flags, std::string Text)
+void CLog::Log(EType flags, std::string text)
 {
-	m_pActive->Send([this, Flags, Text]() { LogText(Flags, std::move(Text)); });
+	_pActive->Send([this, flags, text]() { LogText(flags, std::move(text)); });
 }
 
-void CLog::LogText(EType Flags, std::string Text)
+void CLog::LogText(EType flags, std::string text)
 {
-	EStream Stream;
-	if (Flags & EType::Error || Flags & EType::CriticalError || Flags & EType::SQL || Flags & EType::Exception)
-		Stream = EStream::STDERR;
+	EStream stream;
+	if (flags & EType::Error || flags & EType::CriticalError || flags & EType::SQL || flags & EType::Exception)
+		stream = EStream::STDERR;
 	else
-		Stream = EStream::STDOUT;
+		stream = EStream::STDOUT;
 
-	std::string TextOut;
+	std::string textOut;
 
-	if (!(Flags & EType::None))
+	if (!(flags & EType::None))
 	{
 		// Display time format
-		const auto Time = std::chrono::system_clock::now();
-		const auto Now = std::chrono::system_clock::to_time_t(Time);
+		const auto currentTime = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
 
 #ifdef __WIN32
-		TextOut += STREAMTOSTRING(std::put_time(std::localtime(&Now), CONSOLE_TIMESTAMP));
+		textOut += STREAMTOSTRING(std::put_time(std::localtime(&currentTime), CONSOLE_TIMESTAMP));
 #else
-		// gcc didn't implement put_time yet
-		char TimeBuf[128];
-		const auto tm_now = localtime(&Now);
-		strftime(TimeBuf, 127, CONSOLE_TIMESTAMP, tm_now);
+		char timeBuf[128];
+		const auto tmCurrentTime = localtime(&currentTime);
+		strftime(timeBuf, 127, CONSOLE_TIMESTAMP, tmCurrentTime);
 
-		TextOut += TimeBuf;
+		textOut += timeBuf;
 #endif
 	}
 
-	if (Flags & EType::Success)
-		TextOut += CONSOLE_GREEN "SUCCESS" CONSOLE_RESET;
-	else if (Flags & EType::SQL)
-		TextOut += CONSOLE_BOLD_BLUE "SQL" CONSOLE_RESET;
-	else if (Flags & EType::Threads)
-		TextOut += CONSOLE_BOLD_MAGENTA "THREADS" CONSOLE_RESET;
-	else if (Flags & EType::Info)
-		TextOut += CONSOLE_CYAN "INFO" CONSOLE_RESET;
-	else if (Flags & EType::Notice)
-		TextOut += CONSOLE_BOLD_WHITE "NOTICE" CONSOLE_RESET;
-	else if (Flags & EType::Warning)
-		TextOut += CONSOLE_BOLD_YELLOW "WARNING" CONSOLE_RESET;
-	else if (Flags & EType::Debug)
-		TextOut += CONSOLE_BOLD_CYAN "DEBUG" CONSOLE_RESET;
-	else if (Flags & EType::Error)
-		TextOut += CONSOLE_RED "ERROR" CONSOLE_RESET;
-	else if (Flags & EType::CriticalError)
-		TextOut += CONSOLE_RED "CRITICAL" CONSOLE_RESET;
-	else if (Flags & EType::Exception)
-		TextOut += CONSOLE_BOLD_RED "EXCEPT" CONSOLE_RESET;
-	else if (Flags & EType::Graphics)
-		TextOut += CONSOLE_BOLD_BLUE "GRAPHICS" CONSOLE_RESET;
+	if (flags & EType::Success)
+		textOut += CONSOLE_GREEN "SUCCESS" CONSOLE_RESET;
+	else if (flags & EType::SQL)
+		textOut += CONSOLE_BOLD_BLUE "SQL" CONSOLE_RESET;
+	else if (flags & EType::Threads)
+		textOut += CONSOLE_BOLD_MAGENTA "THREADS" CONSOLE_RESET;
+	else if (flags & EType::Info)
+		textOut += CONSOLE_CYAN "INFO" CONSOLE_RESET;
+	else if (flags & EType::Notice)
+		textOut += CONSOLE_BOLD_WHITE "NOTICE" CONSOLE_RESET;
+	else if (flags & EType::Warning)
+		textOut += CONSOLE_BOLD_YELLOW "WARNING" CONSOLE_RESET;
+	else if (flags & EType::Debug)
+		textOut += CONSOLE_BOLD_CYAN "DEBUG" CONSOLE_RESET;
+	else if (flags & EType::Error)
+		textOut += CONSOLE_RED "ERROR" CONSOLE_RESET;
+	else if (flags & EType::CriticalError)
+		textOut += CONSOLE_RED "CRITICAL" CONSOLE_RESET;
+	else if (flags & EType::Exception)
+		textOut += CONSOLE_BOLD_RED "EXCEPT" CONSOLE_RESET;
+	else if (flags & EType::Graphics)
+		textOut += CONSOLE_BOLD_BLUE "GRAPHICS" CONSOLE_RESET;
 
-	if (!(Flags & EType::None))
+	if (!(flags & EType::None))
 	{
 #ifdef __WIN32
-		TextOut.resize(CONSOLE_PREFIX_LEN - 1, ' ');
+		textOut.resize(CONSOLE_PREFIX_LEN - 1, ' ');
 #else
-		TextOut += CONSOLE_FMT_BEGIN;
+		textOut += CONSOLE_FMT_BEGIN;
 #endif
 
 		// start with processing
-		Write(TextOut, Stream);
+		Write(textOut, stream);
 	}
 
 	// Make sure there is a linebreak in the end. We don't want duplicates!
-	if (Text.empty() || Text.back() != '\n')
-		Text += '\n';
+	if (text.empty() || text.back() != '\n')
+		text += '\n';
 
 	// Reset after each message
-	Text += CONSOLE_RESET "";
+	text += CONSOLE_RESET "";
 
-	Write(Text, Stream);
+	Write(text, stream);
 }
 
-void CLog::Write(const std::string& Text, EStream Stream)
+void CLog::Write(const std::string& text, EStream stream)
 {
-	if (Stream == EStream::STDERR)
-		fwrite(Text.c_str(), sizeof(char), Text.length(), stderr);
-	else if (Stream == EStream::STDOUT)
-		fwrite(Text.c_str(), sizeof(char), Text.length(), stdout);
+	if (stream == EStream::STDERR)
+		fwrite(text.c_str(), sizeof(char), text.length(), stderr);
+	else if (stream == EStream::STDOUT)
+		fwrite(text.c_str(), sizeof(char), text.length(), stdout);
 	else
 		std::cerr << "Unknown stream specified.\n";
 }
