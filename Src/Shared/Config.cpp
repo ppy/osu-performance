@@ -127,15 +127,8 @@ void CConfig::ReadFromFile(const char* filename)
 				else
 				{
 					// Read until newline / space or comment, dismiss all trailing spaces
-					while(pos < Size &&
-						  !(buffer[pos] == '/' && buffer[pos + 1] == '/') &&
-						  buffer[pos] != '\n' &&
-						  buffer[pos] != ' ' &&
-						  buffer[pos] != '\t' &&
-						  buffer[pos] != '\r')
-					{
+					while (pos < Size && !(buffer[pos] == '/' && buffer[pos + 1] == '/') && !std::isspace(buffer[pos]))
 						szCurrentValue[i++] = buffer[pos++];
-					}
 
 					// Dismiss trailing ' '
 					while (szCurrentValue[i - 1] == ' ')
