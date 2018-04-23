@@ -3,10 +3,6 @@
 #include "StandardScore.h"
 #include "SharedEnums.h"
 
-
-using namespace SharedEnums;
-
-
 CStandardScore::CStandardScore(
 	s64 scoreId,
 	EGamemode mode,
@@ -20,7 +16,7 @@ CStandardScore::CStandardScore(
 	s32 amountMiss,
 	s32 amountGeki,
 	s32 amountKatu,
-	SharedEnums::EMods mods,
+	EMods mods,
 	const CBeatmap& beatmap
 ) : CScore{scoreId, mode, userId, beatmapId, score, maxCombo, amount300, amount100, amount50, amountMiss, amountGeki, amountKatu, mods}
 {
@@ -39,7 +35,7 @@ f32 CStandardScore::TotalValue() const
 
 f32 CStandardScore::Accuracy() const
 {
-	if(TotalHits() == 0)
+	if (TotalHits() == 0)
 		return 0;
 
 	return clamp(
@@ -60,9 +56,9 @@ s32 CStandardScore::TotalSuccessfulHits() const
 void CStandardScore::ComputeTotalValue()
 {
 	// Don't count scores made with supposedly unranked mods
-	if((_mods & EMods::Relax) > 0 ||
-	   (_mods & EMods::Relax2) > 0 ||
-	   (_mods & EMods::Autoplay) > 0)
+	if ((_mods & EMods::Relax) > 0 ||
+		(_mods & EMods::Relax2) > 0 ||
+		(_mods & EMods::Autoplay) > 0)
 	{
 		_totalValue = 0;
 		return;
@@ -71,10 +67,10 @@ void CStandardScore::ComputeTotalValue()
 	// Custom multipliers for NoFail and SpunOut.
 	f32 multiplier = 1.12f; // This is being adjusted to keep the final pp value scaled around what it used to be when changing things
 
-	if((_mods & EMods::NoFail) > 0)
+	if ((_mods & EMods::NoFail) > 0)
 		multiplier *= 0.90f;
 
-	if((_mods & EMods::SpunOut) > 0)
+	if ((_mods & EMods::SpunOut) > 0)
 		multiplier *= 0.95f;
 
 	_totalValue =
@@ -89,7 +85,7 @@ void CStandardScore::ComputeAimValue(const CBeatmap& beatmap)
 {
 	f32 rawAim = beatmap.DifficultyAttribute(_mods, CBeatmap::Aim);
 
-	if((_mods & EMods::TouchDevice) > 0)
+	if ((_mods & EMods::TouchDevice) > 0)
 		rawAim = pow(rawAim, 0.8f);
 
 	_aimValue = pow(5.0f * std::max(1.0f, rawAim / 0.0675f) - 4.0f, 3.0f) / 100000.0f;
@@ -107,17 +103,17 @@ void CStandardScore::ComputeAimValue(const CBeatmap& beatmap)
 
 	// Combo scaling
 	float maxCombo = beatmap.DifficultyAttribute(_mods, CBeatmap::MaxCombo);
-	if(maxCombo > 0)
+	if (maxCombo > 0)
 		_aimValue *= std::min(static_cast<f32>(pow(_maxCombo, 0.8f) / pow(maxCombo, 0.8f)), 1.0f);
 
 	f32 approachRate = beatmap.DifficultyAttribute(_mods, CBeatmap::AR);
 	f32 approachRateFactor = 1.0f;
-	if(approachRate > 10.33f)
+	if (approachRate > 10.33f)
 		approachRateFactor += 0.45f * (approachRate - 10.33f);
-	else if(approachRate < 8.0f)
+	else if (approachRate < 8.0f)
 	{
 		// HD is worth more with lower ar!
-		if((_mods & EMods::Hidden) > 0)
+		if ((_mods & EMods::Hidden) > 0)
 			approachRateFactor += 0.02f * (8.0f - approachRate);
 		else
 			approachRateFactor += 0.01f * (8.0f - approachRate);
@@ -125,10 +121,10 @@ void CStandardScore::ComputeAimValue(const CBeatmap& beatmap)
 
 	_aimValue *= approachRateFactor;
 
-	if((_mods & EMods::Hidden) > 0)
+	if ((_mods & EMods::Hidden) > 0)
 		_aimValue *= 1.18f;
 
-	if((_mods & EMods::Flashlight) > 0)
+	if ((_mods & EMods::Flashlight) > 0)
 		// Apply length bonus again if flashlight is on simply because it becomes a lot harder on longer maps.
 		_aimValue *= 1.45f * LengthBonus;
 
@@ -154,7 +150,7 @@ void CStandardScore::ComputeSpeedValue(const CBeatmap& beatmap)
 
 	// Combo scaling
 	float maxCombo = beatmap.DifficultyAttribute(_mods, CBeatmap::MaxCombo);
-	if(maxCombo > 0)
+	if (maxCombo > 0)
 		_speedValue *= std::min(static_cast<f32>(pow(_maxCombo, 0.8f) / pow(maxCombo, 0.8f)), 1.0f);
 
 	// Scale the speed value with accuracy _slightly_
@@ -169,7 +165,7 @@ void CStandardScore::ComputeAccValue(const CBeatmap& beatmap)
 	f32 betterAccuracyPercentage;
 
 	s32 amountHitObjectsWithAccuracy;
-	if(beatmap.ScoreVersion() == CBeatmap::EScoreVersion::ScoreV2)
+	if (beatmap.ScoreVersion() == CBeatmap::EScoreVersion::ScoreV2)
 	{
 		amountHitObjectsWithAccuracy = TotalHits();
 		betterAccuracyPercentage = Accuracy();
@@ -178,13 +174,13 @@ void CStandardScore::ComputeAccValue(const CBeatmap& beatmap)
 	else
 	{
 		amountHitObjectsWithAccuracy = beatmap.AmountHitCircles();
-		if(amountHitObjectsWithAccuracy > 0)
+		if (amountHitObjectsWithAccuracy > 0)
 			betterAccuracyPercentage = static_cast<f32>((_amount300 - (TotalHits() - amountHitObjectsWithAccuracy)) * 6 + _amount100 * 2 + _amount50) / (amountHitObjectsWithAccuracy * 6);
 		else
 			betterAccuracyPercentage = 0;
 
 		// It is possible to reach a negative accuracy with this formula. Cap it at zero - zero points
-		if(betterAccuracyPercentage < 0)
+		if (betterAccuracyPercentage < 0)
 			betterAccuracyPercentage = 0;
 	}
 
@@ -197,9 +193,9 @@ void CStandardScore::ComputeAccValue(const CBeatmap& beatmap)
 	// Bonus for many hitcircles - it's harder to keep good accuracy up for longer
 	_accValue *= std::min(1.15f, static_cast<f32>(pow(amountHitObjectsWithAccuracy / 1000.0f, 0.3f)));
 
-	if((_mods & EMods::Hidden) > 0)
+	if ((_mods & EMods::Hidden) > 0)
 		_accValue *= 1.02f;
 
-	if((_mods & EMods::Flashlight) > 0)
+	if ((_mods & EMods::Flashlight) > 0)
 		_accValue *= 1.02f;
 }

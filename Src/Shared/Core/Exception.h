@@ -15,36 +15,36 @@
 class CException
 {
 public:
-	CException(std::string File, s32 Line, std::string Description);
+	CException(std::string file, s32 line, std::string description);
 	~CException() = default;
 
 	void Print();
 
 	std::string Description()
 	{
-		return m_Description;
+		return _description;
 	}
 
 	std::string File()
 	{
-		return m_File;
+		return _file;
 	}
 
 	s32 Line()
 	{
-		return m_Line;
+		return _line;
 	}
 
 protected:
-	std::string m_File;
-	s32 m_Line;
-	std::string m_Description;
+	std::string _file;
+	s32 _line;
+	std::string _description;
 };
 
 class CLoggedException : public CException
 {
 public:
-	CLoggedException(std::string File, s32 Line, std::string Description);
+	CLoggedException(std::string file, s32 fine, std::string description);
 	~CLoggedException() = default;
 
 	void Log();

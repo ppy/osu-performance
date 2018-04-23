@@ -9,7 +9,7 @@ CQueryResult::CQueryResult(MYSQL_RES* pRes)
 
 CQueryResult::CQueryResult(CQueryResult&& other)
 {
-	if(_pRes)
+	if (_pRes)
 		mysql_free_result(_pRes);
 
 	_pRes = other._pRes;
@@ -20,7 +20,7 @@ CQueryResult::CQueryResult(CQueryResult&& other)
 
 CQueryResult& CQueryResult::operator=(CQueryResult&& other)
 {
-	if(_pRes)
+	if (_pRes)
 		mysql_free_result(_pRes);
 
 	_pRes = other._pRes;
@@ -34,14 +34,14 @@ CQueryResult& CQueryResult::operator=(CQueryResult&& other)
 CQueryResult::~CQueryResult()
 {
 	// Clean up properly!
-	if(_pRes)
+	if (_pRes)
 		mysql_free_result(_pRes);
 }
 
 bool CQueryResult::NextRow()
 {
 	// Don't bother executing the SQL func... we don't have a valid result anyways!
-	if(_pRes == NULL)
+	if (_pRes == NULL)
 		return false;
 
 	// Return wether we actually HAVE any more (or any) rows

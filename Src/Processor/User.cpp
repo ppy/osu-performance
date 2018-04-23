@@ -7,17 +7,13 @@
 template<class ForwardIt, class BinaryPredicate>
 ForwardIt unique_own(ForwardIt first, ForwardIt last, BinaryPredicate p)
 {
-	if(first == last)
+	if (first == last)
 		return last;
 
 	ForwardIt result = first;
-	while(++first != last)
-	{
-		if(!p(*result, *first))
-		{
+	while (++first != last)
+		if (!p(*result, *first))
 			*(++result) = *first;
-		}
-	}
 
 	return ++result;
 }
@@ -50,7 +46,7 @@ CUser::SPPRecord CUser::ComputePPRecord()
 	// Build the diminishing sum
 	f64 factor = 1;
 
-	for(const auto& score : _scores)
+	for (const auto& score : _scores)
 	{
 		_rating.Value += score.Value * factor;
 		_rating.Accuracy += score.Accuracy * factor;
@@ -61,7 +57,7 @@ CUser::SPPRecord CUser::ComputePPRecord()
 	_rating.Value += (417.0 - 1.0 / 3.0) * (1.0 - pow(0.9994, _scores.size()));
 
 	// We want our accuracy to be normalized.
-	if(_scores.size() > 0)
+	if (_scores.size() > 0)
 		// We want the percentage, not a factor in [0, 1], hence we divide 20 by 100
 		_rating.Accuracy *= 100.0 / (20 * (1 - pow(0.95, _scores.size())));
 
@@ -70,7 +66,7 @@ CUser::SPPRecord CUser::ComputePPRecord()
 
 CScore::SPPRecord CUser::XthBestScorePPRecord(unsigned int i)
 {
-	if(i >= _scores.size())
+	if (i >= _scores.size())
 		return CScore::SPPRecord{0, 0, 0, 0};
 
 	return _scores[i];

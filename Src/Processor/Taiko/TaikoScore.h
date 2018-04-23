@@ -7,7 +7,7 @@ class CTaikoScore : public CScore
 public:
 	CTaikoScore(
 		s64 scoreId,
-		SharedEnums::EGamemode mode,
+		EGamemode mode,
 		s32 userId,
 		s32 beatmapId,
 		s32 score,
@@ -18,7 +18,7 @@ public:
 		s32 amountMiss,
 		s32 amountGeki,
 		s32 amountKatu,
-		SharedEnums::EMods mods,
+		EMods mods,
 		const CBeatmap& beatmap
 	);
 

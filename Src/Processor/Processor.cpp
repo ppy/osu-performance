@@ -9,12 +9,11 @@
 
 #include "../Shared/Network/UpdateBatch.h"
 
-using namespace SharedEnums;
 using namespace std::chrono;
 
 const std::string CProcessor::s_configFile = "./Data/Config.cfg";
 
-const std::array<const std::string, AmountGamemodes> CProcessor::s_gamemodeSuffixes =
+const std::array<const std::string, NumGamemodes> CProcessor::s_gamemodeSuffixes =
 {
 	"",
 	"_taiko",
@@ -22,7 +21,7 @@ const std::array<const std::string, AmountGamemodes> CProcessor::s_gamemodeSuffi
 	"_mania",
 };
 
-const std::array<const std::string, AmountGamemodes> CProcessor::s_gamemodeNames =
+const std::array<const std::string, NumGamemodes> CProcessor::s_gamemodeNames =
 {
 	"osu!",
 	"Taiko",
@@ -30,7 +29,7 @@ const std::array<const std::string, AmountGamemodes> CProcessor::s_gamemodeNames
 	"osu!mania",
 };
 
-const std::array<const std::string, AmountGamemodes> CProcessor::s_gamemodeTags =
+const std::array<const std::string, NumGamemodes> CProcessor::s_gamemodeTags =
 {
 	"osu",
 	"taiko",
@@ -71,10 +70,10 @@ CProcessor::~CProcessor()
 {
 	_shallShutdown = true;
 
-	if(_backgroundScoreProcessingThread.joinable())
+	if (_backgroundScoreProcessingThread.joinable())
 		_backgroundScoreProcessingThread.join();
 
-	if(_stallSupervisorThread.joinable())
+	if (_stallSupervisorThread.joinable())
 		_stallSupervisorThread.join();
 }
 
@@ -112,9 +111,9 @@ void CProcessor::Run(bool reProcess)
 
 	_stallSupervisorThread = std::thread{[this]()
 	{
-		while(!_shallShutdown)
+		while (!_shallShutdown)
 		{
-			if(steady_clock::now() - _lastBeatmapSetPollTime > milliseconds{_config.StallTimeThreshold})
+			if (steady_clock::now() - _lastBeatmapSetPollTime > milliseconds{_config.StallTimeThreshold})
 			{
 				_dataDog.Increment("osu.pp.stalls", 1, {StrFormat("mode:{0}", GamemodeTag(_gamemode))});
 				Log(CLog::CriticalError, StrFormat("Scores didn't update for over {0} milliseconds. Emergency shut down.", _config.StallTimeThreshold));
@@ -137,7 +136,7 @@ void CProcessor::Run(bool reProcess)
 		GamemodeSuffix(_gamemode)
 	));
 
-	if(!res.NextRow())
+	if (!res.NextRow())
 		throw CProcessorException(
 			SRC_POS, StrFormat("Couldn't find maximum score id for mode {0}.", GamemodeName(_gamemode))
 		);
@@ -147,7 +146,7 @@ void CProcessor::Run(bool reProcess)
 	s64 lastScoreId = RetrieveCount(*_pDB, LastScoreIdKey());
 
 	// If we are too far behind, then force a reprocess
-	if(_currentScoreId - lastScoreId > s_maximumScoreIdDifference)
+	if (_currentScoreId - lastScoreId > s_maximumScoreIdDifference)
 	{
 		reProcess = true;
 
@@ -160,7 +159,7 @@ void CProcessor::Run(bool reProcess)
 
 	res = _pDBSlave->Query("SELECT MAX(`approved_date`) FROM `osu_beatmapsets` WHERE 1");
 
-	if(!res.NextRow())
+	if (!res.NextRow())
 		throw CProcessorException(SRC_POS, "Couldn't find maximum approved date.");
 
 	_lastApprovedDate = res.String(0);
@@ -180,14 +179,13 @@ void CProcessor::Run(bool reProcess)
 		newScores,
 		PLAYER_TESTING);
 #else
-	_backgroundScoreProcessingThread =
-		std::thread{[reProcess, this]() { this->ProcessAllScores(reProcess); }};
+	_backgroundScoreProcessingThread = std::thread{[reProcess, this]() { this->ProcessAllScores(reProcess); }};
 
 	std::thread beatmapPollThread{[this]()
 	{
-		while(!_shallShutdown)
+		while (!_shallShutdown)
 		{
-			if(steady_clock::now() - _lastBeatmapSetPollTime > milliseconds{_config.DifficultyUpdateInterval})
+			if (steady_clock::now() - _lastBeatmapSetPollTime > milliseconds{_config.DifficultyUpdateInterval})
 				PollAndProcessNewBeatmapSets();
 			else
 				std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -196,9 +194,9 @@ void CProcessor::Run(bool reProcess)
 
 	std::thread scorePollThread{[this]()
 	{
-		while(!_shallShutdown)
+		while (!_shallShutdown)
 		{
-			if(steady_clock::now() - _lastScorePollTime > milliseconds{_config.ScoreUpdateInterval})
+			if (steady_clock::now() - _lastScorePollTime > milliseconds{_config.ScoreUpdateInterval})
 				PollAndProcessNewScores();
 			else
 				std::this_thread::sleep_for(std::chrono::milliseconds(1));
@@ -217,7 +215,7 @@ void CProcessor::QueryBeatmapDifficulty()
 	static const s32 step = 10000;
 
 	s32 begin = 0;
-	while(QueryBeatmapDifficulty(begin, begin + step))
+	while (QueryBeatmapDifficulty(begin, begin + step))
 	{
 		begin += step;
 
@@ -237,9 +235,10 @@ bool CProcessor::QueryBeatmapDifficulty(s32 startId, s32 endId)
 		"FROM `osu_beatmaps` "
 		"JOIN `osu_beatmap_difficulty_attribs` ON `osu_beatmaps`.`beatmap_id` = `osu_beatmap_difficulty_attribs`.`beatmap_id` "
 		"WHERE `osu_beatmap_difficulty_attribs`.`mode`={0} AND `approved` >= 1",
-		_gamemode);
+		_gamemode
+	);
 
-	if(endId == 0)
+	if (endId == 0)
 		query += StrFormat(" AND `osu_beatmaps`.`beatmap_id`={0}", startId);
 	else
 		query += StrFormat(" AND `osu_beatmaps`.`beatmap_id`>={0} AND `osu_beatmaps`.`beatmap_id`<{1}", startId, endId);
@@ -250,11 +249,11 @@ bool CProcessor::QueryBeatmapDifficulty(s32 startId, s32 endId)
 
 	CRWLock lock{&_beatmapMutex, success};
 
-	while(res.NextRow())
+	while (res.NextRow())
 	{
 		s32 id = res.S32(0);
 
-		if(_beatmaps.count(id) == 0)
+		if (_beatmaps.count(id) == 0)
 			_beatmaps.emplace(std::make_pair(id, id));
 
 		auto& beatmap = _beatmaps.at(id);
@@ -269,12 +268,12 @@ bool CProcessor::QueryBeatmapDifficulty(s32 startId, s32 endId)
 		);
 	}
 
-	if(endId != 0) {
+	if (endId != 0) {
 		Log(CLog::Success, StrFormat("Obtained beatmap difficulties from ID {0} to {1}.", startId, endId - 1));
 		return success;
 	}
 
-	if(_beatmaps.count(startId) == 0)
+	if (_beatmaps.count(startId) == 0)
 	{
 		std::string message = StrFormat("Couldn't find beatmap /b/{0}.", startId);
 
@@ -316,15 +315,15 @@ void CProcessor::PollAndProcessNewScores()
 	));
 
 	// Only reset the poll timer when we find nothing. Otherwise we want to directly keep going
-	if(res.AmountRows() == 0)
+	if (res.AmountRows() == 0)
 		_lastScorePollTime = steady_clock::now();
 
 	_dataDog.Gauge("osu.pp.score.amount_behind_newest", res.AmountRows(), {StrFormat("mode:{0}", GamemodeTag(_gamemode))});
 
-	while(res.NextRow())
+	while (res.NextRow())
 	{
 		// Only process scores where pp is still null.
-		if(!res.IsNull(2))
+		if (!res.IsNull(2))
 			continue;
 
 		s64 ScoreId = res.S64(0);
@@ -343,15 +342,14 @@ void CProcessor::PollAndProcessNewScores()
 		);
 
 		++_amountScoresProcessedSinceLastStore;
-		if(_amountScoresProcessedSinceLastStore > s_lastScoreIdUpdateStep)
+		if (_amountScoresProcessedSinceLastStore > s_lastScoreIdUpdateStep)
 		{
 			StoreCount(*_pDB, LastScoreIdKey(), _currentScoreId);
 			_amountScoresProcessedSinceLastStore = 0;
 		}
 
 		_dataDog.Increment("osu.pp.score.processed_new", 1, {StrFormat("mode:{0}", GamemodeTag(_gamemode))});
-		_dataDog.Gauge("osu.pp.db.pending_queries", _pDB->AmountPendingQueries(),
-		{
+		_dataDog.Gauge("osu.pp.db.pending_queries", _pDB->AmountPendingQueries(), {
 			StrFormat("mode:{0}", GamemodeTag(_gamemode)),
 			"connection:main",
 		});
@@ -376,7 +374,7 @@ void CProcessor::PollAndProcessNewBeatmapSets()
 
 	Log(CLog::Success, StrFormat("Retrieved {0} new beatmaps.", res.AmountRows()));
 
-	while(res.NextRow())
+	while (res.NextRow())
 	{
 		_lastApprovedDate = res.String(1);
 		QueryBeatmapDifficulty(res.S32(0));
@@ -396,7 +394,7 @@ void CProcessor::ProcessAllScores(bool reProcess)
 	std::vector<std::shared_ptr<CUpdateBatch>> newUsersBatches;
 	std::vector<std::shared_ptr<CUpdateBatch>> newScoresBatches;
 
-	for(int i = 0; i < AMOUNT_THREADS; ++i)
+	for (int i = 0; i < AMOUNT_THREADS; ++i)
 	{
 		databaseConnections.push_back(NewDBConnectionMaster());
 
@@ -410,7 +408,7 @@ void CProcessor::ProcessAllScores(bool reProcess)
 	static const s32 userIdStep = 10000;
 
 	s64 begin; // Will be initialized in the next few lines
-	if(reProcess)
+	if (reProcess)
 	{
 		begin = 0;
 
@@ -421,7 +419,7 @@ void CProcessor::ProcessAllScores(bool reProcess)
 		begin = RetrieveCount(*pDB, LastUserIdKey());
 
 	// We're done, nothing to reprocess
-	if(begin == -1)
+	if (begin == -1)
 		return;
 
 	Log(CLog::Info, StrFormat("Querying all scores, starting from user id {0}.", begin));
@@ -431,7 +429,7 @@ void CProcessor::ProcessAllScores(bool reProcess)
 		GamemodeSuffix(_gamemode)
 	));
 
-	if(!res.NextRow())
+	if (!res.NextRow())
 		throw CProcessorException(SRC_POS, "Couldn't find maximum user ID.");
 
 	const s64 maxUserId = res.S64(0);
@@ -439,7 +437,7 @@ void CProcessor::ProcessAllScores(bool reProcess)
 	u32 currentConnection = 0;
 
 	// We will break out as soon as there are no more results
-	while(begin <= maxUserId)
+	while (begin <= maxUserId)
 	{
 		s64 end = begin + userIdStep;
 		Log(CLog::Info, StrFormat("Updating users {0} - {1}.", begin, end));
@@ -452,7 +450,7 @@ void CProcessor::ProcessAllScores(bool reProcess)
 			GamemodeSuffix(_gamemode), begin, end
 		));
 
-		while(res.NextRow())
+		while (res.NextRow())
 		{
 			s64 userId = res.S64(0);
 
@@ -470,7 +468,7 @@ void CProcessor::ProcessAllScores(bool reProcess)
 			currentConnection = (currentConnection + 1) % AMOUNT_THREADS;
 
 			// Shut down when requested!
-			if(_shallShutdown)
+			if (_shallShutdown)
 				return;
 		}
 
@@ -481,7 +479,7 @@ void CProcessor::ProcessAllScores(bool reProcess)
 		do
 		{
 			amountPendingQueries = 0;
-			for(auto& pDBConn : databaseConnections)
+			for (auto& pDBConn : databaseConnections)
 				amountPendingQueries += (u32)pDBConn->AmountPendingQueries();
 
 			_dataDog.Gauge("osu.pp.db.pending_queries", amountPendingQueries,
@@ -501,7 +499,7 @@ void CProcessor::ProcessAllScores(bool reProcess)
 
 std::unique_ptr<CScore> CProcessor::NewScore(
 	s64 scoreId,
-	SharedEnums::EGamemode mode,
+	EGamemode mode,
 	s32 userId,
 	s32 beatmapId,
 	s32 score,
@@ -512,7 +510,7 @@ std::unique_ptr<CScore> CProcessor::NewScore(
 	s32 amountMiss,
 	s32 amountGeki,
 	s32 amountKatu,
-	SharedEnums::EMods mods
+	EMods mods
 )
 {
 #define SCORE_INITIALIZER_LIST \
@@ -534,7 +532,7 @@ std::unique_ptr<CScore> CProcessor::NewScore(
 	std::unique_ptr<CScore> pScore = nullptr;
 
 	// Create the correct score type, so the right formulas are used
-	switch(_gamemode)
+	switch (_gamemode)
 	{
 	case EGamemode::Standard:
 		pScore = std::make_unique<CStandardScore>(SCORE_INITIALIZER_LIST);
@@ -568,9 +566,10 @@ void CProcessor::QueryBeatmapBlacklist()
 	auto res = _pDBSlave->Query(StrFormat(
 		"SELECT `beatmap_id` "
 		"FROM `osu_beatmap_performance_blacklist` "
-		"WHERE `mode`={0}", _gamemode));
+		"WHERE `mode`={0}", _gamemode
+	));
 
-	while(res.NextRow())
+	while (res.NextRow())
 		_blacklistedBeatmapIds.insert(res.S32(0));
 
 	Log(CLog::Success, StrFormat("Retrieved {0} blacklisted beatmaps.", _blacklistedBeatmapIds.size()));
@@ -583,10 +582,10 @@ void CProcessor::QueryBeatmapDifficultyAttributes()
 	u32 amountNames = 0;
 
 	auto res = _pDBSlave->Query("SELECT `attrib_id`,`name` FROM `osu_difficulty_attribs` WHERE 1 ORDER BY `attrib_id` DESC");
-	while(res.NextRow())
+	while (res.NextRow())
 	{
 		u32 id = res.S32(0);
-		if(_difficultyAttributes.size() < id + 1)
+		if (_difficultyAttributes.size() < id + 1)
 			_difficultyAttributes.resize(id + 1);
 
 		_difficultyAttributes[id] = CBeatmap::DifficultyAttributeFromName(res.String(1));
@@ -638,7 +637,7 @@ void CProcessor::ProcessSingleUser(
 		CRWLock lock{&_beatmapMutex, false};
 
 		// Process the data we got
-		while(res.NextRow())
+		while (res.NextRow())
 		{
 			s64 scoreId = res.S64(0);
 			s32 beatmapId = res.S32(2);
@@ -646,11 +645,11 @@ void CProcessor::ProcessSingleUser(
 			EMods mods = static_cast<EMods>(res.S32(11));
 
 			// Blacklisted maps don't count
-			if(_blacklistedBeatmapIds.count(beatmapId) > 0)
+			if (_blacklistedBeatmapIds.count(beatmapId) > 0)
 				continue;
 
 			// We don't want to look at scores on beatmaps we have no information about
-			if(_beatmaps.count(beatmapId) == 0)
+			if (_beatmaps.count(beatmapId) == 0)
 			{
 				lock.Unlock();
 
@@ -660,12 +659,12 @@ void CProcessor::ProcessSingleUser(
 				lock.Lock();
 
 				// If after querying we still didn't find anything, then we can just leave it.
-				if(_beatmaps.count(beatmapId) == 0)
+				if (_beatmaps.count(beatmapId) == 0)
 					continue;
 			}
 
 			s32 rankedStatus = _beatmaps.at(beatmapId).RankedStatus();
-			if(rankedStatus < s_minRankedStatus || rankedStatus > s_maxRankedStatus)
+			if (rankedStatus < s_minRankedStatus || rankedStatus > s_maxRankedStatus)
 				continue;
 
 			std::unique_ptr<CScore> pScore = NewScore(
@@ -686,11 +685,11 @@ void CProcessor::ProcessSingleUser(
 
 			user.AddScorePPRecord(pScore->PPRecord());
 
-			if(res.IsNull(12) || selectedScoreId == 0 || selectedScoreId == scoreId)
+			if (res.IsNull(12) || selectedScoreId == 0 || selectedScoreId == scoreId)
 			{
 				// Column 12 is the pp value of the score from the database.
 				// Only update score if it differs a lot!
-				if(res.IsNull(12) || fabs(res.F32(12) - pScore->TotalValue()) > 0.001f)
+				if (res.IsNull(12) || fabs(res.F32(12) - pScore->TotalValue()) > 0.001f)
 					scoresThatNeedDBUpdate.emplace_back(std::move(pScore));
 			}
 		}
@@ -701,7 +700,7 @@ void CProcessor::ProcessSingleUser(
 		// We lock here instead of inside the append due to an otherwise huge locking overhead.
 		std::lock_guard<std::mutex> lock{newScores->Mutex()};
 
-		for(const auto& pScore : scoresThatNeedDBUpdate)
+		for (const auto& pScore : scoresThatNeedDBUpdate)
 			pScore->AppendToUpdateBatch(*newScores);
 	}
 
@@ -723,9 +722,9 @@ void CProcessor::ProcessSingleUser(
 #endif
 
 	// Check for notable event
-	if(selectedScoreId > 0 && // We only check for notable events if a score has been selected
-	   !scoresThatNeedDBUpdate.empty() && // Did the score actually get found (this _should_ never be false, but better make sure)
-	   scoresThatNeedDBUpdate.front()->TotalValue() > userPPRecord.Value * s_notableEventRatingThreshold)
+	if (selectedScoreId > 0 && // We only check for notable events if a score has been selected
+		!scoresThatNeedDBUpdate.empty() && // Did the score actually get found (this _should_ never be false, but better make sure)
+		scoresThatNeedDBUpdate.front()->TotalValue() > userPPRecord.Value * s_notableEventRatingThreshold)
 	{
 		_dataDog.Increment("osu.pp.score.notable_events", 1, {StrFormat("mode:{0}", GamemodeTag(_gamemode))});
 
@@ -739,15 +738,15 @@ void CProcessor::ProcessSingleUser(
 			userId
 		));
 
-		while(res.NextRow())
+		while (res.NextRow())
 		{
-			if(res.IsNull(0))
+			if (res.IsNull(0))
 				continue;
 
 			f64 ratingChange = userPPRecord.Value - res.F32(0);
 
 			// We don't want to log scores, that give less than a mere 5 pp
-			if(ratingChange < s_notableEventRatingDifferenceMinimum)
+			if (ratingChange < s_notableEventRatingDifferenceMinimum)
 				continue;
 
 			Log(CLog::Info, StrFormat("Notable event: /b/{0} /u/{1}", pScore->BeatmapId(), userId));
@@ -798,8 +797,8 @@ s64 CProcessor::RetrieveCount(CDatabaseConnection& db, std::string key)
 		"SELECT `count` FROM `osu_counts` WHERE `name`='{0}'", key
 	));
 
-	while(res.NextRow())
-		if(!res.IsNull(0))
+	while (res.NextRow())
+		if (!res.IsNull(0))
 			return res.S64(0);
 
 	return -1;

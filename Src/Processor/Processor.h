@@ -19,28 +19,28 @@ struct SScore;
 class CProcessor
 {
 public:
-	CProcessor(SharedEnums::EGamemode gamemode, bool reProcess);
+	CProcessor(EGamemode gamemode, bool reProcess);
 	~CProcessor();
 
-	static const std::string& GamemodeSuffix(SharedEnums::EGamemode gamemode)
+	static const std::string& GamemodeSuffix(EGamemode gamemode)
 	{
 		return s_gamemodeSuffixes.at(gamemode);
 	}
 
-	static const std::string& GamemodeName(SharedEnums::EGamemode gamemode)
+	static const std::string& GamemodeName(EGamemode gamemode)
 	{
 		return s_gamemodeNames.at(gamemode);
 	}
 
-	static const std::string& GamemodeTag(SharedEnums::EGamemode gamemode)
+	static const std::string& GamemodeTag(EGamemode gamemode)
 	{
 		return s_gamemodeTags.at(gamemode);
 	}
 
 private:
-	static const std::array<const std::string, SharedEnums::AmountGamemodes> s_gamemodeSuffixes;
-	static const std::array<const std::string, SharedEnums::AmountGamemodes> s_gamemodeNames;
-	static const std::array<const std::string, SharedEnums::AmountGamemodes> s_gamemodeTags;
+	static const std::array<const std::string, NumGamemodes> s_gamemodeSuffixes;
+	static const std::array<const std::string, NumGamemodes> s_gamemodeNames;
+	static const std::array<const std::string, NumGamemodes> s_gamemodeTags;
 
 	static const CBeatmap::ERankedStatus s_minRankedStatus = CBeatmap::ERankedStatus::Ranked;
 	static const CBeatmap::ERankedStatus s_maxRankedStatus = CBeatmap::ERankedStatus::Approved;
@@ -87,7 +87,7 @@ private:
 
 	std::unique_ptr<CScore> NewScore(
 		s64 scoreId,
-		SharedEnums::EGamemode mode,
+		EGamemode mode,
 		s32 userId,
 		s32 beatmapId,
 		s32 score,
@@ -98,7 +98,7 @@ private:
 		s32 amountMiss,
 		s32 amountGeki,
 		s32 amountKatu,
-		SharedEnums::EMods mods
+		EMods mods
 	);
 
 	std::unordered_set<s32> _blacklistedBeatmapIds;
@@ -119,7 +119,7 @@ private:
 	void StoreCount(CDatabaseConnection& db, std::string key, s64 value);
 	s64 RetrieveCount(CDatabaseConnection& db, std::string key);
 
-	SharedEnums::EGamemode _gamemode;
+	EGamemode _gamemode;
 
 	CRWMutex _beatmapMutex;
 	std::thread _backgroundScoreProcessingThread;

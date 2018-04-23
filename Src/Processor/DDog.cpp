@@ -59,12 +59,12 @@ void CDDog::Set(std::string metric, s64 value, std::vector<std::string> tags, f3
 
 void CDDog::AddTags(std::string& message, const std::vector<std::string>& tags)
 {
-	if(tags.empty())
+	if (tags.empty())
 		return;
 
 	message.push_back('|');
 
-	for(const std::string& s : tags)
+	for (const std::string& s : tags)
 		message += StrFormat("#{0},", s);
 
 	message.pop_back();
@@ -86,7 +86,7 @@ void CDDog::Send(std::string data, const std::vector<std::string>& tags, f32 sam
 	};
 	static thread_local std::uniform_real_distribution<f32> distribution{0.0f, 1.0f};
 
-	if(sampleRate < 1.0f)
+	if (sampleRate < 1.0f)
 	{
 		if (distribution(generator) >= sampleRate)
 			return;
@@ -98,7 +98,7 @@ void CDDog::Send(std::string data, const std::vector<std::string>& tags, f32 sam
 
 #ifdef __WIN32
 	SOCKET s = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-	if(s == INVALID_SOCKET)
+	if (s == INVALID_SOCKET)
 	{
 		Log(CLog::Error, "Couldn't create UDP socket for datadog.");
 		return;
@@ -109,13 +109,13 @@ void CDDog::Send(std::string data, const std::vector<std::string>& tags, f32 sam
 	ioctlsocket(s, FIONBIO, &mode);
 
 	s32 bytesSent = sendto(s, data.c_str(), (s32)data.length(), 0, (sockaddr*)&_server, sizeof(_server));
-	if(bytesSent == SOCKET_ERROR)
+	if (bytesSent == SOCKET_ERROR)
 		Log(CLog::Error, "Couldn't send data to datadog.");
 
 	closesocket(s);
 #else
 	int s = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-	if(s == -1)
+	if (s == -1)
 	{
 		Log(CLog::Error, "Couldn't create UDP socket for datadog.");
 		return;
@@ -126,7 +126,7 @@ void CDDog::Send(std::string data, const std::vector<std::string>& tags, f32 sam
 	fcntl(s, F_SETFL, flags | O_NONBLOCK);
 
 	s32 bytesSent = sendto(s, data.c_str(), data.length(), 0, (sockaddr*)&_server, sizeof(_server));
-	if(bytesSent == -1)
+	if (bytesSent == -1)
 		Log(CLog::Error, "Couldn't send data to datadog.");
 
 	close(s);

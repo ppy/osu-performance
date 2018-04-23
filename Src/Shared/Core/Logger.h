@@ -79,7 +79,7 @@ public:
 	static std::unique_ptr<CLog> CreateLogger();
 
 	//void log(byte bColor, const char* pcSys, const char* pcFmt, ...);
-	void Log(EType Flags, std::string Text);
+	void Log(EType flags, std::string text);
 
 	enum class EStream : byte
 	{
@@ -88,16 +88,16 @@ public:
 	};
 
 private:
-	std::unique_ptr<CActive> m_pActive;
+	std::unique_ptr<CActive> _pActive;
 
-	static const size_t OutputBufferSize = 10000;
+	static const size_t s_outputBufferSize = 10000;
 
-	char m_OutputBufferStdout[CLog::OutputBufferSize];
-	char m_OutputBufferStderr[CLog::OutputBufferSize];
+	char _outputBufferStdout[CLog::s_outputBufferSize];
+	char _outputBufferStderr[CLog::s_outputBufferSize];
 
-	void LogText(EType Flags, std::string Text);
+	void LogText(EType flags, std::string text);
 
-	void Write(const std::string& Text, EStream Stream);
+	void Write(const std::string& text, EStream Stream);
 };
 
-void Log(CLog::EType Flags, std::string Text);
+void Log(CLog::EType flags, std::string text);

@@ -33,25 +33,25 @@ CUUID CUUID::V4()
 	const uint32_t rand_3 = (rand32() & 0xffff0fff) | c[rand() & 0x03];
 	const uint32_t rand_4 = (rand32() & 0xffffffff);
 
-	uuid.bytes[0x00] = (rand_1 >> 24) & 0xff;
-	uuid.bytes[0x01] = (rand_1 >> 16) & 0xff;
-	uuid.bytes[0x02] = (rand_1 >> 8) & 0xff;
-	uuid.bytes[0x03] = (rand_1)& 0xff;
+	uuid._bytes[0x00] = (rand_1 >> 24) & 0xff;
+	uuid._bytes[0x01] = (rand_1 >> 16) & 0xff;
+	uuid._bytes[0x02] = (rand_1 >> 8) & 0xff;
+	uuid._bytes[0x03] = (rand_1)& 0xff;
 
-	uuid.bytes[0x04] = (rand_2 >> 24) & 0xff;
-	uuid.bytes[0x05] = (rand_2 >> 16) & 0xff;
-	uuid.bytes[0x06] = (rand_2 >> 8) & 0xff;
-	uuid.bytes[0x07] = (rand_2)& 0xff;
+	uuid._bytes[0x04] = (rand_2 >> 24) & 0xff;
+	uuid._bytes[0x05] = (rand_2 >> 16) & 0xff;
+	uuid._bytes[0x06] = (rand_2 >> 8) & 0xff;
+	uuid._bytes[0x07] = (rand_2)& 0xff;
 
-	uuid.bytes[0x08] = (rand_3 >> 24) & 0xff;
-	uuid.bytes[0x09] = (rand_3 >> 16) & 0xff;
-	uuid.bytes[0x0a] = (rand_3 >> 8) & 0xff;
-	uuid.bytes[0x0b] = (rand_3)& 0xff;
+	uuid._bytes[0x08] = (rand_3 >> 24) & 0xff;
+	uuid._bytes[0x09] = (rand_3 >> 16) & 0xff;
+	uuid._bytes[0x0a] = (rand_3 >> 8) & 0xff;
+	uuid._bytes[0x0b] = (rand_3)& 0xff;
 
-	uuid.bytes[0x0c] = (rand_4 >> 24) & 0xff;
-	uuid.bytes[0x0d] = (rand_4 >> 16) & 0xff;
-	uuid.bytes[0x0e] = (rand_4 >> 8) & 0xff;
-	uuid.bytes[0x0f] = (rand_4)& 0xff;
+	uuid._bytes[0x0c] = (rand_4 >> 24) & 0xff;
+	uuid._bytes[0x0d] = (rand_4 >> 16) & 0xff;
+	uuid._bytes[0x0e] = (rand_4 >> 8) & 0xff;
+	uuid._bytes[0x0f] = (rand_4)& 0xff;
 
 	return uuid;
 }
@@ -61,8 +61,8 @@ std::string CUUID::ToString()
 	std::stringstream ss;
 	ss << std::hex;
 
-	for(unsigned int i = 0; i < 16; ++i)
-		ss << std::setw(2) << std::setfill('0') << (int)bytes[i];
+	for (unsigned int i = 0; i < 16; ++i)
+		ss << std::setw(2) << std::setfill('0') << (int)_bytes[i];
 
 	return ss.str();
 }

@@ -6,7 +6,6 @@
 #include <args.hxx>
 
 using namespace std::chrono;
-using namespace SharedEnums;
 
 int main(s32 argc, char* argv[])
 {
@@ -16,14 +15,14 @@ int main(s32 argc, char* argv[])
 #ifdef __WIN32
 	WORD wVersionRequested = MAKEWORD(2, 2);
 	WSADATA wsaData;
-	if(WSAStartup(wVersionRequested, &wsaData) != 0)
+	if (WSAStartup(wVersionRequested, &wsaData) != 0)
 	{
 		Log(CLog::CriticalError, "Couldn't startup winsock.");
 	}
 #endif
 
 	std::vector<std::string> arguments;
-	for(int i = 1; i < argc; ++i)
+	for (int i = 1; i < argc; ++i)
 	{
 		std::string arg = argv[i];
 		// macOS sometimes (seemingly sporadically) passes the
@@ -33,27 +32,27 @@ int main(s32 argc, char* argv[])
 			arguments.emplace_back(argv[i]);
 	}
 
-	args::ArgumentParser Parser{
+	args::ArgumentParser parser{
 		"Computes performance points (pp) for the rhythm game osu!",
 		"",
 	};
 
-	args::HelpFlag HelpFlag{
-		Parser,
+	args::HelpFlag helpFlag{
+		parser,
 		"help",
 		"Display this help menu",
 		{'h', "help"},
 	};
 
-	args::Flag RecomputeFlag{
-		Parser,
+	args::Flag recomputeFlag{
+		parser,
 		"recompute",
 		"Forces recomputation of pp for all players. Useful if the underlying algorithm changed.",
 		{'r', "recompute"},
 	};
 
-	args::ValueFlag<u32> ModeFlag{
-		Parser,
+	args::ValueFlag<u32> modeFlag{
+		parser,
 		"mode",
 		"The game mode to compute pp for.",
 		{'m', "mode"},
@@ -63,55 +62,55 @@ int main(s32 argc, char* argv[])
 	// errors using exceptions.
 	try
 	{
-		Parser.ParseArgs(arguments);
+		parser.ParseArgs(arguments);
 	}
-	catch(args::Help)
+	catch (args::Help)
 	{
-		std::cout << Parser;
+		std::cout << parser;
 		return 0;
 	}
-	catch(args::ParseError e)
+	catch (args::ParseError e)
 	{
 		std::cerr << e.what() << std::endl;
-		std::cerr << Parser;
+		std::cerr << parser;
 		return -1;
 	}
-	catch(args::ValidationError e)
+	catch (args::ValidationError e)
 	{
 		std::cerr << e.what() << std::endl;
-		std::cerr << Parser;
+		std::cerr << parser;
 		return -2;
 	}
 
 	try
 	{
-		EGamemode Gamemode = EGamemode::Standard;
-		if(ModeFlag)
+		EGamemode gamemode = EGamemode::Standard;
+		if (modeFlag)
 		{
-			u32 ModeId = args::get(ModeFlag);
-			if(ModeId < EGamemode::AmountGamemodes)
-				Gamemode = (EGamemode)ModeId;
+			u32 modeId = args::get(modeFlag);
+			if (modeId < NumGamemodes)
+				gamemode = (EGamemode)modeId;
 			else
-				throw CLoggedException(SRC_POS, StrFormat("Invalid gamemode ID {0} supplied.", ModeId));
+				throw CLoggedException(SRC_POS, StrFormat("Invalid gamemode ID {0} supplied.", modeId));
 		}
 
 		// Create game object
 		CProcessor Processor{
-			Gamemode,
-			RecomputeFlag,
+			gamemode,
+			recomputeFlag,
 		};
 	}
-	catch(CLoggedException& e)
+	catch (CLoggedException& e)
 	{
 		e.Log();
 		return 1;
 	}
-	catch(CException& e)
+	catch (CException& e)
 	{
 		e.Print();
 		return 1;
 	}
-	catch(const std::exception& e)
+	catch (const std::exception& e)
 	{
 		std::cerr << "Uncaught exception: " << e.what() << std::endl;
 		return 1;

@@ -12,7 +12,7 @@ CUpdateBatch::CUpdateBatch(std::shared_ptr<CDatabaseConnection> pDB, u32 sizeThr
 CUpdateBatch::~CUpdateBatch()
 {
 	// If we are not empty we want to commit what's left in here
-	if(!_empty)
+	if (!_empty)
 	{
 		Execute();
 	}
@@ -28,7 +28,7 @@ void CUpdateBatch::AppendAndCommitNonThreadsafe(const std::string& values)
 {
 	Append(values);
 
-	if(Size() > _sizeThreshold)
+	if (Size() > _sizeThreshold)
 	{
 		Execute();
 		Reset();
