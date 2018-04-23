@@ -69,6 +69,12 @@ and further options specific to the chosen command can be queried via
 
 Configuration options beyond these parameters, such as the MySQL server configuration, can be adjusted in _Bin/Data/Config.cfg_.
 
+## Sample Data
+
+Database dumps with sample data can be found at https://data.ppy.sh. This data includes the top 10,000 users along with a random 10,000 user sample across all users, along with all required auxiliary tables to test this system. Please note that this data is released for development purposes only (full licence details [availble here](https://data.ppy.sh/LICENCE.txt)).
+
+You can import these dumps to mysql (after first extracting them) by running `cat *.sql | mysql`. Note that all existing data in tables will be dropped and replaced.
+
 ## Licence
 
 osu-performance is licensed under AGPL version 3 or later. Please see [the licence file](LICENCE) for more information. [tl;dr](https://tldrlegal.com/license/gnu-affero-general-public-license-v3-(agpl-3.0)) if you want to use any code, design or artwork from this project, attribute it and make your project open source under the same licence.
