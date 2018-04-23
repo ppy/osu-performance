@@ -32,27 +32,27 @@ int main(s32 argc, char* argv[])
 			arguments.emplace_back(argv[i]);
 	}
 
-	args::ArgumentParser Parser{
+	args::ArgumentParser parser{
 		"Computes performance points (pp) for the rhythm game osu!",
 		"",
 	};
 
-	args::HelpFlag HelpFlag{
-		Parser,
+	args::HelpFlag helpFlag{
+		parser,
 		"help",
 		"Display this help menu",
 		{'h', "help"},
 	};
 
-	args::Flag RecomputeFlag{
-		Parser,
+	args::Flag recomputeFlag{
+		parser,
 		"recompute",
 		"Forces recomputation of pp for all players. Useful if the underlying algorithm changed.",
 		{'r', "recompute"},
 	};
 
-	args::ValueFlag<u32> ModeFlag{
-		Parser,
+	args::ValueFlag<u32> modeFlag{
+		parser,
 		"mode",
 		"The game mode to compute pp for.",
 		{'m', "mode"},
@@ -62,42 +62,42 @@ int main(s32 argc, char* argv[])
 	// errors using exceptions.
 	try
 	{
-		Parser.ParseArgs(arguments);
+		parser.ParseArgs(arguments);
 	}
 	catch (args::Help)
 	{
-		std::cout << Parser;
+		std::cout << parser;
 		return 0;
 	}
 	catch (args::ParseError e)
 	{
 		std::cerr << e.what() << std::endl;
-		std::cerr << Parser;
+		std::cerr << parser;
 		return -1;
 	}
 	catch (args::ValidationError e)
 	{
 		std::cerr << e.what() << std::endl;
-		std::cerr << Parser;
+		std::cerr << parser;
 		return -2;
 	}
 
 	try
 	{
-		EGamemode Gamemode = EGamemode::Standard;
-		if (ModeFlag)
+		EGamemode gamemode = EGamemode::Standard;
+		if (modeFlag)
 		{
-			u32 ModeId = args::get(ModeFlag);
-			if (ModeId < EGamemode::AmountGamemodes)
-				Gamemode = (EGamemode)ModeId;
+			u32 modeId = args::get(modeFlag);
+			if (modeId < EGamemode::AmountGamemodes)
+				gamemode = (EGamemode)modeId;
 			else
-				throw CLoggedException(SRC_POS, StrFormat("Invalid gamemode ID {0} supplied.", ModeId));
+				throw CLoggedException(SRC_POS, StrFormat("Invalid gamemode ID {0} supplied.", modeId));
 		}
 
 		// Create game object
 		CProcessor Processor{
-			Gamemode,
-			RecomputeFlag,
+			gamemode,
+			recomputeFlag,
 		};
 	}
 	catch (CLoggedException& e)
