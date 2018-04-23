@@ -80,6 +80,7 @@ int main(s32 argc, char* argv[])
 	// errors using exceptions.
 	try
 	{
+		parser.Prog(argv[0]);
 		parser.ParseArgs(arguments);
 	}
 	catch (args::Help)
