@@ -28,8 +28,8 @@ CDatabaseConnection::~CDatabaseConnection()
 void CDatabaseConnection::connect()
 {
 	mysql_close(&_mySQL);
-	while (!mysql_real_connect(&_mySQL, _host.c_str(), _username.c_str(), _password.c_str(), _database.c_str(), _port, NULL, CLIENT_MULTI_STATEMENTS))
-		Log(CLog::Error, StrFormat("Could not connect. ({0})", Error()));
+	if (!mysql_real_connect(&_mySQL, _host.c_str(), _username.c_str(), _password.c_str(), _database.c_str(), _port, NULL, CLIENT_MULTI_STATEMENTS))
+		throw CDatabaseException(SRC_POS, StrFormat("Could not connect. ({0})", Error()));
 }
 
 void CDatabaseConnection::NonQueryBackground(const std::string& queryString)
@@ -47,11 +47,8 @@ void CDatabaseConnection::NonQuery(const std::string& queryString)
 	// We don't want concurrent queries
 	std::lock_guard<std::recursive_mutex> lock{_dbMutex};
 
-	while (mysql_query(&_mySQL, queryString.c_str()) != 0)
-	{
-		Log(CLog::Error, StrFormat("Error executing query {0}. ({1})", queryString, Error()));
-		connect();
-	}
+	if (mysql_query(&_mySQL, queryString.c_str()) != 0)
+		throw CDatabaseException(SRC_POS, StrFormat("Error executing query {0}. ({1})", queryString, Error()));
 
 	s32 status;
 	do
@@ -62,9 +59,7 @@ void CDatabaseConnection::NonQuery(const std::string& queryString)
 			mysql_free_result(pRes);
 		else          /* no result set or error */
 		{
-			if (mysql_field_count(&_mySQL) == 0)
-			{ }
-			else  /* some error occurred */
+			if (mysql_field_count(&_mySQL) != 0)
 				throw CDatabaseException(SRC_POS, StrFormat("Error getting result. ({0})", Error()));
 		}
 		/* more results? -1 = no, >0 = error, 0 = yes (keep looping) */
@@ -81,28 +76,14 @@ CQueryResult CDatabaseConnection::Query(const std::string& queryString)
 	// We don't want concurrent queries
 	std::lock_guard<std::recursive_mutex> lock{_dbMutex};
 
-	while (mysql_query(&_mySQL, queryString.c_str()) != 0)
-	{
-		Log(CLog::Error, StrFormat("Error executing query {0}. ({1})", queryString, Error()));
-		connect();
-	}
+	if (mysql_query(&_mySQL, queryString.c_str()) != 0)
+		throw CDatabaseException(SRC_POS, StrFormat("Error executing query {0}. ({1})", queryString, Error()));
 
 	MYSQL_RES* pRes = mysql_store_result(&_mySQL);
 	if (pRes == NULL)
 		throw CDatabaseException(SRC_POS, StrFormat("Error getting result. ({0})", Error()));
 
 	return CQueryResult{pRes};
-}
-
-bool CDatabaseConnection::ping()
-{
-	// We don't want concurrent queries
-	std::lock_guard<std::recursive_mutex> lock{_dbMutex};
-
-	while (mysql_ping(&_mySQL) != 0)
-		connect();
-
-	return true;
 }
 
 const char *CDatabaseConnection::Error()

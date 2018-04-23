@@ -21,9 +21,6 @@ public:
 	void NonQuery(const std::string& queryString);
 	CQueryResult Query(const std::string& queryString);
 
-	//kind of connection test, not really important
-	bool ping();
-
 	//returns error messages
 	const char* Error();
 
