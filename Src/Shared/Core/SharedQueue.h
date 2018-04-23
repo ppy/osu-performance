@@ -10,40 +10,40 @@ class CSharedQueue
 public:
 	bool Empty() const
 	{
-		std::lock_guard<std::mutex> lock{ m_Mutex };
-		return m_RawQueue.empty();
+		std::lock_guard<std::mutex> lock{ _mutex };
+		return _rawQueue.empty();
 	}
 
 	size_t Size() const
 	{
-		std::lock_guard<std::mutex> lock{ m_Mutex };
-		return m_RawQueue.size();
+		std::lock_guard<std::mutex> lock{ _mutex };
+		return _rawQueue.size();
 	}
 
 	void Push(T& NewElem)
 	{
-		std::lock_guard<std::mutex> lock{ m_Mutex };
-		m_RawQueue.push_back(NewElem);
-		m_DataCondition.notify_one();
+		std::lock_guard<std::mutex> lock{ _mutex };
+		_rawQueue.push_back(NewElem);
+		_dataCondition.notify_one();
 	}
 
 	T WaitAndPop()
 	{
-		std::unique_lock<std::mutex> lock{ m_Mutex };
+		std::unique_lock<std::mutex> lock{ _mutex };
 
-		while (m_RawQueue.empty())
+		while (_rawQueue.empty())
 		{
-			m_DataCondition.wait(lock);
+			_dataCondition.wait(lock);
 		}
 
-		T Result = std::move(m_RawQueue.front());
-		m_RawQueue.pop_front();
+		T result = std::move(_rawQueue.front());
+		_rawQueue.pop_front();
 
-		return Result;
+		return result;
 	}
 
 private:
-	std::deque<T> m_RawQueue;
-	mutable std::mutex m_Mutex;
-	std::condition_variable m_DataCondition;
+	std::deque<T> _rawQueue;
+	mutable std::mutex _mutex;
+	std::condition_variable _dataCondition;
 };
