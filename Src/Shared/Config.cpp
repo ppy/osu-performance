@@ -16,9 +16,9 @@ CConfig::CConfig(const std::string& filename)
 
 s32 config_switch(const char* str)
 {
-	if(strncmp(str, "true", 4) == 0 || strncmp(str, "on", 2) == 0 || strncmp(str, "yes", 3) == 0 || strncmp(str, "oui", 3) == 0 || strncmp(str, "ja", 2) == 0 || strncmp(str, "si", 2) == 0)
+	if (strncmp(str, "true", 4) == 0 || strncmp(str, "on", 2) == 0 || strncmp(str, "yes", 3) == 0 || strncmp(str, "oui", 3) == 0 || strncmp(str, "ja", 2) == 0 || strncmp(str, "si", 2) == 0)
 		return 1;
-	if(strncmp(str, "false", 5) == 0 || strncmp(str, "no", 2) == 0 || strncmp(str, "non", 3) == 0 || strncmp(str, "nein", 4) == 0)
+	if (strncmp(str, "false", 5) == 0 || strncmp(str, "no", 2) == 0 || strncmp(str, "non", 3) == 0 || strncmp(str, "nein", 4) == 0)
 		return 0;
 
 	return (s32)strtol(str, nullptr, 0);
@@ -29,10 +29,8 @@ void CConfig::ReadFromFile(const char* filename)
 	// Has to use non-filesystem based opening funcs.
 	FILE* pFile = fopen(filename, "rb");
 
-	if(pFile == NULL)
-	{
+	if (pFile == NULL)
 		throw CConfigException(SRC_POS, StrFormat("Config file '{0}' could not be opened.", filename));
-	}
 
 	// Find file size
 	fseek(pFile, 0, SEEK_END);
@@ -42,7 +40,7 @@ void CConfig::ReadFromFile(const char* filename)
 	char* buffer = new char[Size];
 
 	size_t NumBytesRead = fread(buffer, sizeof(char), Size, pFile);
-	if(NumBytesRead != Size)
+	if (NumBytesRead != Size)
 		throw CConfigException(SRC_POS, StrFormat("Config file '{0}' could not be fully read. (read {1} of {2} bytes)", filename, NumBytesRead, Size));
 
 	// No need for the file anymore
@@ -55,23 +53,23 @@ void CConfig::ReadFromFile(const char* filename)
 	char szCurrentToken[256] = "";
 	char szCurrentValue[1024] = "";
 
-	while(pos < Size)
+	while (pos < Size)
 	{
 		// Skip spaces
-		if(std::isspace(buffer[pos]))
+		if (std::isspace(buffer[pos]))
 			pos++;
 		// // Comment
-		else if(buffer[pos] == '/' && buffer[pos + 1] == '/')
+		else if (buffer[pos] == '/' && buffer[pos + 1] == '/')
 		{
 			// Skip until newline
-			while(pos < Size && buffer[pos] != '\n')
+			while (pos < Size && buffer[pos] != '\n')
 				pos++;
 		}
 		// /* */ Comment
-		else if(buffer[pos] == '/' && buffer[pos + 1] == '*')
+		else if (buffer[pos] == '/' && buffer[pos + 1] == '*')
 		{
 			// Skip until end of comment
-			while(pos < Size && !(buffer[pos] == '*' && buffer[pos + 1] == '/'))
+			while (pos < Size && !(buffer[pos] == '*' && buffer[pos + 1] == '/'))
 				pos++;
 
 			// Skip the "*/"
@@ -80,17 +78,17 @@ void CConfig::ReadFromFile(const char* filename)
 		// We found something
 		else
 		{
-			switch(readingState)
+			switch (readingState)
 			{
 			case TOKEN_NAME:
 				// Read token
 				i = 0;
-				while(pos < Size && !std::isspace(buffer[pos]) && buffer[pos] != ':')
+				while (pos < Size && !std::isspace(buffer[pos]) && buffer[pos] != ':')
 					szCurrentToken[i++] = buffer[pos++];
 				szCurrentToken[i] = '\0';
 
 				// Check if we need the find seperator state
-				if(buffer[pos] == ':')
+				if (buffer[pos] == ':')
 				{
 					pos++;
 					readingState = TOKEN_VALUE;
@@ -101,7 +99,7 @@ void CConfig::ReadFromFile(const char* filename)
 				break;
 
 			case FIND_SEPERATOR:
-				if(buffer[pos] != ':')
+				if (buffer[pos] != ':')
 					Log(CLog::Warning, StrFormat("Config '{0}' is corrupted. (Wrong seperator.)", filename));
 
 				pos++;
@@ -113,13 +111,13 @@ void CConfig::ReadFromFile(const char* filename)
 				i = 0;
 
 				// Using " ?
-				if(buffer[pos] == '"')
+				if (buffer[pos] == '"')
 				{
 					// Skip the first '"'
 					pos++;
 
 					// Read until end '"'
-					while(pos < Size && buffer[pos] != '"')
+					while (pos < Size && buffer[pos] != '"')
 						szCurrentValue[i++] = buffer[pos++];
 					szCurrentValue[i] = '\0';
 
@@ -140,7 +138,7 @@ void CConfig::ReadFromFile(const char* filename)
 					}
 
 					// Dismiss trailing ' '
-					while(szCurrentValue[i - 1] == ' ')
+					while (szCurrentValue[i - 1] == ' ')
 						i--;
 					szCurrentValue[i] = '\0';
 				}
@@ -149,15 +147,27 @@ void CConfig::ReadFromFile(const char* filename)
 				readingState = TOKEN_NAME;
 
 #define MACRO_CONFIG_INT( name, def, min, max, desc ) \
-				if(!strcmp(#name, szCurrentToken)) { name = config_switch(szCurrentValue); break; }
+				if (!strcmp(#name, szCurrentToken)) \
+				{ \
+					name = config_switch(szCurrentValue); \
+					break; \
+				}
 
 #define MACRO_CONFIG_FLOAT( name, def, min, max, desc ) \
-				if(!strcmp(#name, szCurrentToken)) { name = (float)atof(szCurrentValue); break; }
+				if (!strcmp(#name, szCurrentToken)) \
+				{ \
+					name = (float)atof(szCurrentValue); \
+					break; \
+				}
 
 #define MACRO_CONFIG_STR( name, def, maxlen, desc ) \
-				if(!strcmp(#name, szCurrentToken)) \
-				{ if(i > maxlen) i = maxlen; \
-				strncpy(name, szCurrentValue, i); name[i] = '\0'; break; }
+				if (!strcmp(#name, szCurrentToken)) \
+				{ \
+					if (i > maxlen) \
+						i = maxlen; \
+					strncpy(name, szCurrentValue, i); name[i] = '\0'; \
+					break; \
+				}
 
 #include "configVariables.h"
 

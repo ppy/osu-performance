@@ -127,7 +127,7 @@ public:
 
 		auto task = std::make_shared< std::packaged_task<return_type()> >(
 			std::bind(std::forward<F>(f), std::forward<Args>(args)...)
-			);
+		);
 
 		auto res = task->get_future();
 

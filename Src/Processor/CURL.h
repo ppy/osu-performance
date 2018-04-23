@@ -14,7 +14,8 @@ public:
 		std::string username,
 		std::string iconURL,
 		std::string channel,
-		std::string message);
+		std::string message
+	);
 
 	void SendToSentry(
 		std::string domain,
@@ -23,7 +24,8 @@ public:
 		std::string secretKey,
 		CException& e,
 		std::string mode,
-		bool warning = false);
+		bool warning = false
+	);
 
 private:
 	CURL* _pCURL = nullptr;

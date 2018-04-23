@@ -43,7 +43,7 @@ void CPriorityLock::Lock()
 	if (_isLocked)
 		return;
 
-	if(_isHighPriority)
+	if (_isHighPriority)
 		_pPriorityMutex->LockHighPrio();
 	else
 		_pPriorityMutex->LockLowPrio();
@@ -53,10 +53,10 @@ void CPriorityLock::Lock()
 
 void CPriorityLock::Unlock()
 {
-	if(!_isLocked)
+	if (!_isLocked)
 		return;
 
-	if(_isHighPriority)
+	if (_isHighPriority)
 		_pPriorityMutex->UnlockHighPrio();
 	else
 		_pPriorityMutex->UnlockLowPrio();
@@ -77,10 +77,10 @@ CRWLock::~CRWLock()
 
 void CRWLock::Lock()
 {
-	if(_isLocked)
+	if (_isLocked)
 		return;
 
-	if(_isWriter)
+	if (_isWriter)
 		_pRWMutex->WriterLock();
 	else
 		_pRWMutex->ReaderLock();
@@ -90,10 +90,10 @@ void CRWLock::Lock()
 
 void CRWLock::Unlock()
 {
-	if(!_isLocked)
+	if (!_isLocked)
 		return;
 
-	if(_isWriter)
+	if (_isWriter)
 		_pRWMutex->WriterUnlock();
 	else
 		_pRWMutex->ReaderUnlock();
@@ -120,19 +120,18 @@ CThreadPool::~CThreadPool()
 void CThreadPool::StartThreads(const u32 Amount)
 {
 	m_NumThreads += Amount;
-	for(u32 i = (u32)m_Threads.size(); i < m_NumThreads; ++i)
+	for (u32 i = (u32)m_Threads.size(); i < m_NumThreads; ++i)
 	{
 		m_Threads.emplace_back([this, i]
 		{
 			Log(CLog::Threads, StrFormat("Worker thread {0} started.", i));
 
-			while(true)
+			while (true)
 			{
 				std::unique_lock<std::mutex> lock{this->m_TaskQueueMutex};
 
 				// look for a work item
-				while(i < this->m_NumThreads &&
-					this->m_TaskQueue.empty())
+				while (i < this->m_NumThreads && this->m_TaskQueue.empty())
 				{
 					//__LOG_DBG(MSG_THREADS, "Thread {0} is waiting for a task.", i);
 
@@ -140,7 +139,7 @@ void CThreadPool::StartThreads(const u32 Amount)
 					this->m_WorkerCondition.wait(lock);
 				}
 
-				if(i >= this->m_NumThreads)
+				if (i >= this->m_NumThreads)
 					break;
 
 				std::function<void()> task{std::move(this->m_TaskQueue.front())};
@@ -163,7 +162,7 @@ void CThreadPool::StartThreads(const u32 Amount)
 				{
 					std::unique_lock<std::mutex> lock{this->m_SystemBusyMutex};
 
-					if(m_NumTasksInSystem == 0)
+					if (m_NumTasksInSystem == 0)
 						this->m_SystemBusyCondition.notify_all();
 				}
 			}
@@ -186,7 +185,7 @@ void CThreadPool::ShutdownThreads(const u32 Amount)
 	// Wake up all the threads to have them quit
 	m_WorkerCondition.notify_all();
 
-	for(auto i = 0u; i < AmountToClose; ++i)
+	for (auto i = 0u; i < AmountToClose; ++i)
 	{
 		// Join them
 		m_Threads.back().join();
@@ -198,7 +197,7 @@ void CThreadPool::WaitUntilFinished()
 {
 	std::unique_lock<std::mutex> lock{m_SystemBusyMutex};
 
-	if(m_NumTasksInSystem == 0)
+	if (m_NumTasksInSystem == 0)
 		return;
 
 	m_SystemBusyCondition.wait(lock);
@@ -208,7 +207,7 @@ void CThreadPool::WaitUntilFinishedFor(const std::chrono::microseconds Duration)
 {
 	std::unique_lock<std::mutex> lock{m_SystemBusyMutex};
 
-	if(m_NumTasksInSystem == 0)
+	if (m_NumTasksInSystem == 0)
 		return;
 
 	m_SystemBusyCondition.wait_for(lock, Duration);

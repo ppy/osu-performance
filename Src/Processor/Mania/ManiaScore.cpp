@@ -36,9 +36,9 @@ f32 CManiaScore::TotalValue() const
 void CManiaScore::ComputeTotalValue()
 {
 	// Don't count scores made with supposedly unranked mods
-	if((_mods & EMods::Relax) > 0 ||
-	   (_mods & EMods::Relax2) > 0 ||
-	   (_mods & EMods::Autoplay) > 0)
+	if ((_mods & EMods::Relax) > 0 ||
+		(_mods & EMods::Relax2) > 0 ||
+		(_mods & EMods::Autoplay) > 0)
 	{
 		_totalValue = 0;
 		return;
@@ -47,19 +47,19 @@ void CManiaScore::ComputeTotalValue()
 	// Custom multipliers for NoFail and SpunOut.
 	f32 multiplier = 1.1f; // This is being adjusted to keep the final pp value scaled around what it used to be when changing things
 
-	if((_mods & EMods::NoFail) > 0)
+	if ((_mods & EMods::NoFail) > 0)
 		multiplier *= 0.90f;
 
-	if((_mods & EMods::SpunOut) > 0)
+	if ((_mods & EMods::SpunOut) > 0)
 		multiplier *= 0.95f;
 
-	if((_mods & EMods::Easy) > 0)
+	if ((_mods & EMods::Easy) > 0)
 		multiplier *= 0.50f;
 
 	_totalValue =
-		std::pow(
-		std::pow(_strainValue, 1.1f) +
-		std::pow(_accValue, 1.1f), 1.0f / 1.1f
+			std::pow(
+			std::pow(_strainValue, 1.1f) +
+			std::pow(_accValue, 1.1f), 1.0f / 1.1f
 		) * multiplier;
 }
 
@@ -68,7 +68,7 @@ void CManiaScore::ComputeStrainValue(const CBeatmap& beatmap)
 	// Scale score up, so it's comparable to other keymods
 	f32 scoreMultiplier = beatmap.DifficultyAttribute(_mods, CBeatmap::ScoreMultiplier);
 
-	if(scoreMultiplier <= 0)
+	if (scoreMultiplier <= 0)
 	{
 		_strainValue = 0;
 		return;
@@ -83,15 +83,15 @@ void CManiaScore::ComputeStrainValue(const CBeatmap& beatmap)
 	_strainValue *= 1 + 0.1f * std::min(1.0f, static_cast<f32>(TotalHits()) / 1500.0f);
 
 	// Counter mashing through maps
-	if(_score <= 500000)
+	if (_score <= 500000)
 		_strainValue = 0;
-	else if(_score <= 600000)
+	else if (_score <= 600000)
 		_strainValue *= static_cast<f32>(_score - 500000) / 100000.0f * 0.3f;
-	else if(_score <= 700000)
+	else if (_score <= 700000)
 		_strainValue *= 0.3f + static_cast<f32>(_score - 600000) / 100000.0f * 0.35f;
-	else if(_score <= 800000)
+	else if (_score <= 800000)
 		_strainValue *= 0.65f + static_cast<f32>(_score - 700000) / 100000.0f * 0.20f;
-	else if(_score <= 900000)
+	else if (_score <= 900000)
 		_strainValue *= 0.85f + static_cast<f32>(_score - 800000) / 100000.0f * 0.1f;
 	else
 		_strainValue *= 0.95f + static_cast<f32>(_score - 900000) / 100000.0f * 0.05f;
@@ -100,7 +100,7 @@ void CManiaScore::ComputeStrainValue(const CBeatmap& beatmap)
 void CManiaScore::ComputeAccValue(const CBeatmap& beatmap)
 {
 	f32 hitWindow300 = beatmap.DifficultyAttribute(_mods, CBeatmap::HitWindow300);
-	if(hitWindow300 <= 0)
+	if (hitWindow300 <= 0)
 	{
 		_accValue = 0;
 		return;
@@ -116,7 +116,7 @@ void CManiaScore::ComputeAccValue(const CBeatmap& beatmap)
 
 f32 CManiaScore::Accuracy() const
 {
-	if(TotalHits() == 0)
+	if (TotalHits() == 0)
 		return 0;
 
 	return

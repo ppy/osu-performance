@@ -61,7 +61,7 @@ std::string CUUID::ToString()
 	std::stringstream ss;
 	ss << std::hex;
 
-	for(unsigned int i = 0; i < 16; ++i)
+	for (unsigned int i = 0; i < 16; ++i)
 		ss << std::setw(2) << std::setfill('0') << (int)bytes[i];
 
 	return ss.str();

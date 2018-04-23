@@ -25,7 +25,7 @@ f32 CBeatmap::DifficultyAttribute(SharedEnums::EMods mods, EDifficultyAttributeT
 {
 	mods = MaskRelevantDifficultyMods(mods);
 
-	if(_difficulty.count(mods) == 0 || _difficulty.at(mods).count(type) == 0)
+	if (_difficulty.count(mods) == 0 || _difficulty.at(mods).count(type) == 0)
 		return 0.0f;
 	else
 		return _difficulty.at(mods).at(type);

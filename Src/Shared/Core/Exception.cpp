@@ -1,7 +1,7 @@
 #include <Shared.h>
 
 CException::CException(std::string File, s32 Line, std::string Description)
-	: m_File{std::move(File)}, m_Line{Line}, m_Description{std::move(Description)}
+: m_File{std::move(File)}, m_Line{Line}, m_Description{std::move(Description)}
 {
 }
 
@@ -11,7 +11,7 @@ void CException::Print()
 }
 
 CLoggedException::CLoggedException(std::string File, s32 Line, std::string Description)
-	: CException{std::move(File), Line, std::move(Description)}
+: CException{std::move(File), Line, std::move(Description)}
 {
 	//Log();
 }

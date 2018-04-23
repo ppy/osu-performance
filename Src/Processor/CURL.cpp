@@ -60,7 +60,7 @@ void CCURL::SendToSlack(
 	CURLcode Error = curl_easy_perform(_pCURL);
 	curl_slist_free_all(headers);
 
-	if(Error != CURLE_OK)
+	if (Error != CURLE_OK)
 	{
 		Log(CLog::Error, StrFormat("Slack CURL error {0}", Error));
 		return;
@@ -69,7 +69,7 @@ void CCURL::SendToSlack(
 	long ResponseCode;
 	curl_easy_getinfo(_pCURL, CURLINFO_RESPONSE_CODE, &ResponseCode);
 
-	if(ResponseCode != 200)
+	if (ResponseCode != 200)
 	{
 		Log(CLog::Error, StrFormat("Slack CURL response {0}", ResponseCode));
 		return;
@@ -132,7 +132,7 @@ void CCURL::SendToSentry(
 	CURLcode error = curl_easy_perform(_pCURL);
 	curl_slist_free_all(headers);
 
-	if(error != CURLE_OK)
+	if (error != CURLE_OK)
 	{
 		Log(CLog::Error, StrFormat("Sentry CURL error {0}", error));
 		return;
@@ -141,7 +141,7 @@ void CCURL::SendToSentry(
 	long responseCode;
 	curl_easy_getinfo(_pCURL, CURLINFO_RESPONSE_CODE, &responseCode);
 
-	if(responseCode != 200)
+	if (responseCode != 200)
 	{
 		Log(CLog::Error, StrFormat("Sentry CURL response {0}", responseCode));
 		return;

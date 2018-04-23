@@ -36,9 +36,9 @@ f32 CTaikoScore::TotalValue() const
 void CTaikoScore::ComputeTotalValue()
 {
 	// Don't count scores made with supposedly unranked mods
-	if((_mods & EMods::Relax) > 0 ||
-	   (_mods & EMods::Relax2) > 0 ||
-	   (_mods & EMods::Autoplay) > 0)
+	if ((_mods & EMods::Relax) > 0 ||
+		(_mods & EMods::Relax2) > 0 ||
+		(_mods & EMods::Autoplay) > 0)
 	{
 		_totalValue = 0;
 		return;
@@ -47,10 +47,10 @@ void CTaikoScore::ComputeTotalValue()
 	// Custom multipliers for NoFail and SpunOut.
 	f32 multiplier = 1.1f; // This is being adjusted to keep the final pp value scaled around what it used to be when changing things
 
-	if((_mods & EMods::NoFail) > 0)
+	if ((_mods & EMods::NoFail) > 0)
 		multiplier *= 0.90f;
 
-	if((_mods & EMods::Hidden) > 0)
+	if ((_mods & EMods::Hidden) > 0)
 		multiplier *= 1.10f;
 
 	_totalValue =
@@ -73,13 +73,13 @@ void CTaikoScore::ComputeStrainValue(const CBeatmap& beatmap)
 
 	// Combo scaling
 	float maxCombo = beatmap.DifficultyAttribute(_mods, CBeatmap::MaxCombo);
-	if(maxCombo > 0)
+	if (maxCombo > 0)
 		_strainValue *= std::min(static_cast<f32>(pow(_maxCombo, 0.5f) / pow(maxCombo, 0.5f)), 1.0f);
 
-	if((_mods & EMods::Hidden) > 0)
+	if ((_mods & EMods::Hidden) > 0)
 		_strainValue *= 1.025f;
 
-	if((_mods & EMods::Flashlight) > 0)
+	if ((_mods & EMods::Flashlight) > 0)
 		// Apply length bonus again if flashlight is on simply because it becomes a lot harder on longer maps.
 		_strainValue *= 1.05f * lengthBonus;
 
@@ -90,7 +90,7 @@ void CTaikoScore::ComputeStrainValue(const CBeatmap& beatmap)
 void CTaikoScore::ComputeAccValue(const CBeatmap& beatmap)
 {
 	f32 hitWindow300 = beatmap.DifficultyAttribute(_mods, CBeatmap::HitWindow300);
-	if(hitWindow300 <= 0)
+	if (hitWindow300 <= 0)
 	{
 		_accValue = 0;
 		return;
@@ -106,7 +106,7 @@ void CTaikoScore::ComputeAccValue(const CBeatmap& beatmap)
 
 f32 CTaikoScore::Accuracy() const
 {
-	if(TotalHits() == 0)
+	if (TotalHits() == 0)
 		return 0;
 
 	return

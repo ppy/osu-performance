@@ -4,14 +4,11 @@
 
 CActive::~CActive()
 {
-	if(!_isDone)
+	if (!_isDone)
 	{
 		Send(std::bind(&CActive::DoDone, this), false);
-
-		if(_thread.joinable())
-		{
+		if (_thread.joinable())
 			_thread.join();
-		}
 	}
 }
 
@@ -49,11 +46,11 @@ void CActive::Run()
 {
 	try
 	{
-		while(!_isDone)
+		while (!_isDone)
 			// Wait for a task, pop it and execute it. Hence the double ()()
 			_tasks.WaitAndPop()();
 	}
-	catch(...)
+	catch (...)
 	{
 		_activeException = std::current_exception();
 		_isDone = true;
@@ -62,7 +59,7 @@ void CActive::Run()
 
 void CActive::Send(std::function<void()> callback, bool checkForException)
 {
-	if(checkForException)
+	if (checkForException)
 		CheckForAndThrowException();
 
 	_tasks.Push(callback);
@@ -75,7 +72,7 @@ void CActive::DoDone()
 
 void CActive::CheckForAndThrowException() const
 {
-	if(_isDone)
+	if (_isDone)
 	{
 		if (std::exception_ptr exception = _activeException)
 		{

@@ -16,14 +16,14 @@ int main(s32 argc, char* argv[])
 #ifdef __WIN32
 	WORD wVersionRequested = MAKEWORD(2, 2);
 	WSADATA wsaData;
-	if(WSAStartup(wVersionRequested, &wsaData) != 0)
+	if (WSAStartup(wVersionRequested, &wsaData) != 0)
 	{
 		Log(CLog::CriticalError, "Couldn't startup winsock.");
 	}
 #endif
 
 	std::vector<std::string> arguments;
-	for(int i = 1; i < argc; ++i)
+	for (int i = 1; i < argc; ++i)
 	{
 		std::string arg = argv[i];
 		// macOS sometimes (seemingly sporadically) passes the
@@ -65,18 +65,18 @@ int main(s32 argc, char* argv[])
 	{
 		Parser.ParseArgs(arguments);
 	}
-	catch(args::Help)
+	catch (args::Help)
 	{
 		std::cout << Parser;
 		return 0;
 	}
-	catch(args::ParseError e)
+	catch (args::ParseError e)
 	{
 		std::cerr << e.what() << std::endl;
 		std::cerr << Parser;
 		return -1;
 	}
-	catch(args::ValidationError e)
+	catch (args::ValidationError e)
 	{
 		std::cerr << e.what() << std::endl;
 		std::cerr << Parser;
@@ -86,10 +86,10 @@ int main(s32 argc, char* argv[])
 	try
 	{
 		EGamemode Gamemode = EGamemode::Standard;
-		if(ModeFlag)
+		if (ModeFlag)
 		{
 			u32 ModeId = args::get(ModeFlag);
-			if(ModeId < EGamemode::AmountGamemodes)
+			if (ModeId < EGamemode::AmountGamemodes)
 				Gamemode = (EGamemode)ModeId;
 			else
 				throw CLoggedException(SRC_POS, StrFormat("Invalid gamemode ID {0} supplied.", ModeId));
@@ -101,17 +101,17 @@ int main(s32 argc, char* argv[])
 			RecomputeFlag,
 		};
 	}
-	catch(CLoggedException& e)
+	catch (CLoggedException& e)
 	{
 		e.Log();
 		return 1;
 	}
-	catch(CException& e)
+	catch (CException& e)
 	{
 		e.Print();
 		return 1;
 	}
-	catch(const std::exception& e)
+	catch (const std::exception& e)
 	{
 		std::cerr << "Uncaught exception: " << e.what() << std::endl;
 		return 1;
