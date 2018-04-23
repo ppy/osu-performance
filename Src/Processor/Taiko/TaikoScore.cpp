@@ -3,8 +3,6 @@
 #include "SharedEnums.h"
 #include "TaikoScore.h"
 
-using namespace SharedEnums;
-
 CTaikoScore::CTaikoScore(
 	s64 scoreId,
 	EGamemode mode,
@@ -18,7 +16,7 @@ CTaikoScore::CTaikoScore(
 	s32 amountMiss,
 	s32 amountGeki,
 	s32 amountKatu,
-	SharedEnums::EMods mods,
+	EMods mods,
 	const CBeatmap& beatmap
 ) : CScore{scoreId, mode, userId, beatmapId, score, maxCombo, amount300, amount100, amount50, amountMiss, amountGeki, amountKatu, mods}
 {

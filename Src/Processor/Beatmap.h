@@ -41,12 +41,12 @@ public:
 	ERankedStatus RankedStatus() const { return _rankedStatus; }
 	EScoreVersion ScoreVersion() const { return _scoreVersion; }
 	s32 AmountHitCircles() const { return _amountHitCircles; }
-	f32 DifficultyAttribute(SharedEnums::EMods mods, EDifficultyAttributeType type) const;
+	f32 DifficultyAttribute(EMods mods, EDifficultyAttributeType type) const;
 
 	void SetRankedStatus(ERankedStatus rankedStatus) { _rankedStatus = rankedStatus; }
 	void SetScoreVersion(EScoreVersion scoreVersion) { _scoreVersion = scoreVersion; }
 	void SetAmountHitCircles(s32 amountHitCircles) { _amountHitCircles = amountHitCircles; }
-	void SetDifficultyAttribute(SharedEnums::EMods mods, EDifficultyAttributeType type, f32 value);
+	void SetDifficultyAttribute(EMods mods, EDifficultyAttributeType type, f32 value);
 
 	static EDifficultyAttributeType DifficultyAttributeFromName(const std::string& difficultyAttributeName)
 	{
@@ -54,28 +54,24 @@ public:
 	}
 
 private:
-	static const SharedEnums::EMods s_relevantDifficultyMods = static_cast<SharedEnums::EMods>(
-		SharedEnums::EMods::DoubleTime |
-		SharedEnums::EMods::HalfTime |
-		SharedEnums::EMods::HardRock |
-		SharedEnums::EMods::Easy |
-		SharedEnums::EMods::keyMod
+	static const EMods s_relevantDifficultyMods = static_cast<EMods>(
+		DoubleTime | HalfTime | HardRock | Easy | keyMod
 	);
 
-	static SharedEnums::EMods MaskRelevantDifficultyMods(SharedEnums::EMods mods)
+	static EMods MaskRelevantDifficultyMods(EMods mods)
 	{
-		return static_cast<SharedEnums::EMods>(mods & s_relevantDifficultyMods);
+		return static_cast<EMods>(mods & s_relevantDifficultyMods);
 	}
 
 	static const std::unordered_map<std::string, EDifficultyAttributeType> s_difficultyAttributes;
 
 	// General information
 	s32 _id;
-	SharedEnums::EGamemode _mode = SharedEnums::EGamemode::Standard;
+	EGamemode _mode = EGamemode::Standard;
 
 	// Calculated difficulty
 	using difficulty_t = std::unordered_map<
-		std::underlying_type_t<SharedEnums::EMods>,
+		std::underlying_type_t<EMods>,
 		std::unordered_map<
 			std::underlying_type_t<EDifficultyAttributeType>,
 			f32

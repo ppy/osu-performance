@@ -3,8 +3,6 @@
 #include "CatchTheBeatScore.h"
 #include "SharedEnums.h"
 
-using namespace SharedEnums;
-
 CCatchTheBeatScore::CCatchTheBeatScore(
 	s64 scoreId,
 	EGamemode mode,
@@ -18,7 +16,7 @@ CCatchTheBeatScore::CCatchTheBeatScore(
 	s32 amountMiss,
 	s32 amountGeki,
 	s32 amountKatu,
-	SharedEnums::EMods mods,
+	EMods mods,
 	const CBeatmap& beatmap
 ) : CScore{scoreId, mode, userId, beatmapId, score, maxCombo, amount300, amount100, amount50, amountMiss, amountGeki, amountKatu, mods}
 {

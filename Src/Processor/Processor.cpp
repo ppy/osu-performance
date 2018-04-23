@@ -9,7 +9,6 @@
 
 #include "../Shared/Network/UpdateBatch.h"
 
-using namespace SharedEnums;
 using namespace std::chrono;
 
 const std::string CProcessor::s_configFile = "./Data/Config.cfg";
@@ -500,7 +499,7 @@ void CProcessor::ProcessAllScores(bool reProcess)
 
 std::unique_ptr<CScore> CProcessor::NewScore(
 	s64 scoreId,
-	SharedEnums::EGamemode mode,
+	EGamemode mode,
 	s32 userId,
 	s32 beatmapId,
 	s32 score,
@@ -511,7 +510,7 @@ std::unique_ptr<CScore> CProcessor::NewScore(
 	s32 amountMiss,
 	s32 amountGeki,
 	s32 amountKatu,
-	SharedEnums::EMods mods
+	EMods mods
 )
 {
 #define SCORE_INITIALIZER_LIST \

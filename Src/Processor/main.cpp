@@ -6,7 +6,6 @@
 #include <args.hxx>
 
 using namespace std::chrono;
-using namespace SharedEnums;
 
 int main(s32 argc, char* argv[])
 {

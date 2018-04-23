@@ -20,7 +20,7 @@ public:
 
 	CScore(
 		s64 scoreId,
-		SharedEnums::EGamemode mode,
+		EGamemode mode,
 		s32 userId,
 		s32 beatmapId,
 		s32 score,
@@ -31,7 +31,7 @@ public:
 		s32 amountMiss,
 		s32 amountGeki,
 		s32 amountKatu,
-		SharedEnums::EMods mods
+		EMods mods
 	);
 	~CScore() = default;
 
@@ -49,7 +49,7 @@ public:
 
 protected:
 	s64 _scoreId;
-	SharedEnums::EGamemode _mode;
+	EGamemode _mode;
 	s32 _userId;
 	s32 _beatmapId;
 
@@ -63,5 +63,5 @@ protected:
 	s32 _amountGeki;
 	s32 _amountKatu;
 
-	SharedEnums::EMods _mods;
+	EMods _mods;
 };

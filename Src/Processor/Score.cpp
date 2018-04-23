@@ -7,8 +7,6 @@
 
 #include "../Shared/Network/UpdateBatch.h"
 
-using namespace SharedEnums;
-
 CScore::CScore(
 	s64 scoreId,
 	EGamemode mode,

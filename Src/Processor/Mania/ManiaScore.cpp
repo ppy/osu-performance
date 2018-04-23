@@ -3,8 +3,6 @@
 #include "ManiaScore.h"
 #include "SharedEnums.h"
 
-using namespace SharedEnums;
-
 CManiaScore::CManiaScore(
 	s64 scoreId,
 	EGamemode mode,

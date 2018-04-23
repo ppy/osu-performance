@@ -3,8 +3,6 @@
 #include "Beatmap.h"
 #include "SharedEnums.h"
 
-using namespace SharedEnums;
-
 const std::unordered_map<std::string, CBeatmap::EDifficultyAttributeType> CBeatmap::s_difficultyAttributes{
 	{"Aim",              Aim},
 	{"Speed",            Speed},
@@ -21,7 +19,7 @@ CBeatmap::CBeatmap(s32 id)
 {
 }
 
-f32 CBeatmap::DifficultyAttribute(SharedEnums::EMods mods, EDifficultyAttributeType type) const
+f32 CBeatmap::DifficultyAttribute(EMods mods, EDifficultyAttributeType type) const
 {
 	mods = MaskRelevantDifficultyMods(mods);
 
@@ -31,7 +29,7 @@ f32 CBeatmap::DifficultyAttribute(SharedEnums::EMods mods, EDifficultyAttributeT
 		return _difficulty.at(mods).at(type);
 }
 
-void CBeatmap::SetDifficultyAttribute(SharedEnums::EMods mods, EDifficultyAttributeType type, f32 value)
+void CBeatmap::SetDifficultyAttribute(EMods mods, EDifficultyAttributeType type, f32 value)
 {
 	mods = MaskRelevantDifficultyMods(mods);
 	_difficulty[mods][type] = value;
