@@ -46,5 +46,5 @@ enum EGamemode : u32
 	CatchTheBeat,
 	Mania,
 
-	AmountGamemodes,
+	NumGamemodes,
 };

@@ -88,7 +88,7 @@ int main(s32 argc, char* argv[])
 		if (modeFlag)
 		{
 			u32 modeId = args::get(modeFlag);
-			if (modeId < EGamemode::AmountGamemodes)
+			if (modeId < NumGamemodes)
 				gamemode = (EGamemode)modeId;
 			else
 				throw CLoggedException(SRC_POS, StrFormat("Invalid gamemode ID {0} supplied.", modeId));

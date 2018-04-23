@@ -38,9 +38,9 @@ public:
 	}
 
 private:
-	static const std::array<const std::string, AmountGamemodes> s_gamemodeSuffixes;
-	static const std::array<const std::string, AmountGamemodes> s_gamemodeNames;
-	static const std::array<const std::string, AmountGamemodes> s_gamemodeTags;
+	static const std::array<const std::string, NumGamemodes> s_gamemodeSuffixes;
+	static const std::array<const std::string, NumGamemodes> s_gamemodeNames;
+	static const std::array<const std::string, NumGamemodes> s_gamemodeTags;
 
 	static const CBeatmap::ERankedStatus s_minRankedStatus = CBeatmap::ERankedStatus::Ranked;
 	static const CBeatmap::ERankedStatus s_maxRankedStatus = CBeatmap::ERankedStatus::Approved;

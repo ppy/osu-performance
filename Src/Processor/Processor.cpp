@@ -13,7 +13,7 @@ using namespace std::chrono;
 
 const std::string CProcessor::s_configFile = "./Data/Config.cfg";
 
-const std::array<const std::string, AmountGamemodes> CProcessor::s_gamemodeSuffixes =
+const std::array<const std::string, NumGamemodes> CProcessor::s_gamemodeSuffixes =
 {
 	"",
 	"_taiko",
@@ -21,7 +21,7 @@ const std::array<const std::string, AmountGamemodes> CProcessor::s_gamemodeSuffi
 	"_mania",
 };
 
-const std::array<const std::string, AmountGamemodes> CProcessor::s_gamemodeNames =
+const std::array<const std::string, NumGamemodes> CProcessor::s_gamemodeNames =
 {
 	"osu!",
 	"Taiko",
@@ -29,7 +29,7 @@ const std::array<const std::string, AmountGamemodes> CProcessor::s_gamemodeNames
 	"osu!mania",
 };
 
-const std::array<const std::string, AmountGamemodes> CProcessor::s_gamemodeTags =
+const std::array<const std::string, NumGamemodes> CProcessor::s_gamemodeTags =
 {
 	"osu",
 	"taiko",
