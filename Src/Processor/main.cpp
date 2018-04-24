@@ -7,52 +7,57 @@
 
 using namespace std::chrono;
 
-int main(s32 argc, char* argv[])
+void printUsage(std::string prog)
 {
-	srand(static_cast<unsigned int>(time(NULL)));
-	curl_global_init(CURL_GLOBAL_ALL);
+	std::cout
+		<< "Usage:" << std::endl
+		<< "  " << prog << " mode target" << std::endl
+		<< std::endl
+		<< "    mode     The game mode to compute pp for." << std::endl
+		<< "             Must be one of 'osu', 'taiko', 'fruits', 'mania'." << std::endl
+		<< "    target   The target scores pp should be computed for." << std::endl
+		<< "             Must be one of 'new', 'all', 'users'." << std::endl
+		<< std::endl
+		<< "For help about a specific target use:" << std::endl
+		<< "  " << prog << " mode target -h" << std::endl
+		<< std::endl;
+		;
+}
 
-#ifdef __WIN32
-	WORD wVersionRequested = MAKEWORD(2, 2);
-	WSADATA wsaData;
-	if (WSAStartup(wVersionRequested, &wsaData) != 0)
+bool parse(args::ArgumentParser& parser, std::string prog, const std::vector<std::string>& arguments) {
+	// Parse command line arguments and react to parsing
+	// errors using exceptions.
+	try
 	{
-		Log(CLog::CriticalError, "Couldn't startup winsock.");
+		parser.Prog(prog);
+		parser.ParseArgs(arguments);
 	}
-#endif
-
-	std::vector<std::string> arguments;
-	for (int i = 1; i < argc; ++i)
+	catch (args::Help)
 	{
-		std::string arg = argv[i];
-		// macOS sometimes (seemingly sporadically) passes the
-		// process serial number via a command line parameter.
-		// We would like to ignore this.
-		if (arg.find("-psn") != 0)
-			arguments.emplace_back(argv[i]);
+		std::cout << parser;
+		return false;
+	}
+	catch (args::ParseError e)
+	{
+		std::cerr << e.what() << std::endl << std::endl;
+		std::cerr << parser;
+		return false;
+	}
+	catch (args::ValidationError e)
+	{
+		std::cerr << e.what() << std::endl << std::endl;
+		std::cerr << parser;
+		return false;
 	}
 
+	return true;
+}
+
+void mainNew(std::string prog, const std::vector<std::string>& arguments, EGamemode mode)
+{
 	args::ArgumentParser parser{
-		"Computes performance points (pp) for the rhythm game osu!",
+		"Computes performance points (pp) for the rhythm game osu! for newly arriving scores",
 		"",
-	};
-
-	args::Positional<std::string> targetPositional{
-		parser,
-		"target",
-		"The target osu-performance is meant to compute pp for. Can be one of\n"
-		"  new      - monitor and process new scores\n"
-		"  all      - recompute existing scores\n"
-		"  continue - continue previous 'all'\n"
-		"  users    - recompute specific users",
-		"new",
-		args::Options::Required,
-	};
-
-	args::PositionalList<std::string> usersPositional{
-		parser,
-		"users",
-		"Users to recompute pp for if the target 'users' has been chosen.",
 	};
 
 	args::HelpFlag helpFlag{
@@ -62,71 +67,121 @@ int main(s32 argc, char* argv[])
 		{'h', "help"},
 	};
 
-	args::ValueFlag<u32> modeFlag{
-		parser,
-		"mode",
-		"The game mode to compute pp for.",
-		{'m', "mode"},
+	if (!parse(parser, prog, arguments))
+		return;
+
+	CProcessor processor{mode};
+	processor.MonitorNewScores();
+}
+
+void mainAll(std::string prog, const std::vector<std::string>& arguments, EGamemode mode)
+{
+	args::ArgumentParser parser{
+		"Computes performance points (pp) for the rhythm game osu! for all users",
+		"",
 	};
 
-	args::Flag recomputeFlag{
+	args::HelpFlag helpFlag{
 		parser,
-		"recompute",
-		"Forces recomputation of pp for all players. Useful if the underlying algorithm changed.",
-		{'r', "recompute"},
+		"help",
+		"Display this help menu",
+		{'h', "help"},
 	};
 
-	// Parse command line arguments and react to parsing
-	// errors using exceptions.
-	try
-	{
-		parser.Prog(argv[0]);
-		parser.ParseArgs(arguments);
-	}
-	catch (args::Help)
-	{
-		std::cout << parser;
-		return 0;
-	}
-	catch (args::ParseError e)
-	{
-		std::cerr << e.what() << std::endl << std::endl;
-		std::cerr << parser;
-		return -1;
-	}
-	catch (args::ValidationError e)
-	{
-		std::cerr << e.what() << std::endl << std::endl;
-		std::cerr << parser;
-		return -2;
-	}
+	args::Flag continueFlag{
+		parser,
+		"continue",
+		"Continue where a previously aborted 'all' run left off.",
+		{'c', "continue"},
+	};
 
+	if (!parse(parser, prog, arguments))
+		return;
+
+	CProcessor processor{mode};
+	processor.ProcessAllScores(!continueFlag);
+}
+
+void mainUsers(std::string prog, const std::vector<std::string>& arguments, EGamemode mode)
+{
+	args::ArgumentParser parser{
+		"Computes performance points (pp) for the rhythm game osu! for specific users",
+		"",
+	};
+
+	args::PositionalList<std::string> usersPositional{
+		parser,
+		"users",
+		"Users to recompute pp for.",
+	};
+
+	if (!parse(parser, prog, arguments))
+		return;
+
+	throw CLoggedException(SRC_POS, "Not yet implemented");
+}
+
+int main(s32 argc, char* argv[])
+{
 	try
 	{
-		EGamemode gamemode = EGamemode::Standard;
-		if (modeFlag)
+		srand(static_cast<unsigned int>(time(NULL)));
+		curl_global_init(CURL_GLOBAL_ALL);
+
+#ifdef __WIN32
+		WORD wVersionRequested = MAKEWORD(2, 2);
+		WSADATA wsaData;
+		if (WSAStartup(wVersionRequested, &wsaData) != 0)
 		{
-			u32 modeId = args::get(modeFlag);
-			if (modeId < NumGamemodes)
-				gamemode = (EGamemode)modeId;
-			else
-				throw CLoggedException(SRC_POS, StrFormat("Invalid gamemode ID {0} supplied.", modeId));
+			Log(CLog::CriticalError, "Couldn't startup winsock.");
+		}
+#endif
+
+		std::vector<std::string> arguments;
+		for (int i = 0; i < argc; ++i)
+		{
+			std::string arg = argv[i];
+			// macOS sometimes (seemingly sporadically) passes the
+			// process serial number via a command line parameter.
+			// We would like to ignore this.
+			if (arg.find("-psn") != 0)
+				arguments.emplace_back(argv[i]);
 		}
 
-		// Fail early if an invalid target was supplied
-		auto target = args::get(targetPositional);
-		if (target != "new" && target != "all" && target != "continue" && target != "users")
-			throw CLoggedException(SRC_POS, StrFormat("Invalid target '{0}' supplied.", target));
+		if (arguments.empty())
+			return -1;
 
-		CProcessor processor{gamemode};
-		if (target == "new")
-			processor.MonitorNewScores();
-		else if (target == "all")
-			processor.ProcessAllScores(true);
-		else if (target == "continue")
-			processor.ProcessAllScores(false);
-		else if (target == "users")
-			throw CLoggedException(SRC_POS, "Not yet implemented");
+		if (arguments.size() < 3)
+		{
+			printUsage(arguments[0]);
+			return -1;
+		}
+
+		auto modeString = arguments[1];
+		auto targetString = arguments[2];
+
+		EGamemode mode;
+		if (modeString == "osu")
+			mode = Standard;
+		else if (modeString == "taiko")
+			mode = Taiko;
+		else if (modeString == "fruits")
+			mode = CatchTheBeat;
+		else if (modeString == "mania")
+			mode = Mania;
+		else
+			throw CLoggedException(SRC_POS, StrFormat("Invalid mode '{0}'", modeString));
+
+		std::string prog = arguments[0] + " " + arguments[1] + " " + arguments[2];
+		arguments.erase(std::begin(arguments), std::begin(arguments) + 3);
+		if (targetString == "new")
+			mainNew(prog, arguments, mode);
+		else if (targetString == "all")
+			mainAll(prog, arguments, mode);
+		else if (targetString == "users")
+			mainUsers(prog, arguments, mode);
+		else
+			throw CLoggedException(SRC_POS, StrFormat("Invalid target '{0}'", targetString));
 	}
 	catch (CLoggedException& e)
 	{
