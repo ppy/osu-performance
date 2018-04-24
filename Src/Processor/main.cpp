@@ -177,7 +177,7 @@ int main(s32 argc, char* argv[])
 			mode = Standard;
 		else if (modeString == "taiko")
 			mode = Taiko;
-		else if (modeString == "fruits")
+		else if (modeString == "catch")
 			mode = CatchTheBeat;
 		else if (modeString == "mania")
 			mode = Mania;
