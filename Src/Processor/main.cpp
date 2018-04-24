@@ -11,15 +11,15 @@ void printUsage(std::string prog)
 {
 	std::cout
 		<< "Usage:" << std::endl
-		<< "  " << prog << " mode target" << std::endl
+		<< "  " << prog << " MODE TARGET" << std::endl
 		<< std::endl
-		<< "    mode     The game mode to compute pp for." << std::endl
-		<< "             Must be one of 'osu', 'taiko', 'fruits', 'mania'." << std::endl
-		<< "    target   The target scores pp should be computed for." << std::endl
+		<< "    MODE     The game mode to compute pp for." << std::endl
+		<< "             Must be one of 'osu', 'taiko', 'catch', 'mania'." << std::endl
+		<< "    TARGET   The target pp should be computed for." << std::endl
 		<< "             Must be one of 'new', 'all', 'users'." << std::endl
 		<< std::endl
 		<< "For help about a specific target use:" << std::endl
-		<< "  " << prog << " mode target -h" << std::endl
+		<< "  " << prog << " MODE TARGET -h" << std::endl
 		<< std::endl;
 		;
 }
