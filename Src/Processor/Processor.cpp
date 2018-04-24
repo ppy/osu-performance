@@ -306,18 +306,14 @@ void CProcessor::PollAndProcessNewBeatmapSets()
 	}
 }
 
-void CProcessor::ProcessAllScores(bool reProcess)
+void CProcessor::ProcessAllScores(bool reProcess, u32 numThreads)
 {
-	// We have one connection per thread, so let's use quite a lot of them.
-	// Temporarily limited to one thread maximum to reduce database (slave) load.
-	static const u32 AMOUNT_THREADS = 1;
-
-	CThreadPool threadPool{AMOUNT_THREADS};
+	CThreadPool threadPool{numThreads};
 	std::vector<std::shared_ptr<CDatabaseConnection>> databaseConnections;
 	std::vector<std::shared_ptr<CUpdateBatch>> newUsersBatches;
 	std::vector<std::shared_ptr<CUpdateBatch>> newScoresBatches;
 
-	for (int i = 0; i < AMOUNT_THREADS; ++i)
+	for (int i = 0; i < numThreads; ++i)
 	{
 		databaseConnections.push_back(NewDBConnectionMaster());
 
@@ -388,7 +384,7 @@ void CProcessor::ProcessAllScores(bool reProcess)
 					userId);
 			});
 
-			currentConnection = (currentConnection + 1) % AMOUNT_THREADS;
+			currentConnection = (currentConnection + 1) % numThreads;
 
 			// Shut down when requested!
 			if (_shallShutdown)

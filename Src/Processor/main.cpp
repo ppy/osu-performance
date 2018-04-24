@@ -81,13 +81,6 @@ void mainAll(std::string prog, const std::vector<std::string>& arguments, EGamem
 		"",
 	};
 
-	args::HelpFlag helpFlag{
-		parser,
-		"help",
-		"Display this help menu",
-		{'h', "help"},
-	};
-
 	args::Flag continueFlag{
 		parser,
 		"continue",
@@ -95,11 +88,30 @@ void mainAll(std::string prog, const std::vector<std::string>& arguments, EGamem
 		{'c', "continue"},
 	};
 
+	args::HelpFlag helpFlag{
+		parser,
+		"help",
+		"Display this help menu",
+		{'h', "help"},
+	};
+
+	args::ValueFlag<u32> threadsFlag{
+		parser,
+		"threads",
+		"Number of threads to use. Can be useful even if the processor itself has no "
+		"parallelism due to additional connections to the database.\n"
+		"Default: 1",
+		{'t', "threads"},
+		1,
+	};
+
 	if (!parse(parser, prog, arguments))
 		return;
 
+	u32 numThreads = args::get(threadsFlag);
+
 	CProcessor processor{mode};
-	processor.ProcessAllScores(!continueFlag);
+	processor.ProcessAllScores(!continueFlag, numThreads);
 }
 
 void mainUsers(std::string prog, const std::vector<std::string>& arguments, EGamemode mode)
