@@ -11,8 +11,6 @@
 
 using namespace std::chrono;
 
-const std::string CProcessor::s_configFile = "./Data/Config.cfg";
-
 const std::array<const std::string, NumGamemodes> CProcessor::s_gamemodeSuffixes =
 {
 	"",
@@ -37,8 +35,8 @@ const std::array<const std::string, NumGamemodes> CProcessor::s_gamemodeTags =
 	"osu_mania",
 };
 
-CProcessor::CProcessor(EGamemode gamemode)
-: _gamemode{gamemode}, _config{s_configFile}, _dataDog{"127.0.0.1", 8125}
+CProcessor::CProcessor(EGamemode gamemode, const std::string& configFile)
+: _gamemode{gamemode}, _config{configFile}, _dataDog{"127.0.0.1", 8125}
 {
 	Log(CLog::None,           "---------------------------------------------------");
 	Log(CLog::None, StrFormat("---- pp processor for gamemode {0}", GamemodeName(gamemode)));

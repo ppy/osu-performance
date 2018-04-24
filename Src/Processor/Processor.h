@@ -19,7 +19,7 @@ struct SScore;
 class CProcessor
 {
 public:
-	CProcessor(EGamemode gamemode);
+	CProcessor(EGamemode gamemode, const std::string& configFile);
 	~CProcessor();
 
 	static const std::string& GamemodeSuffix(EGamemode gamemode)
@@ -59,7 +59,6 @@ private:
 	}
 
 	CConfig _config;
-	static const std::string s_configFile;
 
 	std::shared_ptr<CDatabaseConnection> NewDBConnectionMaster();
 	std::shared_ptr<CDatabaseConnection> NewDBConnectionSlave();

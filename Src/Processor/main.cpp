@@ -60,6 +60,14 @@ void mainNew(std::string prog, const std::vector<std::string>& arguments, EGamem
 		"",
 	};
 
+	args::ValueFlag<std::string> configFlag{
+		parser,
+		"config",
+		"The configuration file to use.\nDefault: 'Config.cfg'",
+		{"config"},
+		"Config.cfg",
+	};
+
 	args::HelpFlag helpFlag{
 		parser,
 		"help",
@@ -70,7 +78,7 @@ void mainNew(std::string prog, const std::vector<std::string>& arguments, EGamem
 	if (!parse(parser, prog, arguments))
 		return;
 
-	CProcessor processor{mode};
+	CProcessor processor{mode, args::get(configFlag)};
 	processor.MonitorNewScores();
 }
 
@@ -79,6 +87,14 @@ void mainAll(std::string prog, const std::vector<std::string>& arguments, EGamem
 	args::ArgumentParser parser{
 		"Computes performance points (pp) for the rhythm game osu! for all users",
 		"",
+	};
+
+	args::ValueFlag<std::string> configFlag{
+		parser,
+		"config",
+		"The configuration file to use.\nDefault: 'Config.cfg'",
+		{"config"},
+		"Config.cfg",
 	};
 
 	args::Flag continueFlag{
@@ -110,7 +126,7 @@ void mainAll(std::string prog, const std::vector<std::string>& arguments, EGamem
 
 	u32 numThreads = args::get(threadsFlag);
 
-	CProcessor processor{mode};
+	CProcessor processor{mode, args::get(configFlag)};
 	processor.ProcessAllScores(!continueFlag, numThreads);
 }
 
@@ -119,6 +135,14 @@ void mainUsers(std::string prog, const std::vector<std::string>& arguments, EGam
 	args::ArgumentParser parser{
 		"Computes performance points (pp) for the rhythm game osu! for specific users",
 		"",
+	};
+
+	args::ValueFlag<std::string> configFlag{
+		parser,
+		"config",
+		"The configuration file to use.\nDefault: 'Config.cfg'",
+		{"config"},
+		"Config.cfg",
 	};
 
 	args::PositionalList<std::string> usersPositional{
