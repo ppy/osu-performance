@@ -24,7 +24,7 @@ std::unique_ptr<CActive> CActive::Create()
 	return pActive;
 }
 
-size_t CActive::AmountPending() const
+size_t CActive::NumPending() const
 {
 	CheckForAndThrowException();
 	return _tasks.Size();
@@ -32,7 +32,7 @@ size_t CActive::AmountPending() const
 
 bool CActive::IsBusy() const
 {
-	return AmountPending() > 0;
+	return NumPending() > 0;
 }
 
 CActive::CActive()

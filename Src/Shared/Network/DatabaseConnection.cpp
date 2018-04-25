@@ -35,7 +35,7 @@ void CDatabaseConnection::connect()
 void CDatabaseConnection::NonQueryBackground(const std::string& queryString)
 {
 	// We arbitrarily decide, that we don't want to have more than 1000 pending queries
-	while (AmountPendingQueries() > 1000)
+	while (NumPendingQueries() > 1000)
 		// Avoid to have the processor "spinning" at full power if there is no work to do in Update()
 		std::this_thread::sleep_for(std::chrono::milliseconds(1));
 

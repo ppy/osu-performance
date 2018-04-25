@@ -198,15 +198,15 @@ void CProcessor::ProcessAllUsers(bool reProcess, u32 numThreads)
 
 		begin += userIdStep;
 
-		u32 amountPendingQueries = 0;
+		u32 numPendingQueries = 0;
 
 		do
 		{
-			amountPendingQueries = 0;
+			numPendingQueries = 0;
 			for (auto& pDBConn : databaseConnections)
-				amountPendingQueries += (u32)pDBConn->AmountPendingQueries();
+				numPendingQueries += (u32)pDBConn->NumPendingQueries();
 
-			_dataDog.Gauge("osu.pp.db.pending_queries", amountPendingQueries,
+			_dataDog.Gauge("osu.pp.db.pending_queries", numPendingQueries,
 			{
 				StrFormat("mode:{0}", GamemodeTag(_gamemode)),
 				"connection:background",
@@ -214,7 +214,7 @@ void CProcessor::ProcessAllUsers(bool reProcess, u32 numThreads)
 
 			std::this_thread::sleep_for(std::chrono::milliseconds(10));
 		}
-		while (threadPool.GetNumTasksInSystem() > 0 || amountPendingQueries > 0);
+		while (threadPool.GetNumTasksInSystem() > 0 || numPendingQueries > 0);
 
 		// Update our user_id counter
 		StoreCount(*pDB, LastUserIdKey(), begin);
@@ -387,7 +387,7 @@ void CProcessor::PollAndProcessNewScores()
 		}
 
 		_dataDog.Increment("osu.pp.score.processed_new", 1, {StrFormat("mode:{0}", GamemodeTag(_gamemode))});
-		_dataDog.Gauge("osu.pp.db.pending_queries", _pDB->AmountPendingQueries(), {
+		_dataDog.Gauge("osu.pp.db.pending_queries", _pDB->NumPendingQueries(), {
 			StrFormat("mode:{0}", GamemodeTag(_gamemode)),
 			"connection:main",
 		});

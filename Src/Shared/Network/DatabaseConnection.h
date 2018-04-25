@@ -37,9 +37,9 @@ public:
 		return mysql_field_count(&_mySQL);
 	}
 
-	size_t AmountPendingQueries()
+	size_t NumPendingQueries()
 	{
-		return _pActive->AmountPending();
+		return _pActive->NumPending();
 	}
 
 private:
