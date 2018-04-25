@@ -42,8 +42,8 @@ The following parameters are valid:
 
 * `COMMAND`
   * `new`: Continually poll for new scores and compute pp of these
-	* `all`: Compute pp of all users
-	* `users`: Compute pp of specific users
+  * `all`: Compute pp of all users
+  * `users`: Compute pp of specific users
 
 The gamemode to compute pp for can be selected via the `-m` option, which may take the value `osu`, `taiko`, `catch`, or `mania`.
 
