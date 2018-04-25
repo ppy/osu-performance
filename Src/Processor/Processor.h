@@ -38,7 +38,8 @@ public:
 	}
 
 	void MonitorNewScores();
-	void ProcessAllScores(bool reProcess, u32 numThreads);
+	void ProcessAllUsers(bool reProcess, u32 numThreads);
+	void ProcessUsers(const std::vector<std::string>& userNames);
 
 private:
 	static const std::array<const std::string, NumGamemodes> s_gamemodeSuffixes;

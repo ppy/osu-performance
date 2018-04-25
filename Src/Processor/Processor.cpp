@@ -57,28 +57,6 @@ CProcessor::~CProcessor()
 	Log(CLog::Info, "Shutting down.");
 }
 
-std::shared_ptr<CDatabaseConnection> CProcessor::NewDBConnectionMaster()
-{
-	return std::make_shared<CDatabaseConnection>(
-		_config.MySQL_db_host,
-		_config.MySQL_db_port,
-		_config.MySQL_db_username,
-		_config.MySQL_db_password,
-		_config.MySQL_db_database
-	);
-}
-
-std::shared_ptr<CDatabaseConnection> CProcessor::NewDBConnectionSlave()
-{
-	return std::make_shared<CDatabaseConnection>(
-		_config.MySQL_db_slave_host,
-		_config.MySQL_db_slave_port,
-		_config.MySQL_db_slave_username,
-		_config.MySQL_db_slave_password,
-		_config.MySQL_db_slave_database
-	);
-}
-
 void CProcessor::MonitorNewScores()
 {
 	_lastScorePollTime = steady_clock::now();
@@ -129,6 +107,144 @@ void CProcessor::MonitorNewScores()
 	scorePollThread.join();
 	beatmapPollThread.join();
 #endif
+}
+
+void CProcessor::ProcessAllUsers(bool reProcess, u32 numThreads)
+{
+	CThreadPool threadPool{numThreads};
+	std::vector<std::shared_ptr<CDatabaseConnection>> databaseConnections;
+	std::vector<std::shared_ptr<CUpdateBatch>> newUsersBatches;
+	std::vector<std::shared_ptr<CUpdateBatch>> newScoresBatches;
+
+	for (int i = 0; i < numThreads; ++i)
+	{
+		databaseConnections.push_back(NewDBConnectionMaster());
+
+		newUsersBatches.push_back(std::make_shared<CUpdateBatch>(databaseConnections[i], 10000));
+		newScoresBatches.push_back(std::make_shared<CUpdateBatch>(databaseConnections[i], 10000));
+	}
+
+	auto pDB = NewDBConnectionMaster();
+	auto pDBSlave = NewDBConnectionSlave();
+
+	static const s32 userIdStep = 10000;
+
+	s64 begin; // Will be initialized in the next few lines
+	if (reProcess)
+	{
+		begin = 0;
+
+		// Make sure in case of a restart we still do the full process, even if we didn't trigger a store before
+		StoreCount(*pDB, LastUserIdKey(), begin);
+	}
+	else
+		begin = RetrieveCount(*pDB, LastUserIdKey());
+
+	// We're done, nothing to reprocess
+	if (begin == -1)
+		return;
+
+	Log(CLog::Info, StrFormat("Querying all scores, starting from user id {0}.", begin));
+
+	auto res = _pDBSlave->Query(StrFormat(
+		"SELECT MAX(`user_id`) FROM `osu_user_stats{0}` WHERE 1",
+		GamemodeSuffix(_gamemode)
+	));
+
+	if (!res.NextRow())
+		throw CProcessorException(SRC_POS, "Couldn't find maximum user ID.");
+
+	const s64 maxUserId = res.S64(0);
+
+	u32 currentConnection = 0;
+
+	// We will break out as soon as there are no more results
+	while (begin <= maxUserId)
+	{
+		s64 end = begin + userIdStep;
+		Log(CLog::Info, StrFormat("Updating users {0} - {1}.", begin, end));
+
+		res = pDBSlave->Query(StrFormat(
+			"SELECT "
+			"`user_id`"
+			"FROM `osu_user_stats{0}` "
+			"WHERE `user_id` BETWEEN {1} AND {2}",
+			GamemodeSuffix(_gamemode), begin, end
+		));
+
+		while (res.NextRow())
+		{
+			s64 userId = res.S64(0);
+
+			threadPool.EnqueueTask(
+			[this, userId, currentConnection, &databaseConnections, &pDBSlave, &newUsersBatches, &newScoresBatches]()
+			{
+				ProcessSingleUser(
+					0, // We want to update _all_ scores
+					databaseConnections[currentConnection],
+					newUsersBatches[currentConnection],
+					newScoresBatches[currentConnection],
+					userId
+				);
+			});
+
+			currentConnection = (currentConnection + 1) % numThreads;
+
+			// Shut down when requested!
+			if (_shallShutdown)
+				return;
+		}
+
+		begin += userIdStep;
+
+		u32 amountPendingQueries = 0;
+
+		do
+		{
+			amountPendingQueries = 0;
+			for (auto& pDBConn : databaseConnections)
+				amountPendingQueries += (u32)pDBConn->AmountPendingQueries();
+
+			_dataDog.Gauge("osu.pp.db.pending_queries", amountPendingQueries,
+			{
+				StrFormat("mode:{0}", GamemodeTag(_gamemode)),
+				"connection:background",
+			}, 0.01f);
+
+			std::this_thread::sleep_for(std::chrono::milliseconds(10));
+		}
+		while (threadPool.GetNumTasksInSystem() > 0 || amountPendingQueries > 0);
+
+		// Update our user_id counter
+		StoreCount(*pDB, LastUserIdKey(), begin);
+	}
+}
+
+void CProcessor::ProcessUsers(const std::vector<std::string>& userNames)
+{
+
+}
+
+std::shared_ptr<CDatabaseConnection> CProcessor::NewDBConnectionMaster()
+{
+	return std::make_shared<CDatabaseConnection>(
+		_config.MySQL_db_host,
+		_config.MySQL_db_port,
+		_config.MySQL_db_username,
+		_config.MySQL_db_password,
+		_config.MySQL_db_database
+	);
+}
+
+std::shared_ptr<CDatabaseConnection> CProcessor::NewDBConnectionSlave()
+{
+	return std::make_shared<CDatabaseConnection>(
+		_config.MySQL_db_slave_host,
+		_config.MySQL_db_slave_port,
+		_config.MySQL_db_slave_username,
+		_config.MySQL_db_slave_password,
+		_config.MySQL_db_slave_database
+	);
 }
 
 void CProcessor::QueryBeatmapDifficulty()
@@ -301,116 +417,6 @@ void CProcessor::PollAndProcessNewBeatmapSets()
 		QueryBeatmapDifficulty(res.S32(0));
 
 		_dataDog.Increment("osu.pp.difficulty.required_retrieval", 1, { StrFormat("mode:{0}", GamemodeTag(_gamemode)) });
-	}
-}
-
-void CProcessor::ProcessAllScores(bool reProcess, u32 numThreads)
-{
-	CThreadPool threadPool{numThreads};
-	std::vector<std::shared_ptr<CDatabaseConnection>> databaseConnections;
-	std::vector<std::shared_ptr<CUpdateBatch>> newUsersBatches;
-	std::vector<std::shared_ptr<CUpdateBatch>> newScoresBatches;
-
-	for (int i = 0; i < numThreads; ++i)
-	{
-		databaseConnections.push_back(NewDBConnectionMaster());
-
-		newUsersBatches.push_back(std::make_shared<CUpdateBatch>(databaseConnections[i], 10000));
-		newScoresBatches.push_back(std::make_shared<CUpdateBatch>(databaseConnections[i], 10000));
-	}
-
-	auto pDB = NewDBConnectionMaster();
-	auto pDBSlave = NewDBConnectionSlave();
-
-	static const s32 userIdStep = 10000;
-
-	s64 begin; // Will be initialized in the next few lines
-	if (reProcess)
-	{
-		begin = 0;
-
-		// Make sure in case of a restart we still do the full process, even if we didn't trigger a store before
-		StoreCount(*pDB, LastUserIdKey(), begin);
-	}
-	else
-		begin = RetrieveCount(*pDB, LastUserIdKey());
-
-	// We're done, nothing to reprocess
-	if (begin == -1)
-		return;
-
-	Log(CLog::Info, StrFormat("Querying all scores, starting from user id {0}.", begin));
-
-	auto res = _pDBSlave->Query(StrFormat(
-		"SELECT MAX(`user_id`) FROM `osu_user_stats{0}` WHERE 1",
-		GamemodeSuffix(_gamemode)
-	));
-
-	if (!res.NextRow())
-		throw CProcessorException(SRC_POS, "Couldn't find maximum user ID.");
-
-	const s64 maxUserId = res.S64(0);
-
-	u32 currentConnection = 0;
-
-	// We will break out as soon as there are no more results
-	while (begin <= maxUserId)
-	{
-		s64 end = begin + userIdStep;
-		Log(CLog::Info, StrFormat("Updating users {0} - {1}.", begin, end));
-
-		res = pDBSlave->Query(StrFormat(
-			"SELECT "
-			"`user_id`"
-			"FROM `osu_user_stats{0}` "
-			"WHERE `user_id` BETWEEN {1} AND {2}",
-			GamemodeSuffix(_gamemode), begin, end
-		));
-
-		while (res.NextRow())
-		{
-			s64 userId = res.S64(0);
-
-			threadPool.EnqueueTask(
-			[this, userId, currentConnection, &databaseConnections, &pDBSlave, &newUsersBatches, &newScoresBatches]()
-			{
-				ProcessSingleUser(
-					0,     // We want to update _all_ scores
-					databaseConnections[currentConnection],
-					newUsersBatches[currentConnection],
-					newScoresBatches[currentConnection],
-					userId);
-			});
-
-			currentConnection = (currentConnection + 1) % numThreads;
-
-			// Shut down when requested!
-			if (_shallShutdown)
-				return;
-		}
-
-		begin += userIdStep;
-
-		u32 amountPendingQueries = 0;
-
-		do
-		{
-			amountPendingQueries = 0;
-			for (auto& pDBConn : databaseConnections)
-				amountPendingQueries += (u32)pDBConn->AmountPendingQueries();
-
-			_dataDog.Gauge("osu.pp.db.pending_queries", amountPendingQueries,
-			{
-				StrFormat("mode:{0}", GamemodeTag(_gamemode)),
-				"connection:background",
-			}, 0.01f);
-
-			std::this_thread::sleep_for(std::chrono::milliseconds(10));
-		}
-		while (threadPool.GetNumTasksInSystem() > 0 || amountPendingQueries > 0);
-
-		// Update our user_id counter
-		StoreCount(*pDB, LastUserIdKey(), begin);
 	}
 }
 
