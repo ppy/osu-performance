@@ -34,27 +34,29 @@ osu-performance/Build$ make -j
 After compilation, an executable named `osu-performance` is placed in the _Bin_ folder. It is used via the command line as follows:
 
 ```sh
-./osu-performance MODE TARGET {OPTIONS}
+./osu-performance COMMAND {OPTIONS}
 ```
 
-where `MODE` is the game mode to compute pp for and `TARGET` controls which scores are the target of the computation.
+where `COMMAND` controls which scores are the target of the computation.
 The following parameters are valid:
 
-* `MODE`
-  * `osu`: Compute pp for osu! standard
-	* `taiko`: Compute pp for osu!taiko
-	* `catch`: Compute pp for osu!catch
-	* `mania`: Compute pp for osu!mania
-
-* `TARGET`
+* `COMMAND`
   * `new`: Continually poll for new scores and compute pp of these
 	* `all`: Compute pp of all users
 	* `users`: Compute pp of specific users
 
-Which `OPTIONS` are valid depends on the chosen `TARGET` and can be queried in detail via
+The gamemode to compute pp for can be selected via the `-m` option, which may take the value `osu`, `taiko`, `catch`, or `mania`.
+
+Information about further `OPTIONS` can be queried via
 
 ```sh
-./osu-performance MODE TARGET -h
+./osu-performance -h
+```
+
+and further `OPTIONS` specific to the chosen `COMMAND` can be queried via
+
+```sh
+./osu-performance COMMAND -h
 ```
 
 Configuration options beyond these parameters, such as the MySQL server configuration, can be adjusted in _Bin/Data/Config.cfg_.
