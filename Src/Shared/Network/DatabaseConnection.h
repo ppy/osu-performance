@@ -14,7 +14,15 @@ public:
 		s16 port,
 		std::string username,
 		std::string password,
-		std::string database);
+		std::string database
+	);
+
+	CDatabaseConnection& operator=(const CDatabaseConnection&) = delete;
+	CDatabaseConnection(const CDatabaseConnection&) = delete;
+
+	CDatabaseConnection& operator=(CDatabaseConnection&& other);
+	CDatabaseConnection(CDatabaseConnection&& other);
+
 	~CDatabaseConnection();
 
 	void NonQueryBackground(const std::string& queryString);
@@ -54,5 +62,6 @@ private:
 	std::string _password;
 	std::string _database;
 
+	bool _isInitialized = false;
 	MYSQL _mySQL;
 };

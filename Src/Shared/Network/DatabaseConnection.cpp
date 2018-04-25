@@ -13,16 +13,50 @@ CDatabaseConnection::CDatabaseConnection(
 	if (!mysql_init(&_mySQL))
 		throw CDatabaseException(SRC_POS, StrFormat("MySQL struct could not be initialized. ({0})", Error()));
 
+	_isInitialized = true;
+
 	connect();
 
 	_pActive = CActive::Create();
+}
+
+CDatabaseConnection::CDatabaseConnection(CDatabaseConnection&& other)
+{
+	*this = std::move(other);
+}
+
+CDatabaseConnection& CDatabaseConnection::operator=(CDatabaseConnection&& other)
+{
+	_port = other._port;
+	_mySQL = other._mySQL;
+
+	if (!other._pActive || other._pActive->IsBusy())
+	{
+		// Deconstruct the previous connection's active object
+		// to force background tasks to finish.
+		other._pActive = nullptr;
+		_pActive = CActive::Create();
+	}
+	else
+		_pActive = std::move(other._pActive);
+
+	_host = std::move(other._host);
+	_username = std::move(other._username);
+	_password = std::move(other._password);
+	_database = std::move(other._database);
+
+	other._isInitialized = false;
+	_isInitialized = true;
+
+	return *this;
 }
 
 CDatabaseConnection::~CDatabaseConnection()
 {
 	// Destruct our active object before closing the mysql connection.
 	_pActive = nullptr;
-	mysql_close(&_mySQL);
+	if (_isInitialized)
+		mysql_close(&_mySQL);
 }
 
 void CDatabaseConnection::connect()
