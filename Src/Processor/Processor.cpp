@@ -177,16 +177,17 @@ void CProcessor::ProcessAllUsers(bool reProcess, u32 numThreads)
 			s64 userId = res.S64(0);
 
 			threadPool.EnqueueTask(
-			[this, userId, currentConnection, &databaseConnections, &pDBSlave, &newUsersBatches, &newScoresBatches]()
-			{
-				ProcessSingleUser(
-					0, // We want to update _all_ scores
-					databaseConnections[currentConnection],
-					newUsersBatches[currentConnection],
-					newScoresBatches[currentConnection],
-					userId
-				);
-			});
+				[this, userId, currentConnection, &databaseConnections, &newUsersBatches, &newScoresBatches]()
+				{
+					ProcessSingleUser(
+						0, // We want to update _all_ scores
+						*databaseConnections[currentConnection],
+						*newUsersBatches[currentConnection],
+						*newScoresBatches[currentConnection],
+						userId
+					);
+				}
+			);
 
 			currentConnection = (currentConnection + 1) % numThreads;
 
@@ -372,9 +373,9 @@ void CProcessor::PollAndProcessNewScores()
 
 		ProcessSingleUser(
 			ScoreId, // Only update the new score, old ones are caught by the background processor anyways
-			_pDB,
-			newUsers,
-			newScores,
+			*_pDB,
+			*newUsers,
+			*newScores,
 			UserId
 		);
 
@@ -520,15 +521,14 @@ void CProcessor::QueryBeatmapDifficultyAttributes()
 
 void CProcessor::ProcessSingleUser(
 	s64 selectedScoreId,
-	std::shared_ptr<CDatabaseConnection> pDB,
-	std::shared_ptr<CUpdateBatch> newUsers,
-	std::shared_ptr<CUpdateBatch> newScores,
+	CDatabaseConnection& db,
+	CUpdateBatch& newUsers,
+	CUpdateBatch& newScores,
 	s64 userId
 )
 {
 	static thread_local std::shared_ptr<CDatabaseConnection> pDBSlave = NewDBConnectionSlave();
 
-	CDatabaseConnection& db = *pDB;
 	CDatabaseConnection& dbSlave = *pDBSlave;
 
 	static const f32 s_notableEventRatingThreshold = 1.0f / 21.5f;
@@ -621,10 +621,10 @@ void CProcessor::ProcessSingleUser(
 #ifndef PLAYER_TESTING
 	{
 		// We lock here instead of inside the append due to an otherwise huge locking overhead.
-		std::lock_guard<std::mutex> lock{newScores->Mutex()};
+		std::lock_guard<std::mutex> lock{newScores.Mutex()};
 
 		for (const auto& pScore : scoresThatNeedDBUpdate)
-			pScore->AppendToUpdateBatch(*newScores);
+			pScore->AppendToUpdateBatch(newScores);
 	}
 
 	_dataDog.Increment("osu.pp.score.updated", scoresThatNeedDBUpdate.size(), {StrFormat("mode:{0}", GamemodeTag(_gamemode))}, 0.01f);
@@ -686,7 +686,7 @@ void CProcessor::ProcessSingleUser(
 		}
 	}
 
-	newUsers->AppendAndCommit(StrFormat(
+	newUsers.AppendAndCommit(StrFormat(
 		"UPDATE `osu_user_stats{0}` "
 		"SET `{1}`= CASE "
 			// Set pp to 0 if the user is inactive or restricted.

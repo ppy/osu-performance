@@ -109,9 +109,9 @@ private:
 	// Not thread safe with beatmap data!
 	void ProcessSingleUser(
 		s64 selectedScoreId, // If this is not 0, then the score is looked at in isolation, triggering a notable event if it's good enough
-		std::shared_ptr<CDatabaseConnection> pDB,
-		std::shared_ptr<CUpdateBatch> newUsers,
-		std::shared_ptr<CUpdateBatch> newScores,
+		CDatabaseConnection& db,
+		CUpdateBatch& newUsers,
+		CUpdateBatch& newScores,
 		s64 userId
 	);
 
