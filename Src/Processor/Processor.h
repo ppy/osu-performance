@@ -19,7 +19,7 @@ struct SScore;
 class CProcessor
 {
 public:
-	CProcessor(EGamemode gamemode, bool reProcess);
+	CProcessor(EGamemode gamemode, const std::string& configFile);
 	~CProcessor();
 
 	static const std::string& GamemodeSuffix(EGamemode gamemode)
@@ -36,6 +36,10 @@ public:
 	{
 		return s_gamemodeTags.at(gamemode);
 	}
+
+	void MonitorNewScores();
+	void ProcessAllUsers(bool reProcess, u32 numThreads);
+	void ProcessUsers(const std::vector<std::string>& userNames);
 
 private:
 	static const std::array<const std::string, NumGamemodes> s_gamemodeSuffixes;
@@ -56,7 +60,6 @@ private:
 	}
 
 	CConfig _config;
-	static const std::string s_configFile;
 
 	std::shared_ptr<CDatabaseConnection> NewDBConnectionMaster();
 	std::shared_ptr<CDatabaseConnection> NewDBConnectionSlave();
@@ -67,12 +70,8 @@ private:
 	std::unordered_map<s32, CBeatmap> _beatmaps;
 	std::string _lastApprovedDate;
 
-	void Run(bool reProcess);
-
 	void QueryBeatmapDifficulty();
 	bool QueryBeatmapDifficulty(s32 startId, s32 endId = 0);
-
-	void ProcessAllScores(bool reProcess);
 
 	std::shared_ptr<CDatabaseConnection> _pDB;
 	std::shared_ptr<CDatabaseConnection> _pDBSlave;
@@ -110,9 +109,9 @@ private:
 	// Not thread safe with beatmap data!
 	void ProcessSingleUser(
 		s64 selectedScoreId, // If this is not 0, then the score is looked at in isolation, triggering a notable event if it's good enough
-		std::shared_ptr<CDatabaseConnection> pDB,
-		std::shared_ptr<CUpdateBatch> newUsers,
-		std::shared_ptr<CUpdateBatch> newScores,
+		CDatabaseConnection& db,
+		CUpdateBatch& newUsers,
+		CUpdateBatch& newScores,
 		s64 userId
 	);
 
@@ -122,8 +121,6 @@ private:
 	EGamemode _gamemode;
 
 	CRWMutex _beatmapMutex;
-	std::thread _backgroundScoreProcessingThread;
-	std::thread _stallSupervisorThread;
 	bool _shallShutdown = false;
 
 	CCURL _curl;

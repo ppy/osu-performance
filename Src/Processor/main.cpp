@@ -7,98 +7,157 @@
 
 using namespace std::chrono;
 
+EGamemode stringToGamemode(const std::string& modeString)
+{
+	EGamemode mode;
+	if (modeString == "osu")
+		mode = Standard;
+	else if (modeString == "taiko")
+		mode = Taiko;
+	else if (modeString == "catch")
+		mode = CatchTheBeat;
+	else if (modeString == "mania")
+		mode = Mania;
+	else
+		throw CLoggedException(SRC_POS, StrFormat("Invalid mode '{0}'", modeString));
+
+	return mode;
+}
+
 int main(s32 argc, char* argv[])
 {
-	srand(static_cast<unsigned int>(time(NULL)));
-	curl_global_init(CURL_GLOBAL_ALL);
+	try
+	{
+		srand(static_cast<unsigned int>(time(NULL)));
+		curl_global_init(CURL_GLOBAL_ALL);
 
 #ifdef __WIN32
-	WORD wVersionRequested = MAKEWORD(2, 2);
-	WSADATA wsaData;
-	if (WSAStartup(wVersionRequested, &wsaData) != 0)
-	{
-		Log(CLog::CriticalError, "Couldn't startup winsock.");
-	}
+		WORD wVersionRequested = MAKEWORD(2, 2);
+		WSADATA wsaData;
+		if (WSAStartup(wVersionRequested, &wsaData) != 0)
+		{
+			Log(CLog::CriticalError, "Couldn't startup winsock.");
+		}
 #endif
 
-	std::vector<std::string> arguments;
-	for (int i = 1; i < argc; ++i)
-	{
-		std::string arg = argv[i];
-		// macOS sometimes (seemingly sporadically) passes the
-		// process serial number via a command line parameter.
-		// We would like to ignore this.
-		if (arg.find("-psn") != 0)
-			arguments.emplace_back(argv[i]);
-	}
+		args::ArgumentParser parser{
+			"Computes performance points (pp) for the rhythm game osu!",
+			"",
+		};
 
-	args::ArgumentParser parser{
-		"Computes performance points (pp) for the rhythm game osu!",
-		"",
-	};
+		args::Group argumentsGroup{"OPTIONS"};
 
-	args::HelpFlag helpFlag{
-		parser,
-		"help",
-		"Display this help menu",
-		{'h', "help"},
-	};
+		args::ValueFlag<std::string> modePositional{
+			argumentsGroup,
+			"GAMEMODE",
+			"The game mode to compute pp for.\nMust be one of 'osu', 'taiko', 'catch', and 'mania'.\nDefault: 'osu'",
+			{'m', "mode"},
+			"osu",
+		};
 
-	args::Flag recomputeFlag{
-		parser,
-		"recompute",
-		"Forces recomputation of pp for all players. Useful if the underlying algorithm changed.",
-		{'r', "recompute"},
-	};
+		args::ValueFlag<std::string> configFlag{
+			argumentsGroup,
+			"CONFIG",
+			"The configuration file to use.\nDefault: 'Config.cfg'",
+			{"config"},
+			"Config.cfg",
+		};
 
-	args::ValueFlag<u32> modeFlag{
-		parser,
-		"mode",
-		"The game mode to compute pp for.",
-		{'m', "mode"},
-	};
+		args::HelpFlag helpFlag{
+			argumentsGroup,
+			"HELP",
+			"Display this help menu.",
+			{'h', "help"},
+		};
 
-	// Parse command line arguments and react to parsing
-	// errors using exceptions.
-	try
-	{
-		parser.ParseArgs(arguments);
-	}
-	catch (args::Help)
-	{
-		std::cout << parser;
-		return 0;
-	}
-	catch (args::ParseError e)
-	{
-		std::cerr << e.what() << std::endl;
-		std::cerr << parser;
-		return -1;
-	}
-	catch (args::ValidationError e)
-	{
-		std::cerr << e.what() << std::endl;
-		std::cerr << parser;
-		return -2;
-	}
-
-	try
-	{
-		EGamemode gamemode = EGamemode::Standard;
-		if (modeFlag)
+		args::Group commands(parser, "COMMAND");
+		args::Command newCommand(commands, "new", "Continually poll for new scores and compute pp of these", [&](args::Subparser& parser)
 		{
-			u32 modeId = args::get(modeFlag);
-			if (modeId < NumGamemodes)
-				gamemode = (EGamemode)modeId;
-			else
-				throw CLoggedException(SRC_POS, StrFormat("Invalid gamemode ID {0} supplied.", modeId));
+			parser.Parse();
+			CProcessor processor{stringToGamemode(args::get(modePositional)), args::get(configFlag)};
+			processor.MonitorNewScores();
+		});
+
+		args::Command allCommand(commands, "all", "Compute pp of all users", [&](args::Subparser& parser)
+		{
+			args::Flag continueFlag{
+				parser,
+				"continue",
+				"Continue where a previously aborted 'all' run left off.",
+				{'c', "continue"},
+			};
+
+			args::ValueFlag<u32> threadsFlag{
+				parser,
+				"threads",
+				"Number of threads to use. Can be useful even if the processor itself has no "
+				"parallelism due to additional connections to the database.\n"
+				"Default: 1",
+				{'t', "threads"},
+				1,
+			};
+
+			parser.Parse();
+
+			u32 numThreads = args::get(threadsFlag);
+
+			CProcessor processor{stringToGamemode(args::get(modePositional)), args::get(configFlag)};
+			processor.ProcessAllUsers(!continueFlag, numThreads);
+		});
+
+		args::Command usersCommand(commands, "users", "Compute pp of specific users", [&](args::Subparser& parser)
+		{
+			args::PositionalList<std::string> usersPositional{
+				parser,
+				"users",
+				"Users to recompute pp for.",
+			};
+
+			parser.Parse();
+
+			std::vector<std::string> userNames = args::get(usersPositional);
+			CProcessor processor{stringToGamemode(args::get(modePositional)), args::get(configFlag)};
+			processor.ProcessUsers(args::get(usersPositional));
+		});
+
+		args::GlobalOptions argumentsGlobal{parser, argumentsGroup};
+
+		std::vector<std::string> arguments;
+		for (int i = 0; i < argc; ++i)
+		{
+			std::string arg = argv[i];
+			// macOS sometimes (seemingly sporadically) passes the
+			// process serial number via a command line parameter.
+			// We would like to ignore this.
+			if (arg.find("-psn") != 0)
+				arguments.emplace_back(argv[i]);
 		}
 
-		// Create game object
-		CProcessor Processor{
-			gamemode,
-			recomputeFlag,
-		};
+		// Parse command line arguments and react to parsing
+		// errors using exceptions.
+		try
+		{
+			parser.Prog(arguments[0]);
+			parser.ParseArgs(std::begin(arguments) + 1, std::end(arguments));
+		}
+		catch (args::Help)
+		{
+			std::cout << parser;
+			return 0;
+		}
+		catch (args::ParseError e)
+		{
+			std::cerr << e.what() << std::endl;
+			return -1;
+		}
+		catch (args::ValidationError e)
+		{
+			std::cerr << e.what() << std::endl;
+			return -2;
+		}
+
+		auto modeString = arguments[1];
+		auto targetString = arguments[2];
 	}
 	catch (CLoggedException& e)
 	{

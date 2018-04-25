@@ -13,29 +13,63 @@ CDatabaseConnection::CDatabaseConnection(
 	if (!mysql_init(&_mySQL))
 		throw CDatabaseException(SRC_POS, StrFormat("MySQL struct could not be initialized. ({0})", Error()));
 
+	_isInitialized = true;
+
 	connect();
 
 	_pActive = CActive::Create();
+}
+
+CDatabaseConnection::CDatabaseConnection(CDatabaseConnection&& other)
+{
+	*this = std::move(other);
+}
+
+CDatabaseConnection& CDatabaseConnection::operator=(CDatabaseConnection&& other)
+{
+	_port = other._port;
+	_mySQL = other._mySQL;
+
+	if (!other._pActive || other._pActive->IsBusy())
+	{
+		// Deconstruct the previous connection's active object
+		// to force background tasks to finish.
+		other._pActive = nullptr;
+		_pActive = CActive::Create();
+	}
+	else
+		_pActive = std::move(other._pActive);
+
+	_host = std::move(other._host);
+	_username = std::move(other._username);
+	_password = std::move(other._password);
+	_database = std::move(other._database);
+
+	other._isInitialized = false;
+	_isInitialized = true;
+
+	return *this;
 }
 
 CDatabaseConnection::~CDatabaseConnection()
 {
 	// Destruct our active object before closing the mysql connection.
 	_pActive = nullptr;
-	mysql_close(&_mySQL);
+	if (_isInitialized)
+		mysql_close(&_mySQL);
 }
 
 void CDatabaseConnection::connect()
 {
 	mysql_close(&_mySQL);
-	while (!mysql_real_connect(&_mySQL, _host.c_str(), _username.c_str(), _password.c_str(), _database.c_str(), _port, NULL, CLIENT_MULTI_STATEMENTS))
-		Log(CLog::Error, StrFormat("Could not connect. ({0})", Error()));
+	if (!mysql_real_connect(&_mySQL, _host.c_str(), _username.c_str(), _password.c_str(), _database.c_str(), _port, NULL, CLIENT_MULTI_STATEMENTS))
+		throw CDatabaseException(SRC_POS, StrFormat("Could not connect. ({0})", Error()));
 }
 
 void CDatabaseConnection::NonQueryBackground(const std::string& queryString)
 {
 	// We arbitrarily decide, that we don't want to have more than 1000 pending queries
-	while (AmountPendingQueries() > 1000)
+	while (NumPendingQueries() > 1000)
 		// Avoid to have the processor "spinning" at full power if there is no work to do in Update()
 		std::this_thread::sleep_for(std::chrono::milliseconds(1));
 
@@ -47,11 +81,8 @@ void CDatabaseConnection::NonQuery(const std::string& queryString)
 	// We don't want concurrent queries
 	std::lock_guard<std::recursive_mutex> lock{_dbMutex};
 
-	while (mysql_query(&_mySQL, queryString.c_str()) != 0)
-	{
-		Log(CLog::Error, StrFormat("Error executing query {0}. ({1})", queryString, Error()));
-		connect();
-	}
+	if (mysql_query(&_mySQL, queryString.c_str()) != 0)
+		throw CDatabaseException(SRC_POS, StrFormat("Error executing query {0}. ({1})", queryString, Error()));
 
 	s32 status;
 	do
@@ -62,9 +93,7 @@ void CDatabaseConnection::NonQuery(const std::string& queryString)
 			mysql_free_result(pRes);
 		else          /* no result set or error */
 		{
-			if (mysql_field_count(&_mySQL) == 0)
-			{ }
-			else  /* some error occurred */
+			if (mysql_field_count(&_mySQL) != 0)
 				throw CDatabaseException(SRC_POS, StrFormat("Error getting result. ({0})", Error()));
 		}
 		/* more results? -1 = no, >0 = error, 0 = yes (keep looping) */
@@ -81,28 +110,14 @@ CQueryResult CDatabaseConnection::Query(const std::string& queryString)
 	// We don't want concurrent queries
 	std::lock_guard<std::recursive_mutex> lock{_dbMutex};
 
-	while (mysql_query(&_mySQL, queryString.c_str()) != 0)
-	{
-		Log(CLog::Error, StrFormat("Error executing query {0}. ({1})", queryString, Error()));
-		connect();
-	}
+	if (mysql_query(&_mySQL, queryString.c_str()) != 0)
+		throw CDatabaseException(SRC_POS, StrFormat("Error executing query {0}. ({1})", queryString, Error()));
 
 	MYSQL_RES* pRes = mysql_store_result(&_mySQL);
 	if (pRes == NULL)
 		throw CDatabaseException(SRC_POS, StrFormat("Error getting result. ({0})", Error()));
 
 	return CQueryResult{pRes};
-}
-
-bool CDatabaseConnection::ping()
-{
-	// We don't want concurrent queries
-	std::lock_guard<std::recursive_mutex> lock{_dbMutex};
-
-	while (mysql_ping(&_mySQL) != 0)
-		connect();
-
-	return true;
 }
 
 const char *CDatabaseConnection::Error()

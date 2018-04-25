@@ -14,15 +14,20 @@ public:
 		s16 port,
 		std::string username,
 		std::string password,
-		std::string database);
+		std::string database
+	);
+
+	CDatabaseConnection& operator=(const CDatabaseConnection&) = delete;
+	CDatabaseConnection(const CDatabaseConnection&) = delete;
+
+	CDatabaseConnection& operator=(CDatabaseConnection&& other);
+	CDatabaseConnection(CDatabaseConnection&& other);
+
 	~CDatabaseConnection();
 
 	void NonQueryBackground(const std::string& queryString);
 	void NonQuery(const std::string& queryString);
 	CQueryResult Query(const std::string& queryString);
-
-	//kind of connection test, not really important
-	bool ping();
 
 	//returns error messages
 	const char* Error();
@@ -40,9 +45,9 @@ public:
 		return mysql_field_count(&_mySQL);
 	}
 
-	size_t AmountPendingQueries()
+	size_t NumPendingQueries()
 	{
-		return _pActive->AmountPending();
+		return _pActive->NumPending();
 	}
 
 private:
@@ -57,5 +62,6 @@ private:
 	std::string _password;
 	std::string _database;
 
+	bool _isInitialized = false;
 	MYSQL _mySQL;
 };

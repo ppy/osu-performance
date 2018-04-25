@@ -31,17 +31,33 @@ osu-performance/Build$ make -j
 
 ## Usage
 
-After compilation, an executable named `osu-performance` is placed in the _Bin_ folder. It accepts the following arguments:
-* `-m <id>`
-  
-  This option controls the gamemode for which pp is computed. __id__ can have the following values:
+After compilation, an executable named `osu-performance` is placed in the _Bin_ folder. It is used via the command line as follows:
 
-  __Standard__ | __Taiko__ | __Catch the beat__ | __osu!mania__
-  --- | --- | --- | ---
-  0 | 1 | 2 | 3
-* `-r`
-  
-  If this option is present, then the pp values of all existing scores are re-computed. Otherwise, only new pp values are computed.
+```sh
+./osu-performance COMMAND {OPTIONS}
+```
+
+where `COMMAND` controls which scores are the target of the computation.
+The following parameters are valid:
+
+* `COMMAND`
+  * `new`: Continually poll for new scores and compute pp of these
+	* `all`: Compute pp of all users
+	* `users`: Compute pp of specific users
+
+The gamemode to compute pp for can be selected via the `-m` option, which may take the value `osu`, `taiko`, `catch`, or `mania`.
+
+Information about further `OPTIONS` can be queried via
+
+```sh
+./osu-performance -h
+```
+
+and further `OPTIONS` specific to the chosen `COMMAND` can be queried via
+
+```sh
+./osu-performance COMMAND -h
+```
 
 Configuration options beyond these parameters, such as the MySQL server configuration, can be adjusted in _Bin/Data/Config.cfg_.
 

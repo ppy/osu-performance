@@ -15,7 +15,7 @@ public:
 	void Send(std::function<void()> callback);
 	static std::unique_ptr<CActive> Create();
 
-	size_t AmountPending() const;
+	size_t NumPending() const;
 	bool IsBusy() const;
 
 private:
