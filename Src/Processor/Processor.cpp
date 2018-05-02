@@ -214,7 +214,7 @@ void CProcessor::ProcessUsers(const std::vector<std::string>& userNames)
 			return id;
 		}
 
-		// TODO: Allow querying IDs by name
+		// TODO: Allow querying IDs by name once it's available in the DB
 		return 0ll;
 	};
 
@@ -229,23 +229,33 @@ void CProcessor::ProcessUsers(const std::vector<s64>& userIds)
 	CUpdateBatch newUsers{_pDB, 10000};
 	CUpdateBatch newScores{_pDB, 10000};
 
+	std::vector<CUser> users;
+	for (s64 userId : userIds)
+	{
+		users.emplace_back(ProcessSingleUser(
+			0, // We want to update _all_ scores
+			*_pDBSlave,
+			newUsers,
+			newScores,
+			userId
+		));
+	}
+
+	std::sort(std::begin(users), std::end(users), [](const CUser& a, const CUser& b) {
+		if (a.PPRecord().Value != b.PPRecord().Value)
+			return a.PPRecord().Value > b.PPRecord().Value;
+
+		return a.Id() > b.Id();
+	});
+
 	Log(CLog::Info, "============================");
 	Log(CLog::Info, "======= USER SUMMARY =======");
 	Log(CLog::Info, "============================");
 	Log(CLog::Info, "      User    Perf.     Acc.");
 	Log(CLog::Info, "----------------------------");
 
-	for (s64 userId : userIds) {
-		auto user = ProcessSingleUser(
-			0, // We want to update _all_ scores
-			*_pDBSlave,
-			newUsers,
-			newScores,
-			userId
-		);
-
-		Log(CLog::Info, StrFormat("{0w10ar}  {1w5ar}pp  {2w6arp2}%", userId, (s32)user.PPRecord().Value, user.PPRecord().Accuracy));
-	}
+	for (const auto& user : users)
+		Log(CLog::Info, StrFormat("{0w10ar}  {1w5ar}pp  {2w6arp2}%", user.Id(), (s32)user.PPRecord().Value, user.PPRecord().Accuracy));
 
 	Log(CLog::Info, "=============================");
 }
@@ -577,7 +587,7 @@ CUser CProcessor::ProcessSingleUser(
 		"WHERE `user_id`={1}", GamemodeSuffix(_gamemode), userId
 	));
 
-	CUser user{};
+	CUser user{userId};
 	std::vector<std::unique_ptr<CScore>> scoresThatNeedDBUpdate;
 
 	{
