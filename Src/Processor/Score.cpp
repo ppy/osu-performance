@@ -39,7 +39,7 @@ _mods{mods}
 {
 }
 
-void CScore::AppendToUpdateBatch(CUpdateBatch& batch)
+void CScore::AppendToUpdateBatch(CUpdateBatch& batch) const
 {
 	batch.AppendAndCommitNonThreadsafe(StrFormat(
 		"UPDATE `osu_scores{0}_high` "

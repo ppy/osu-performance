@@ -454,68 +454,6 @@ void CProcessor::PollAndProcessNewBeatmapSets()
 	}
 }
 
-std::unique_ptr<CScore> CProcessor::NewScore(
-	s64 scoreId,
-	EGamemode mode,
-	s32 userId,
-	s32 beatmapId,
-	s32 score,
-	s32 maxCombo,
-	s32 num300,
-	s32 num100,
-	s32 num50,
-	s32 numMiss,
-	s32 numGeki,
-	s32 numKatu,
-	EMods mods
-)
-{
-#define SCORE_INITIALIZER_LIST \
-	/* Score id */ scoreId, \
-	/* Mode */ mode, \
-	/* Player id */ userId, \
-	/* Beatmap id */ beatmapId, \
-	/* Score */ score, \
-	/* Maxcombo */ maxCombo, \
-	/* Num300 */ num300, \
-	/* Num100 */ num100, \
-	/* Num50 */ num50, \
-	/* NumMiss */ numMiss, \
-	/* NumGeki */ numGeki, \
-	/* NumKatu */ numKatu, \
-	/* Mods */ mods, \
-	/* Beatmap */ _beatmaps.at(beatmapId)
-
-	std::unique_ptr<CScore> pScore = nullptr;
-
-	// Create the correct score type, so the right formulas are used
-	switch (_gamemode)
-	{
-	case EGamemode::Standard:
-		pScore = std::make_unique<CStandardScore>(SCORE_INITIALIZER_LIST);
-		break;
-
-	case EGamemode::Taiko:
-		pScore = std::make_unique<CTaikoScore>(SCORE_INITIALIZER_LIST);
-		break;
-
-	case EGamemode::CatchTheBeat:
-		pScore = std::make_unique<CCatchTheBeatScore>(SCORE_INITIALIZER_LIST);
-		break;
-
-	case EGamemode::Mania:
-		pScore = std::make_unique<CManiaScore>(SCORE_INITIALIZER_LIST);
-		break;
-
-	default:
-		throw CProcessorException(SRC_POS, StrFormat("Unknown gamemode requested. ({0})", _gamemode));
-	}
-
-#undef SCORE_INITIALIZER_LIST
-
-	return pScore;
-}
-
 void CProcessor::QueryBeatmapBlacklist()
 {
 	Log(CLog::Info, "Retrieving blacklisted beatmaps.");
@@ -560,6 +498,34 @@ CUser CProcessor::ProcessSingleUser(
 	s64 userId
 )
 {
+	switch (_gamemode)
+	{
+	case EGamemode::Standard:
+		return ProcessSingleUserTemplate<CStandardScore>(selectedScoreId, db, newUsers, newScores, userId);
+
+	case EGamemode::Taiko:
+		return ProcessSingleUserTemplate<CTaikoScore>(selectedScoreId, db, newUsers, newScores, userId);
+
+	case EGamemode::CatchTheBeat:
+		return ProcessSingleUserTemplate<CCatchTheBeatScore>(selectedScoreId, db, newUsers, newScores, userId);
+
+	case EGamemode::Mania:
+		return ProcessSingleUserTemplate<CManiaScore>(selectedScoreId, db, newUsers, newScores, userId);
+
+	default:
+		throw CProcessorException(SRC_POS, StrFormat("Unknown gamemode requested. ({0})", _gamemode));
+	}
+}
+
+template <class TScore>
+CUser CProcessor::ProcessSingleUserTemplate(
+	s64 selectedScoreId,
+	CDatabaseConnection& db,
+	CUpdateBatch& newUsers,
+	CUpdateBatch& newScores,
+	s64 userId
+)
+{
 	static thread_local std::shared_ptr<CDatabaseConnection> pDBSlave = NewDBConnectionSlave();
 
 	CDatabaseConnection& dbSlave = *pDBSlave;
@@ -587,7 +553,7 @@ CUser CProcessor::ProcessSingleUser(
 	));
 
 	CUser user{userId};
-	std::vector<std::unique_ptr<CScore>> scoresThatNeedDBUpdate;
+	std::vector<TScore> scoresThatNeedDBUpdate;
 
 	{
 		CRWLock lock{&_beatmapMutex, false};
@@ -623,7 +589,7 @@ CUser CProcessor::ProcessSingleUser(
 			if (rankedStatus < s_minRankedStatus || rankedStatus > s_maxRankedStatus)
 				continue;
 
-			std::unique_ptr<CScore> pScore = NewScore(
+			TScore score = TScore{
 				scoreId,
 				_gamemode,
 				res.S32(1), // user_id
@@ -636,17 +602,18 @@ CUser CProcessor::ProcessSingleUser(
 				res.S32(8), // NumMiss
 				res.S32(9), // NumGeki
 				res.S32(10), // NumKatu
-				mods
-			);
+				mods,
+				_beatmaps.at(beatmapId),
+			};
 
-			user.AddScorePPRecord(pScore->PPRecord());
+			user.AddScorePPRecord(score.PPRecord());
 
 			if (res.IsNull(12) || selectedScoreId == 0 || selectedScoreId == scoreId)
 			{
 				// Column 12 is the pp value of the score from the database.
 				// Only update score if it differs a lot!
-				if (res.IsNull(12) || fabs(res.F32(12) - pScore->TotalValue()) > 0.001f)
-					scoresThatNeedDBUpdate.emplace_back(std::move(pScore));
+				if (res.IsNull(12) || fabs(res.F32(12) - score.TotalValue()) > 0.001f)
+					scoresThatNeedDBUpdate.emplace_back(score);
 			}
 		}
 	}
@@ -654,8 +621,8 @@ CUser CProcessor::ProcessSingleUser(
 	{
 		std::lock_guard<std::mutex> lock{newScores.Mutex()};
 
-		for (const auto& pScore : scoresThatNeedDBUpdate)
-			pScore->AppendToUpdateBatch(newScores);
+		for (const auto& score : scoresThatNeedDBUpdate)
+			score.AppendToUpdateBatch(newScores);
 	}
 
 	_dataDog.Increment("osu.pp.score.updated", scoresThatNeedDBUpdate.size(), {StrFormat("mode:{0}", GamemodeTag(_gamemode))}, 0.01f);
@@ -666,11 +633,11 @@ CUser CProcessor::ProcessSingleUser(
 	// Check for notable event
 	if (selectedScoreId > 0 && // We only check for notable events if a score has been selected
 		!scoresThatNeedDBUpdate.empty() && // Did the score actually get found (this _should_ never be false, but better make sure)
-		scoresThatNeedDBUpdate.front()->TotalValue() > userPPRecord.Value * s_notableEventRatingThreshold)
+		scoresThatNeedDBUpdate.front().TotalValue() > userPPRecord.Value * s_notableEventRatingThreshold)
 	{
 		_dataDog.Increment("osu.pp.score.notable_events", 1, {StrFormat("mode:{0}", GamemodeTag(_gamemode))});
 
-		const auto& pScore = scoresThatNeedDBUpdate.front();
+		const auto& score = scoresThatNeedDBUpdate.front();
 
 		// Obtain user's previous pp rating for determining the difference
 		auto res = dbSlave.Query(StrFormat(
@@ -691,7 +658,7 @@ CUser CProcessor::ProcessSingleUser(
 			if (ratingChange < s_notableEventRatingDifferenceMinimum)
 				continue;
 
-			Log(CLog::Info, StrFormat("Notable event: /b/{0} /u/{1}", pScore->BeatmapId(), userId));
+			Log(CLog::Info, StrFormat("Notable event: /b/{0} /u/{1}", score.BeatmapId(), userId));
 
 			db.NonQueryBackground(StrFormat(
 				"INSERT INTO "
@@ -699,7 +666,7 @@ CUser CProcessor::ProcessSingleUser(
 				"VALUES({0},{1},{2},{3},null)",
 				userId,
 				_gamemode,
-				pScore->BeatmapId(),
+				score.BeatmapId(),
 				ratingChange
 			));
 		}

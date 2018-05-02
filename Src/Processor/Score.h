@@ -43,7 +43,7 @@ public:
 	virtual s32 TotalHits() const = 0;
 	virtual s32 TotalSuccessfulHits() const = 0;
 
-	void AppendToUpdateBatch(CUpdateBatch& batch);
+	void AppendToUpdateBatch(CUpdateBatch& batch) const;
 
 	SPPRecord PPRecord() { return SPPRecord{_scoreId, _beatmapId, TotalValue(), Accuracy()}; }
 

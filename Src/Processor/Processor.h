@@ -82,22 +82,6 @@ private:
 	void PollAndProcessNewScores();
 	void PollAndProcessNewBeatmapSets();
 
-	std::unique_ptr<CScore> NewScore(
-		s64 scoreId,
-		EGamemode mode,
-		s32 userId,
-		s32 beatmapId,
-		s32 score,
-		s32 maxCombo,
-		s32 amount300,
-		s32 amount100,
-		s32 amount50,
-		s32 amountMiss,
-		s32 amountGeki,
-		s32 amountKatu,
-		EMods mods
-	);
-
 	std::unordered_set<s32> _blacklistedBeatmapIds;
 	void QueryBeatmapBlacklist();
 
@@ -106,6 +90,15 @@ private:
 
 	// Not thread safe with beatmap data!
 	CUser ProcessSingleUser(
+		s64 selectedScoreId, // If this is not 0, then the score is looked at in isolation, triggering a notable event if it's good enough
+		CDatabaseConnection& db,
+		CUpdateBatch& newUsers,
+		CUpdateBatch& newScores,
+		s64 userId
+	);
+
+	template <class TScore>
+	CUser ProcessSingleUserTemplate(
 		s64 selectedScoreId, // If this is not 0, then the score is looked at in isolation, triggering a notable event if it's good enough
 		CDatabaseConnection& db,
 		CUpdateBatch& newUsers,
