@@ -218,8 +218,17 @@ void CProcessor::ProcessUsers(const std::vector<std::string>& userNames)
 		return 0ll;
 	};
 
-	std::vector<s64> userIds(userNames.size());
-	std::transform(std::begin(userNames), std::end(userNames), std::begin(userIds), userNameToId);
+	std::vector<s64> userIds;
+	for (const auto& name : userNames)
+	{
+		s64 id = xtoi64(name.c_str());
+		if (id == 0) {
+			// TODO: Allow querying IDs by name once it's available in the DB
+			continue;
+		}
+
+		userIds.emplace_back(id);
+	}
 
 	ProcessUsers(userIds);
 }
