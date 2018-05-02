@@ -71,17 +71,6 @@ void CProcessor::MonitorNewScores()
 
 	_lastApprovedDate = res.String(0);
 
-#ifdef PLAYER_TESTING
-	std::shared_ptr<CUpdateBatch> newUsers = std::make_shared<CUpdateBatch>(_pDB, 0);  // We want the updates to occur immediately
-	std::shared_ptr<CUpdateBatch> newScores = std::make_shared<CUpdateBatch>(_pDB, 0); // batches are used to conform the interface of ProcessSingleUser
-
-	ProcessSingleUser(
-		0,
-		_pDB,
-		newUsers,
-		newScores,
-		PLAYER_TESTING);
-#else
 	std::thread beatmapPollThread{[this]()
 	{
 		while (!_shallShutdown)
@@ -106,26 +95,22 @@ void CProcessor::MonitorNewScores()
 
 	scorePollThread.join();
 	beatmapPollThread.join();
-#endif
 }
 
 void CProcessor::ProcessAllUsers(bool reProcess, u32 numThreads)
 {
 	CThreadPool threadPool{numThreads};
 	std::vector<std::shared_ptr<CDatabaseConnection>> databaseConnections;
-	std::vector<std::shared_ptr<CUpdateBatch>> newUsersBatches;
-	std::vector<std::shared_ptr<CUpdateBatch>> newScoresBatches;
+	std::vector<CUpdateBatch> newUsersBatches;
+	std::vector<CUpdateBatch> newScoresBatches;
 
 	for (int i = 0; i < numThreads; ++i)
 	{
 		databaseConnections.push_back(NewDBConnectionMaster());
 
-		newUsersBatches.push_back(std::make_shared<CUpdateBatch>(databaseConnections[i], 10000));
-		newScoresBatches.push_back(std::make_shared<CUpdateBatch>(databaseConnections[i], 10000));
+		newUsersBatches.emplace_back(databaseConnections[i], 10000);
+		newScoresBatches.emplace_back(databaseConnections[i], 10000);
 	}
-
-	auto pDB = NewDBConnectionMaster();
-	auto pDBSlave = NewDBConnectionSlave();
 
 	static const s32 userIdStep = 10000;
 
@@ -618,9 +603,7 @@ void CProcessor::ProcessSingleUser(
 		}
 	}
 
-#ifndef PLAYER_TESTING
 	{
-		// We lock here instead of inside the append due to an otherwise huge locking overhead.
 		std::lock_guard<std::mutex> lock{newScores.Mutex()};
 
 		for (const auto& pScore : scoresThatNeedDBUpdate)
@@ -628,21 +611,9 @@ void CProcessor::ProcessSingleUser(
 	}
 
 	_dataDog.Increment("osu.pp.score.updated", scoresThatNeedDBUpdate.size(), {StrFormat("mode:{0}", GamemodeTag(_gamemode))}, 0.01f);
-#endif
 
-	CUser::SPPRecord userPPRecord = user.ComputePPRecord();
-
-#ifdef PLAYER_TESTING
-	Log(CLog::Info, StrFormat("pp of {0}: {1}, {2}%", PLAYER_TESTING, userPPRecord.Value, userPPRecord.Accuracy));
-
-	for (int i = 0; i < 10; ++i)
-	{
-		const auto& record = user.XthBestScorePPRecord(i);
-		Log(CLog::Info, StrFormat("{0}: {1} - {2}", i + 1, record.Value, record.ScoreId));
-	}
-
-	return;
-#endif
+	user.ComputePPRecord();
+	CUser::SPPRecord userPPRecord = user.PPRecord();
 
 	// Check for notable event
 	if (selectedScoreId > 0 && // We only check for notable events if a score has been selected

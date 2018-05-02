@@ -18,7 +18,7 @@ ForwardIt unique_own(ForwardIt first, ForwardIt last, BinaryPredicate p)
 	return ++result;
 }
 
-CUser::SPPRecord CUser::ComputePPRecord()
+void CUser::ComputePPRecord()
 {
 	// Eliminate duplicate beatmaps with lower pp
 	std::sort(std::begin(_scores), std::end(_scores), [](const CScore::SPPRecord& a, const CScore::SPPRecord& b)
@@ -60,8 +60,6 @@ CUser::SPPRecord CUser::ComputePPRecord()
 	if (_scores.size() > 0)
 		// We want the percentage, not a factor in [0, 1], hence we divide 20 by 100
 		_rating.Accuracy *= 100.0 / (20 * (1 - pow(0.95, _scores.size())));
-
-	return _rating;
 }
 
 CScore::SPPRecord CUser::XthBestScorePPRecord(unsigned int i)

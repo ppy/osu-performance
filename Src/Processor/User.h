@@ -23,7 +23,9 @@ public:
 
 	size_t NumScores() const { return _scores.size(); }
 
-	SPPRecord ComputePPRecord();
+	void ComputePPRecord();
+
+	const SPPRecord& PPRecord() const { return _rating; }
 
 	CScore::SPPRecord XthBestScorePPRecord(unsigned int i);
 
