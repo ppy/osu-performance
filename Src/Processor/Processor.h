@@ -11,9 +11,6 @@
 
 DEFINE_LOGGED_EXCEPTION(CProcessorException);
 
-// Specify user id to test
-//#define PLAYER_TESTING 124493
-
 struct SScore;
 
 class CProcessor
@@ -40,6 +37,7 @@ public:
 	void MonitorNewScores();
 	void ProcessAllUsers(bool reProcess, u32 numThreads);
 	void ProcessUsers(const std::vector<std::string>& userNames);
+	void ProcessUsers(const std::vector<s64>& userIds);
 
 private:
 	static const std::array<const std::string, NumGamemodes> s_gamemodeSuffixes;
@@ -107,7 +105,7 @@ private:
 	void QueryBeatmapDifficultyAttributes();
 
 	// Not thread safe with beatmap data!
-	void ProcessSingleUser(
+	CUser ProcessSingleUser(
 		s64 selectedScoreId, // If this is not 0, then the score is looked at in isolation, triggering a notable event if it's good enough
 		CDatabaseConnection& db,
 		CUpdateBatch& newUsers,

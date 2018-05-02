@@ -208,7 +208,46 @@ void CProcessor::ProcessAllUsers(bool reProcess, u32 numThreads)
 
 void CProcessor::ProcessUsers(const std::vector<std::string>& userNames)
 {
+	auto userNameToId = [](const std::string& name) {
+		s64 id = xtoi64(name.c_str());
+		if (id != 0) {
+			return id;
+		}
 
+		// TODO: Allow querying IDs by name
+		return 0ll;
+	};
+
+	std::vector<s64> userIds(userNames.size());
+	std::transform(std::begin(userNames), std::end(userNames), std::begin(userIds), userNameToId);
+
+	ProcessUsers(userIds);
+}
+
+void CProcessor::ProcessUsers(const std::vector<s64>& userIds)
+{
+	CUpdateBatch newUsers{_pDB, 10000};
+	CUpdateBatch newScores{_pDB, 10000};
+
+	Log(CLog::Info, "============================");
+	Log(CLog::Info, "======= USER SUMMARY =======");
+	Log(CLog::Info, "============================");
+	Log(CLog::Info, "      User    Perf.     Acc.");
+	Log(CLog::Info, "----------------------------");
+
+	for (s64 userId : userIds) {
+		auto user = ProcessSingleUser(
+			0, // We want to update _all_ scores
+			*_pDBSlave,
+			newUsers,
+			newScores,
+			userId
+		);
+
+		Log(CLog::Info, StrFormat("{0w10ar}  {1w5ar}pp  {2w6arp2}%", userId, (s32)user.PPRecord().Value, user.PPRecord().Accuracy));
+	}
+
+	Log(CLog::Info, "=============================");
 }
 
 std::shared_ptr<CDatabaseConnection> CProcessor::NewDBConnectionMaster()
@@ -504,7 +543,7 @@ void CProcessor::QueryBeatmapDifficultyAttributes()
 	Log(CLog::Success, StrFormat("Retrieved {0} difficulty attributes, stored in {1} entries.", numEntries, _difficultyAttributes.size()));
 }
 
-void CProcessor::ProcessSingleUser(
+CUser CProcessor::ProcessSingleUser(
 	s64 selectedScoreId,
 	CDatabaseConnection& db,
 	CUpdateBatch& newUsers,
@@ -674,6 +713,8 @@ void CProcessor::ProcessSingleUser(
 	));
 
 	_dataDog.Increment("osu.pp.user.amount_processed", 1, {StrFormat("mode:{0}", GamemodeTag(_gamemode))}, 0.01f);
+
+	return user;
 }
 
 void CProcessor::StoreCount(CDatabaseConnection& db, std::string key, s64 value)
