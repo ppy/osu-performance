@@ -27,6 +27,9 @@ CDatabaseConnection::CDatabaseConnection(CDatabaseConnection&& other)
 
 CDatabaseConnection& CDatabaseConnection::operator=(CDatabaseConnection&& other)
 {
+	std::lock_guard<std::recursive_mutex> otherLock{other._dbMutex};
+	std::lock_guard<std::recursive_mutex> lock{_dbMutex};
+
 	_port = other._port;
 	_mySQL = other._mySQL;
 
