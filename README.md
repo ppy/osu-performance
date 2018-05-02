@@ -4,7 +4,7 @@ This is the program computing "performance points" (pp), which are used as the o
 
 ## Building
 
-All that is required for building osu!performance project is a C++11-compatible compiler. Begin by cloning this repository and all its submodules using the following command:
+All that is required for building osu!performance is a C++11-compatible compiler. Begin by cloning this repository and all its submodules using the following command:
 ```sh
 $ git clone --recursive https://github.com/ppy/osu-performance
 ```
