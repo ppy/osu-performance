@@ -8,6 +8,9 @@ public:
 	CUpdateBatch(std::shared_ptr<CDatabaseConnection> pDB, u32 sizeThreshold);
 	~CUpdateBatch();
 
+	CUpdateBatch& operator=(CUpdateBatch&& other);
+	CUpdateBatch(CUpdateBatch&& other);
+
 	void AppendAndCommit(const std::string& values);
 	void AppendAndCommitNonThreadsafe(const std::string& values);
 
