@@ -120,10 +120,10 @@ void CProcessor::ProcessAllUsers(bool reProcess, u32 numThreads)
 		begin = 0;
 
 		// Make sure in case of a restart we still do the full process, even if we didn't trigger a store before
-		StoreCount(*pDB, LastUserIdKey(), begin);
+		StoreCount(*_pDB, LastUserIdKey(), begin);
 	}
 	else
-		begin = RetrieveCount(*pDB, LastUserIdKey());
+		begin = RetrieveCount(*_pDB, LastUserIdKey());
 
 	// We're done, nothing to reprocess
 	if (begin == -1)
@@ -149,7 +149,7 @@ void CProcessor::ProcessAllUsers(bool reProcess, u32 numThreads)
 		s64 end = begin + userIdStep;
 		Log(CLog::Info, StrFormat("Updating users {0} - {1}.", begin, end));
 
-		res = pDBSlave->Query(StrFormat(
+		res = _pDBSlave->Query(StrFormat(
 			"SELECT "
 			"`user_id`"
 			"FROM `osu_user_stats{0}` "
@@ -167,8 +167,8 @@ void CProcessor::ProcessAllUsers(bool reProcess, u32 numThreads)
 					ProcessSingleUser(
 						0, // We want to update _all_ scores
 						*databaseConnections[currentConnection],
-						*newUsersBatches[currentConnection],
-						*newScoresBatches[currentConnection],
+						newUsersBatches[currentConnection],
+						newScoresBatches[currentConnection],
 						userId
 					);
 				}
@@ -202,7 +202,7 @@ void CProcessor::ProcessAllUsers(bool reProcess, u32 numThreads)
 		while (threadPool.GetNumTasksInSystem() > 0 || numPendingQueries > 0);
 
 		// Update our user_id counter
-		StoreCount(*pDB, LastUserIdKey(), begin);
+		StoreCount(*_pDB, LastUserIdKey(), begin);
 	}
 }
 
@@ -328,8 +328,8 @@ void CProcessor::PollAndProcessNewScores()
 {
 	static const s64 s_lastScoreIdUpdateStep = 100;
 
-	std::shared_ptr<CUpdateBatch> newUsers = std::make_shared<CUpdateBatch>(_pDB, 0);  // We want the updates to occur immediately
-	std::shared_ptr<CUpdateBatch> newScores = std::make_shared<CUpdateBatch>(_pDB, 0); // batches are used to conform the interface of ProcessSingleUser
+	CUpdateBatch newUsers{_pDB, 0};  // We want the updates to occur immediately
+	CUpdateBatch newScores{_pDB, 0}; // batches are used to conform the interface of ProcessSingleUser
 
 	// Obtain all new scores since the last poll and process them
 	auto res = _pDBSlave->Query(StrFormat(
@@ -359,8 +359,8 @@ void CProcessor::PollAndProcessNewScores()
 		ProcessSingleUser(
 			ScoreId, // Only update the new score, old ones are caught by the background processor anyways
 			*_pDB,
-			*newUsers,
-			*newScores,
+			newUsers,
+			newScores,
 			UserId
 		);
 
