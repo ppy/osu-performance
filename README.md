@@ -2,7 +2,17 @@
 
 This is the program computing "performance points" (pp), which are used as the official [player ranking metric](https://osu.ppy.sh/p/pp) in osu!.
 
-## Compiling
+## Building
+
+All that is required for building osu!performance project is a C++11-compatible compiler. Begin by cloning this repository and all its submodules using the following command:
+```sh
+$ git clone --recursive https://github.com/ppy/osu-performance
+```
+
+If you accidentally omitted the `--recursive` flag when cloning this repository you can initialize the submodules like so:
+```sh
+$ git submodule update --init --recursive
+```
 
 osu!performance runs on Windows, macOS, and Linux. The build environment is set up using [CMake](https://cmake.org/) as follows.
 
