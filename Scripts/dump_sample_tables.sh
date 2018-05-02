@@ -33,7 +33,7 @@ case "$1" in
         table_suffix=$suffix
         name="osu!taiko"
         ;;
-    fruits)
+    catch)
         mode_index=2
         suffix="_fruits"
         table_suffix=$suffix
