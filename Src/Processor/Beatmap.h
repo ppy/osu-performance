@@ -40,12 +40,12 @@ public:
 
 	ERankedStatus RankedStatus() const { return _rankedStatus; }
 	EScoreVersion ScoreVersion() const { return _scoreVersion; }
-	s32 AmountHitCircles() const { return _amountHitCircles; }
+	s32 NumHitCircles() const { return _numHitCircles; }
 	f32 DifficultyAttribute(EMods mods, EDifficultyAttributeType type) const;
 
 	void SetRankedStatus(ERankedStatus rankedStatus) { _rankedStatus = rankedStatus; }
 	void SetScoreVersion(EScoreVersion scoreVersion) { _scoreVersion = scoreVersion; }
-	void SetAmountHitCircles(s32 amountHitCircles) { _amountHitCircles = amountHitCircles; }
+	void SetNumHitCircles(s32 numHitCircles) { _numHitCircles = numHitCircles; }
 	void SetDifficultyAttribute(EMods mods, EDifficultyAttributeType type, f32 value);
 
 	static EDifficultyAttributeType DifficultyAttributeFromName(const std::string& difficultyAttributeName)
@@ -83,5 +83,5 @@ private:
 	// Additional info required for processor
 	ERankedStatus _rankedStatus;
 	EScoreVersion _scoreVersion;
-	s32 _amountHitCircles = 0;
+	s32 _numHitCircles = 0;
 };

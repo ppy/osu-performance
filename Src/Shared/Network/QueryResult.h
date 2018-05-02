@@ -45,7 +45,7 @@ public:
 
 	bool NextRow();
 
-	inline s32 AmountRows() { return (s32)mysql_num_rows(_pRes); }
+	inline s32 NumRows() { return (s32)mysql_num_rows(_pRes); }
 
 	// Entire current row - array of zero terminated strings
 	inline char** CurrentRow() { return _Row; }

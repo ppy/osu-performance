@@ -80,7 +80,7 @@ private:
 	std::chrono::steady_clock::time_point _lastBeatmapSetPollTime;
 
 	s64 _currentScoreId;
-	s64 _amountScoresProcessedSinceLastStore = 0;
+	s64 _numScoresProcessedSinceLastStore = 0;
 	void PollAndProcessNewScores();
 	void PollAndProcessNewBeatmapSets();
 

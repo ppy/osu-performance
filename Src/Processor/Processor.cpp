@@ -268,7 +268,7 @@ bool CProcessor::QueryBeatmapDifficulty(s32 startId, s32 endId)
 
 	auto res = pDBSlave->Query(query);
 
-	bool success = res.AmountRows() != 0;
+	bool success = res.NumRows() != 0;
 
 	CRWLock lock{&_beatmapMutex, success};
 
@@ -283,7 +283,7 @@ bool CProcessor::QueryBeatmapDifficulty(s32 startId, s32 endId)
 
 		beatmap.SetRankedStatus(static_cast<CBeatmap::ERankedStatus>(res.S32(5)));
 		beatmap.SetScoreVersion(static_cast<CBeatmap::EScoreVersion>(res.S32(6)));
-		beatmap.SetAmountHitCircles(res.IsNull(1) ? 0 : res.S32(1));
+		beatmap.SetNumHitCircles(res.IsNull(1) ? 0 : res.S32(1));
 		beatmap.SetDifficultyAttribute(
 			static_cast<EMods>(res.U32(2)),
 			_difficultyAttributes[res.S32(3)],
@@ -338,10 +338,10 @@ void CProcessor::PollAndProcessNewScores()
 	));
 
 	// Only reset the poll timer when we find nothing. Otherwise we want to directly keep going
-	if (res.AmountRows() == 0)
+	if (res.NumRows() == 0)
 		_lastScorePollTime = steady_clock::now();
 
-	_dataDog.Gauge("osu.pp.score.amount_behind_newest", res.AmountRows(), {StrFormat("mode:{0}", GamemodeTag(_gamemode))});
+	_dataDog.Gauge("osu.pp.score.amount_behind_newest", res.NumRows(), {StrFormat("mode:{0}", GamemodeTag(_gamemode))});
 
 	while (res.NextRow())
 	{
@@ -364,11 +364,11 @@ void CProcessor::PollAndProcessNewScores()
 			UserId
 		);
 
-		++_amountScoresProcessedSinceLastStore;
-		if (_amountScoresProcessedSinceLastStore > s_lastScoreIdUpdateStep)
+		++_numScoresProcessedSinceLastStore;
+		if (_numScoresProcessedSinceLastStore > s_lastScoreIdUpdateStep)
 		{
 			StoreCount(*_pDB, LastScoreIdKey(), _currentScoreId);
-			_amountScoresProcessedSinceLastStore = 0;
+			_numScoresProcessedSinceLastStore = 0;
 		}
 
 		_dataDog.Increment("osu.pp.score.processed_new", 1, {StrFormat("mode:{0}", GamemodeTag(_gamemode))});
@@ -395,7 +395,7 @@ void CProcessor::PollAndProcessNewBeatmapSets()
 		_lastApprovedDate
 	));
 
-	Log(CLog::Success, StrFormat("Retrieved {0} new beatmaps.", res.AmountRows()));
+	Log(CLog::Success, StrFormat("Retrieved {0} new beatmaps.", res.NumRows()));
 
 	while (res.NextRow())
 	{
@@ -413,12 +413,12 @@ std::unique_ptr<CScore> CProcessor::NewScore(
 	s32 beatmapId,
 	s32 score,
 	s32 maxCombo,
-	s32 amount300,
-	s32 amount100,
-	s32 amount50,
-	s32 amountMiss,
-	s32 amountGeki,
-	s32 amountKatu,
+	s32 num300,
+	s32 num100,
+	s32 num50,
+	s32 numMiss,
+	s32 numGeki,
+	s32 numKatu,
 	EMods mods
 )
 {
@@ -429,12 +429,12 @@ std::unique_ptr<CScore> CProcessor::NewScore(
 	/* Beatmap id */ beatmapId, \
 	/* Score */ score, \
 	/* Maxcombo */ maxCombo, \
-	/* Amount300 */ amount300, \
-	/* Amount100 */ amount100, \
-	/* Amount50 */ amount50, \
-	/* AmountMiss */ amountMiss, \
-	/* AmountGeki */ amountGeki, \
-	/* AmountKatu */ amountKatu, \
+	/* Num300 */ num300, \
+	/* Num100 */ num100, \
+	/* Num50 */ num50, \
+	/* NumMiss */ numMiss, \
+	/* NumGeki */ numGeki, \
+	/* NumKatu */ numKatu, \
 	/* Mods */ mods, \
 	/* Beatmap */ _beatmaps.at(beatmapId)
 
@@ -488,7 +488,7 @@ void CProcessor::QueryBeatmapDifficultyAttributes()
 {
 	Log(CLog::Info, "Retrieving difficulty attribute names.");
 
-	u32 amountNames = 0;
+	u32 numEntries = 0;
 
 	auto res = _pDBSlave->Query("SELECT `attrib_id`,`name` FROM `osu_difficulty_attribs` WHERE 1 ORDER BY `attrib_id` DESC");
 	while (res.NextRow())
@@ -498,10 +498,10 @@ void CProcessor::QueryBeatmapDifficultyAttributes()
 			_difficultyAttributes.resize(id + 1);
 
 		_difficultyAttributes[id] = CBeatmap::DifficultyAttributeFromName(res.String(1));
-		++amountNames;
+		++numEntries;
 	}
 
-	Log(CLog::Success, StrFormat("Retrieved {0} difficulty attributes, stored in {1} entries.", amountNames, _difficultyAttributes.size()));
+	Log(CLog::Success, StrFormat("Retrieved {0} difficulty attributes, stored in {1} entries.", numEntries, _difficultyAttributes.size()));
 }
 
 void CProcessor::ProcessSingleUser(
@@ -582,12 +582,12 @@ void CProcessor::ProcessSingleUser(
 				beatmapId,
 				res.S32(3), // score
 				res.S32(4), // maxcombo
-				res.S32(5), // Amount300
-				res.S32(6), // Amount100
-				res.S32(7), // Amount50
-				res.S32(8), // AmountMiss
-				res.S32(9), // AmountGeki
-				res.S32(10), // AmountKatu
+				res.S32(5), // Num300
+				res.S32(6), // Num100
+				res.S32(7), // Num50
+				res.S32(8), // NumMiss
+				res.S32(9), // NumGeki
+				res.S32(10), // NumKatu
 				mods
 			);
 

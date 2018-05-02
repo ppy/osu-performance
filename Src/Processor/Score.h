@@ -25,12 +25,12 @@ public:
 		s32 beatmapId,
 		s32 score,
 		s32 maxCombo,
-		s32 amount300,
-		s32 amount100,
-		s32 amount50,
-		s32 amountMiss,
-		s32 amountGeki,
-		s32 amountKatu,
+		s32 num300,
+		s32 num100,
+		s32 num50,
+		s32 numMiss,
+		s32 numGeki,
+		s32 numKatu,
 		EMods mods
 	);
 	~CScore() = default;
@@ -55,13 +55,13 @@ protected:
 
 	s32 _score;
 	s32 _maxCombo;
-	s32 _amount300;
-	s32 _amount100;
-	s32 _amount50;
-	s32 _amountMiss;
+	s32 _num300;
+	s32 _num100;
+	s32 _num50;
+	s32 _numMiss;
 
-	s32 _amountGeki;
-	s32 _amountKatu;
+	s32 _numGeki;
+	s32 _numKatu;
 
 	EMods _mods;
 };
