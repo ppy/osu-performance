@@ -10,15 +10,15 @@ CStandardScore::CStandardScore(
 	s32 beatmapId,
 	s32 score,
 	s32 maxCombo,
-	s32 amount300,
-	s32 amount100,
-	s32 amount50,
-	s32 amountMiss,
-	s32 amountGeki,
-	s32 amountKatu,
+	s32 num300,
+	s32 num100,
+	s32 num50,
+	s32 numMiss,
+	s32 numGeki,
+	s32 numKatu,
 	EMods mods,
 	const CBeatmap& beatmap
-) : CScore{scoreId, mode, userId, beatmapId, score, maxCombo, amount300, amount100, amount50, amountMiss, amountGeki, amountKatu, mods}
+) : CScore{scoreId, mode, userId, beatmapId, score, maxCombo, num300, num100, num50, numMiss, numGeki, numKatu, mods}
 {
 	ComputeAimValue(beatmap);
 	ComputeSpeedValue(beatmap);
@@ -39,18 +39,18 @@ f32 CStandardScore::Accuracy() const
 		return 0;
 
 	return clamp(
-		static_cast<f32>(_amount50 * 50 + _amount100 * 100 + _amount300 * 300) / (TotalHits() * 300), 0.0f, 1.0f
+		static_cast<f32>(_num50 * 50 + _num100 * 100 + _num300 * 300) / (TotalHits() * 300), 0.0f, 1.0f
 	);
 }
 
 s32 CStandardScore::TotalHits() const
 {
-	return _amount50 + _amount100 + _amount300 + _amountMiss;
+	return _num50 + _num100 + _num300 + _numMiss;
 }
 
 s32 CStandardScore::TotalSuccessfulHits() const
 {
-	return _amount50 + _amount100 + _amount300;
+	return _num50 + _num100 + _num300;
 }
 
 void CStandardScore::ComputeTotalValue()
@@ -90,16 +90,16 @@ void CStandardScore::ComputeAimValue(const CBeatmap& beatmap)
 
 	_aimValue = pow(5.0f * std::max(1.0f, rawAim / 0.0675f) - 4.0f, 3.0f) / 100000.0f;
 
-	int amountTotalHits = TotalHits();
+	int numTotalHits = TotalHits();
 
 	// Longer maps are worth more
-	f32 LengthBonus = 0.95f + 0.4f * std::min(1.0f, static_cast<f32>(amountTotalHits) / 2000.0f) +
-		(amountTotalHits > 2000 ? log10(static_cast<f32>(amountTotalHits) / 2000.0f) * 0.5f : 0.0f);
+	f32 LengthBonus = 0.95f + 0.4f * std::min(1.0f, static_cast<f32>(numTotalHits) / 2000.0f) +
+		(numTotalHits > 2000 ? log10(static_cast<f32>(numTotalHits) / 2000.0f) * 0.5f : 0.0f);
 
 	_aimValue *= LengthBonus;
 
 	// Penalize misses exponentially. This mainly fixes tag4 maps and the likes until a per-hitobject solution is available
-	_aimValue *= pow(0.97f, _amountMiss);
+	_aimValue *= pow(0.97f, _numMiss);
 
 	// Combo scaling
 	float maxCombo = beatmap.DifficultyAttribute(_mods, CBeatmap::MaxCombo);
@@ -138,15 +138,15 @@ void CStandardScore::ComputeSpeedValue(const CBeatmap& beatmap)
 {
 	_speedValue = pow(5.0f * std::max(1.0f, beatmap.DifficultyAttribute(_mods, CBeatmap::Speed) / 0.0675f) - 4.0f, 3.0f) / 100000.0f;
 
-	int amountTotalHits = TotalHits();
+	int numTotalHits = TotalHits();
 
 	// Longer maps are worth more
 	_speedValue *=
-		0.95f + 0.4f * std::min(1.0f, static_cast<f32>(amountTotalHits) / 2000.0f) +
-		(amountTotalHits > 2000 ? log10(static_cast<f32>(amountTotalHits) / 2000.0f) * 0.5f : 0.0f);
+		0.95f + 0.4f * std::min(1.0f, static_cast<f32>(numTotalHits) / 2000.0f) +
+		(numTotalHits > 2000 ? log10(static_cast<f32>(numTotalHits) / 2000.0f) * 0.5f : 0.0f);
 
 	// Penalize misses exponentially. This mainly fixes tag4 maps and the likes until a per-hitobject solution is available
-	_speedValue *= pow(0.97f, _amountMiss);
+	_speedValue *= pow(0.97f, _numMiss);
 
 	// Combo scaling
 	float maxCombo = beatmap.DifficultyAttribute(_mods, CBeatmap::MaxCombo);
@@ -164,18 +164,18 @@ void CStandardScore::ComputeAccValue(const CBeatmap& beatmap)
 	// This percentage only considers HitCircles of any value - in this part of the calculation we focus on hitting the timing hit window
 	f32 betterAccuracyPercentage;
 
-	s32 amountHitObjectsWithAccuracy;
+	s32 numHitObjectsWithAccuracy;
 	if (beatmap.ScoreVersion() == CBeatmap::EScoreVersion::ScoreV2)
 	{
-		amountHitObjectsWithAccuracy = TotalHits();
+		numHitObjectsWithAccuracy = TotalHits();
 		betterAccuracyPercentage = Accuracy();
 	}
 	// Either ScoreV1 or some unknown value. Let's default to previous behavior.
 	else
 	{
-		amountHitObjectsWithAccuracy = beatmap.AmountHitCircles();
-		if (amountHitObjectsWithAccuracy > 0)
-			betterAccuracyPercentage = static_cast<f32>((_amount300 - (TotalHits() - amountHitObjectsWithAccuracy)) * 6 + _amount100 * 2 + _amount50) / (amountHitObjectsWithAccuracy * 6);
+		numHitObjectsWithAccuracy = beatmap.NumHitCircles();
+		if (numHitObjectsWithAccuracy > 0)
+			betterAccuracyPercentage = static_cast<f32>((_num300 - (TotalHits() - numHitObjectsWithAccuracy)) * 6 + _num100 * 2 + _num50) / (numHitObjectsWithAccuracy * 6);
 		else
 			betterAccuracyPercentage = 0;
 
@@ -191,7 +191,7 @@ void CStandardScore::ComputeAccValue(const CBeatmap& beatmap)
 		2.83f;
 
 	// Bonus for many hitcircles - it's harder to keep good accuracy up for longer
-	_accValue *= std::min(1.15f, static_cast<f32>(pow(amountHitObjectsWithAccuracy / 1000.0f, 0.3f)));
+	_accValue *= std::min(1.15f, static_cast<f32>(pow(numHitObjectsWithAccuracy / 1000.0f, 0.3f)));
 
 	if ((_mods & EMods::Hidden) > 0)
 		_accValue *= 1.02f;

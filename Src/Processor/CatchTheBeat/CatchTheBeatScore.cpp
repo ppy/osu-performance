@@ -10,15 +10,15 @@ CCatchTheBeatScore::CCatchTheBeatScore(
 	s32 beatmapId,
 	s32 score,
 	s32 maxCombo,
-	s32 amount300,
-	s32 amount100,
-	s32 amount50,
-	s32 amountMiss,
-	s32 amountGeki,
-	s32 amountKatu,
+	s32 num300,
+	s32 num100,
+	s32 num50,
+	s32 numMiss,
+	s32 numGeki,
+	s32 numKatu,
 	EMods mods,
 	const CBeatmap& beatmap
-) : CScore{scoreId, mode, userId, beatmapId, score, maxCombo, amount300, amount100, amount50, amountMiss, amountGeki, amountKatu, mods}
+) : CScore{scoreId, mode, userId, beatmapId, score, maxCombo, num300, num100, num50, numMiss, numGeki, numKatu, mods}
 {
 	// Don't count scores made with supposedly unranked mods
 	if ((_mods & EMods::Relax) > 0 ||
@@ -33,18 +33,18 @@ CCatchTheBeatScore::CCatchTheBeatScore(
 	_value = pow(5.0f * std::max(1.0f, beatmap.DifficultyAttribute(_mods, CBeatmap::Aim) / 0.0049f) - 4.0f, 2.0f) / 100000.0f;
 
 	// Longer maps are worth more. "Longer" means how many hits there are which can contribute to combo
-	int amountTotalHits = TotalComboHits();
+	int numTotalHits = TotalComboHits();
 
 	// Longer maps are worth more
 	f32 lengthBonus =
-		0.95f + 0.4f * std::min<f32>(1.0f, static_cast<f32>(amountTotalHits) / 3000.0f) +
-		(amountTotalHits > 3000 ? log10(static_cast<f32>(amountTotalHits) / 3000.0f) * 0.5f : 0.0f);
+		0.95f + 0.4f * std::min<f32>(1.0f, static_cast<f32>(numTotalHits) / 3000.0f) +
+		(numTotalHits > 3000 ? log10(static_cast<f32>(numTotalHits) / 3000.0f) * 0.5f : 0.0f);
 
 	// Longer maps are worth more
 	_value *= lengthBonus;
 
 	// Penalize misses exponentially. This mainly fixes tag4 maps and the likes until a per-hitobject solution is available
-	_value *= pow(0.97f, _amountMiss);
+	_value *= pow(0.97f, _numMiss);
 
 	// Combo scaling
 	float beatmapMaxCombo = beatmap.DifficultyAttribute(_mods, CBeatmap::MaxCombo);
@@ -94,15 +94,15 @@ f32 CCatchTheBeatScore::Accuracy() const
 
 s32 CCatchTheBeatScore::TotalHits() const
 {
-	return _amount50 + _amount100 + _amount300 + _amountMiss + _amountKatu;
+	return _num50 + _num100 + _num300 + _numMiss + _numKatu;
 }
 
 s32 CCatchTheBeatScore::TotalSuccessfulHits() const
 {
-	return _amount50 + _amount100 + _amount300;
+	return _num50 + _num100 + _num300;
 }
 
 s32 CCatchTheBeatScore::TotalComboHits() const
 {
-	return _amount300 + _amount100 + _amountMiss;
+	return _num300 + _num100 + _numMiss;
 }

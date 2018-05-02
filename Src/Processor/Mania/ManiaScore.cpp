@@ -10,15 +10,15 @@ CManiaScore::CManiaScore(
 	s32 beatmapId,
 	s32 score,
 	s32 maxCombo,
-	s32 amount300,
-	s32 amount100,
-	s32 amount50,
-	s32 amountMiss,
-	s32 amountGeki,
-	s32 amountKatu,
+	s32 num300,
+	s32 num100,
+	s32 num50,
+	s32 numMiss,
+	s32 numGeki,
+	s32 numKatu,
 	EMods mods,
 	const CBeatmap& beatmap
-) : CScore{scoreId, mode, userId, beatmapId, score, maxCombo, amount300, amount100, amount50, amountMiss, amountGeki, amountKatu, mods}
+) : CScore{scoreId, mode, userId, beatmapId, score, maxCombo, num300, num100, num50, numMiss, numGeki, numKatu, mods}
 {
 	ComputeStrainValue(beatmap);
 	ComputeAccValue(beatmap);
@@ -118,16 +118,16 @@ f32 CManiaScore::Accuracy() const
 		return 0;
 
 	return
-		clamp(static_cast<f32>(_amount50 * 50 + _amount100 * 100 + _amountKatu * 200 + (_amount300 + _amountGeki) * 300)
+		clamp(static_cast<f32>(_num50 * 50 + _num100 * 100 + _numKatu * 200 + (_num300 + _numGeki) * 300)
 		/ (TotalHits() * 300), 0.0f, 1.0f);
 }
 
 s32 CManiaScore::TotalHits() const
 {
-	return _amount50 + _amount100 + _amount300 + _amountMiss + _amountGeki + _amountKatu;
+	return _num50 + _num100 + _num300 + _numMiss + _numGeki + _numKatu;
 }
 
 s32 CManiaScore::TotalSuccessfulHits() const
 {
-	return _amount50 + _amount100 + _amount300 + _amountGeki + _amountKatu;
+	return _num50 + _num100 + _num300 + _numGeki + _numKatu;
 }

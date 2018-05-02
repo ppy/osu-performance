@@ -18,6 +18,24 @@ CUpdateBatch::~CUpdateBatch()
 	}
 }
 
+CUpdateBatch::CUpdateBatch(CUpdateBatch&& other)
+{
+	*this = std::move(other);
+}
+
+CUpdateBatch& CUpdateBatch::operator=(CUpdateBatch&& other)
+{
+	std::lock_guard<std::mutex> otherLock{other._batchMutex};
+	std::lock_guard<std::mutex> lock{_batchMutex};
+
+	_sizeThreshold = other._sizeThreshold;
+	_empty = other._empty;
+	_pDB = std::move(other._pDB);
+	_query = std::move(other._query);
+
+	return *this;
+}
+
 void CUpdateBatch::AppendAndCommit(const std::string& values)
 {
 	std::lock_guard<std::mutex> lock{_batchMutex};

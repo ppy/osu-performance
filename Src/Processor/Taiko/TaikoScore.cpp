@@ -10,15 +10,15 @@ CTaikoScore::CTaikoScore(
 	s32 beatmapId,
 	s32 score,
 	s32 maxCombo,
-	s32 amount300,
-	s32 amount100,
-	s32 amount50,
-	s32 amountMiss,
-	s32 amountGeki,
-	s32 amountKatu,
+	s32 num300,
+	s32 num100,
+	s32 num50,
+	s32 numMiss,
+	s32 numGeki,
+	s32 numKatu,
 	EMods mods,
 	const CBeatmap& beatmap
-) : CScore{scoreId, mode, userId, beatmapId, score, maxCombo, amount300, amount100, amount50, amountMiss, amountGeki, amountKatu, mods}
+) : CScore{scoreId, mode, userId, beatmapId, score, maxCombo, num300, num100, num50, numMiss, numGeki, numKatu, mods}
 {
 	ComputeStrainValue(beatmap);
 	ComputeAccValue(beatmap);
@@ -67,7 +67,7 @@ void CTaikoScore::ComputeStrainValue(const CBeatmap& beatmap)
 	_strainValue *= lengthBonus;
 
 	// Penalize misses exponentially. This mainly fixes tag4 maps and the likes until a per-hitobject solution is available
-	_strainValue *= pow(0.985f, _amountMiss);
+	_strainValue *= pow(0.985f, _numMiss);
 
 	// Combo scaling
 	float maxCombo = beatmap.DifficultyAttribute(_mods, CBeatmap::MaxCombo);
@@ -108,16 +108,16 @@ f32 CTaikoScore::Accuracy() const
 		return 0;
 
 	return
-		clamp(static_cast<f32>(_amount100 * 150 + _amount300 * 300)
+		clamp(static_cast<f32>(_num100 * 150 + _num300 * 300)
 		/ (TotalHits() * 300), 0.0f, 1.0f);
 }
 
 s32 CTaikoScore::TotalHits() const
 {
-	return _amount50 + _amount100 + _amount300 + _amountMiss;
+	return _num50 + _num100 + _num300 + _numMiss;
 }
 
 s32 CTaikoScore::TotalSuccessfulHits() const
 {
-	return _amount50 + _amount100 + _amount300;
+	return _num50 + _num100 + _num300;
 }
