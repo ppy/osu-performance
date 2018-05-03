@@ -3,6 +3,8 @@
 #include "StandardScore.h"
 #include "SharedEnums.h"
 
+PP_NAMESPACE_BEGIN
+
 StandardScore::StandardScore(
 	s64 scoreId,
 	EGamemode mode,
@@ -199,3 +201,5 @@ void StandardScore::computeAccValue(const Beatmap& beatmap)
 	if ((_mods & EMods::Flashlight) > 0)
 		_accValue *= 1.02f;
 }
+
+PP_NAMESPACE_END

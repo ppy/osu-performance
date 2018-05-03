@@ -3,6 +3,8 @@
 #include "CatchTheBeatScore.h"
 #include "SharedEnums.h"
 
+PP_NAMESPACE_BEGIN
+
 CatchTheBeatScore::CatchTheBeatScore(
 	s64 scoreId,
 	EGamemode mode,
@@ -106,3 +108,5 @@ s32 CatchTheBeatScore::totalComboHits() const
 {
 	return _num300 + _num100 + _numMiss;
 }
+
+PP_NAMESPACE_END

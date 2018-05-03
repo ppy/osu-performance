@@ -2,6 +2,8 @@
 
 #include "Score.h"
 
+PP_NAMESPACE_BEGIN
+
 class StandardScore : public Score
 {
 public:
@@ -40,3 +42,5 @@ private:
 	void computeSpeedValue(const Beatmap& beatmap);
 	void computeAccValue(const Beatmap& beatmap);
 };
+
+PP_NAMESPACE_END

@@ -2,6 +2,8 @@
 
 #include "Score.h"
 
+PP_NAMESPACE_BEGIN
+
 class User
 {
 public:
@@ -35,3 +37,5 @@ private:
 	PPRecord _rating;
 	std::vector<Score::PPRecord> _scores;
 };
+
+PP_NAMESPACE_END

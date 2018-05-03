@@ -5,6 +5,8 @@
 
 class UpdateBatch;
 
+PP_NAMESPACE_BEGIN
+
 class Score
 {
 public:
@@ -63,3 +65,5 @@ protected:
 
 	EMods _mods;
 };
+
+PP_NAMESPACE_END

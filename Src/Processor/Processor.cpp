@@ -11,6 +11,8 @@
 
 using namespace std::chrono;
 
+PP_NAMESPACE_BEGIN
+
 const std::array<const std::string, NumGamemodes> Processor::s_gamemodeSuffixes =
 {
 	"",
@@ -715,3 +717,4 @@ s64 Processor::retrieveCount(DatabaseConnection& db, std::string key)
 	return -1;
 }
 
+PP_NAMESPACE_END

@@ -1,5 +1,7 @@
 #pragma once
 
+PP_NAMESPACE_BEGIN
+
 class UUID
 {
 public:
@@ -10,3 +12,5 @@ public:
 private:
 	uint8_t _bytes[16];
 };
+
+PP_NAMESPACE_END

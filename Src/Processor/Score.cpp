@@ -7,6 +7,8 @@
 
 #include "../Shared/Network/UpdateBatch.h"
 
+PP_NAMESPACE_BEGIN
+
 Score::Score(
 	s64 scoreId,
 	EGamemode mode,
@@ -50,3 +52,5 @@ void Score::AppendToUpdateBatch(UpdateBatch& batch) const
 		_scoreId
 	));
 }
+
+PP_NAMESPACE_END

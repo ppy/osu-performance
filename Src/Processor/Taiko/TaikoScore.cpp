@@ -3,6 +3,8 @@
 #include "SharedEnums.h"
 #include "TaikoScore.h"
 
+PP_NAMESPACE_BEGIN
+
 TaikoScore::TaikoScore(
 	s64 scoreId,
 	EGamemode mode,
@@ -121,3 +123,5 @@ s32 TaikoScore::TotalSuccessfulHits() const
 {
 	return _num50 + _num100 + _num300;
 }
+
+PP_NAMESPACE_END

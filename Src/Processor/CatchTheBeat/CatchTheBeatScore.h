@@ -2,6 +2,8 @@
 
 #include "Score.h"
 
+PP_NAMESPACE_BEGIN
+
 class CatchTheBeatScore : public Score
 {
 public:
@@ -31,3 +33,5 @@ private:
 	f32 _value;
 	s32 totalComboHits() const;
 };
+
+PP_NAMESPACE_END

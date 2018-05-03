@@ -2,19 +2,18 @@
 
 #include "UUID.h"
 
-namespace
-{
-	uint32_t rand32()
-	{
-		// we need to do this, because there is no
-		// gaurantee that RAND_MAX is >= 0xffffffff
-		// in fact, it is LIKELY to be 0x7fffffff
-		const uint32_t r1 = rand() & 0x0ff;
-		const uint32_t r2 = rand() & 0xfff;
-		const uint32_t r3 = rand() & 0xfff;
+PP_NAMESPACE_BEGIN
 
-		return (r3 << 20) | (r2 << 8) | r1;
-	}
+uint32_t rand32()
+{
+	// we need to do this, because there is no
+	// gaurantee that RAND_MAX is >= 0xffffffff
+	// in fact, it is LIKELY to be 0x7fffffff
+	const uint32_t r1 = rand() & 0x0ff;
+	const uint32_t r2 = rand() & 0xfff;
+	const uint32_t r3 = rand() & 0xfff;
+
+	return (r3 << 20) | (r2 << 8) | r1;
 }
 
 UUID UUID::V4()
@@ -66,3 +65,5 @@ std::string UUID::ToString()
 
 	return ss.str();
 }
+
+PP_NAMESPACE_END

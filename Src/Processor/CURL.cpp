@@ -3,6 +3,8 @@
 #include "UUID.h"
 #include "CURL.h"
 
+PP_NAMESPACE_BEGIN
+
 size_t EmptyCURLWriteData(void *buffer, size_t size, size_t nmemb, void *userp)
 {
 	return size * nmemb;
@@ -149,3 +151,5 @@ void CCURL::SendToSentry(
 
 	Log(Success, "Submitted exception to sentry.");
 }
+
+PP_NAMESPACE_END

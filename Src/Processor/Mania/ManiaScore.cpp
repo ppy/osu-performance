@@ -3,6 +3,8 @@
 #include "ManiaScore.h"
 #include "SharedEnums.h"
 
+PP_NAMESPACE_BEGIN
+
 ManiaScore::ManiaScore(
 	s64 scoreId,
 	EGamemode mode,
@@ -131,3 +133,5 @@ s32 ManiaScore::TotalSuccessfulHits() const
 {
 	return _num50 + _num100 + _num300 + _numGeki + _numKatu;
 }
+
+PP_NAMESPACE_END

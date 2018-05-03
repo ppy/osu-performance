@@ -2,6 +2,8 @@
 
 #include "User.h"
 
+PP_NAMESPACE_BEGIN
+
 // Our own implementation of unique ensures that the first unique element
 // (in our case the highest pp-giving score) is always kept
 template<class ForwardIt, class BinaryPredicate>
@@ -69,3 +71,5 @@ Score::PPRecord User::XthBestScorePPRecord(unsigned int i)
 
 	return _scores[i];
 }
+
+PP_NAMESPACE_END

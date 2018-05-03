@@ -1,5 +1,7 @@
 #pragma once
 
+PP_NAMESPACE_BEGIN
+
 class DDog
 {
 public:
@@ -23,3 +25,5 @@ private:
 
 	sockaddr_in _server;
 };
+
+PP_NAMESPACE_END

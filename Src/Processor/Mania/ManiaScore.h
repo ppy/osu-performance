@@ -2,6 +2,8 @@
 
 #include "Score.h"
 
+PP_NAMESPACE_BEGIN
+
 class ManiaScore : public Score
 {
 public:
@@ -37,3 +39,5 @@ private:
 	f32 _strainValue;
 	f32 _accValue;
 };
+
+PP_NAMESPACE_END

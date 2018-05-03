@@ -7,6 +7,8 @@
 
 using namespace std::chrono;
 
+PP_NAMESPACE_BEGIN
+
 EGamemode StringToGamemode(const std::string& modeString)
 {
 	EGamemode mode;
@@ -174,4 +176,13 @@ int main(s32 argc, char* argv[])
 		std::cerr << "Uncaught exception: " << e.what() << std::endl;
 		return 1;
 	}
+
+	return 0;
+}
+
+PP_NAMESPACE_END
+
+int main(s32 argc, char* argv[])
+{
+	return pp::main(argc, argv);
 }

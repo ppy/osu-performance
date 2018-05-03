@@ -11,6 +11,8 @@
 	#include <unistd.h>
 #endif
 
+PP_NAMESPACE_BEGIN
+
 DDog::DDog(std::string host, s16 port)
 : _host{host}, _port{port}
 {
@@ -132,3 +134,5 @@ void DDog::send(std::string data, const std::vector<std::string>& tags, f32 samp
 	close(s);
 #endif
 }
+
+PP_NAMESPACE_END

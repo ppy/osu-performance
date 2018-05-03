@@ -9,6 +9,8 @@
 #include "../Shared/Config.h"
 #include "../Shared/Network/DatabaseConnection.h"
 
+PP_NAMESPACE_BEGIN
+
 DEFINE_LOGGED_EXCEPTION(ProcessorException);
 
 class Processor
@@ -115,3 +117,5 @@ private:
 	CCURL _curl;
 	DDog _dataDog;
 };
+
+PP_NAMESPACE_END

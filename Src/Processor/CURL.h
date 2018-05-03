@@ -2,6 +2,8 @@
 
 typedef void CURL;
 
+PP_NAMESPACE_BEGIN
+
 class CCURL
 {
 public:
@@ -30,3 +32,5 @@ public:
 private:
 	CURL* _pCURL = nullptr;
 };
+
+PP_NAMESPACE_END

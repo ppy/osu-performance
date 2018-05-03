@@ -1,5 +1,7 @@
 #pragma once
 
+PP_NAMESPACE_BEGIN
+
 enum EMods : u32
 {
 	Nomod = 0,
@@ -48,3 +50,5 @@ enum EGamemode : u32
 
 	NumGamemodes,
 };
+
+PP_NAMESPACE_END

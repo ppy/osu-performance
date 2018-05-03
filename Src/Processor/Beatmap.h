@@ -2,6 +2,8 @@
 
 #include "SharedEnums.h"
 
+PP_NAMESPACE_BEGIN
+
 DEFINE_LOGGED_EXCEPTION(BeatmapException);
 
 class Beatmap
@@ -83,3 +85,5 @@ private:
 	EScoreVersion _scoreVersion;
 	s32 _numHitCircles = 0;
 };
+
+PP_NAMESPACE_END
