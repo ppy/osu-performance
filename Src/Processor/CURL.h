@@ -4,11 +4,11 @@ typedef void CURL;
 
 PP_NAMESPACE_BEGIN
 
-class CCURL
+class CURL
 {
 public:
-	CCURL();
-	~CCURL();
+	CURL();
+	~CURL();
 
 	void SendToSlack(
 		std::string domain,
@@ -30,7 +30,7 @@ public:
 	);
 
 private:
-	CURL* _pCURL = nullptr;
+	::CURL* _pCURL = nullptr;
 };
 
 PP_NAMESPACE_END

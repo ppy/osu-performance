@@ -10,19 +10,19 @@ size_t EmptyCURLWriteData(void *buffer, size_t size, size_t nmemb, void *userp)
 	return size * nmemb;
 }
 
-CCURL::CCURL()
+CURL::CURL()
 {
 	_pCURL = curl_easy_init();
 	curl_easy_setopt(_pCURL, CURLOPT_SSL_VERIFYPEER, false);
 	curl_easy_setopt(_pCURL, CURLOPT_WRITEFUNCTION, EmptyCURLWriteData);
 }
 
-CCURL::~CCURL()
+CURL::~CURL()
 {
 	curl_easy_cleanup(_pCURL);
 }
 
-void CCURL::SendToSlack(
+void CURL::SendToSlack(
 	std::string domain,
 	std::string key,
 	std::string username,
@@ -80,7 +80,7 @@ void CCURL::SendToSlack(
 	Log(Success, StrFormat("Sent message to slack channel \"{0}\". \"{1}: {2}\".", channel, username, message));
 }
 
-void CCURL::SendToSentry(
+void CURL::SendToSentry(
 	std::string domain,
 	s32 projectID,
 	std::string publicKey,

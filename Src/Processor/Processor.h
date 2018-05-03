@@ -114,7 +114,7 @@ private:
 	RWMutex _beatmapMutex;
 	bool _shallShutdown = false;
 
-	CCURL _curl;
+	CURL _curl;
 	DDog _dataDog;
 };
 
