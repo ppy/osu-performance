@@ -43,7 +43,7 @@ public:
 	inline char** CurrentRow() { return _row; }
 
 	// Column entries of the current row
-	inline bool IsNull(u32 i) { return _row[i] == nullptr; }
+	inline bool IsNull(u32 i) const { return _row[i] == nullptr; }
 	inline char* String(u32 i) const { return (char*)_row[i]; }
 	inline bool Bool(u32 i) const { return (xtoi(_row[i]) != 0); }
 	inline s32 S32(u32 i) const { return xtoi(_row[i]); }
