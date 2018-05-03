@@ -100,7 +100,7 @@ void CDDog::send(std::string data, const std::vector<std::string>& tags, f32 sam
 	SOCKET s = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 	if (s == INVALID_SOCKET)
 	{
-		Log(CLog::Error, "Couldn't create UDP socket for datadog.");
+		Log(Error, "Couldn't create UDP socket for datadog.");
 		return;
 	}
 
@@ -110,14 +110,14 @@ void CDDog::send(std::string data, const std::vector<std::string>& tags, f32 sam
 
 	s32 bytesSent = sendto(s, data.c_str(), (s32)data.length(), 0, (sockaddr*)&_server, sizeof(_server));
 	if (bytesSent == SOCKET_ERROR)
-		Log(CLog::Error, "Couldn't send data to datadog.");
+		Log(Error, "Couldn't send data to datadog.");
 
 	closesocket(s);
 #else
 	int s = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 	if (s == -1)
 	{
-		Log(CLog::Error, "Couldn't create UDP socket for datadog.");
+		Log(Error, "Couldn't create UDP socket for datadog.");
 		return;
 	}
 
@@ -127,7 +127,7 @@ void CDDog::send(std::string data, const std::vector<std::string>& tags, f32 sam
 
 	s32 bytesSent = sendto(s, data.c_str(), data.length(), 0, (sockaddr*)&_server, sizeof(_server));
 	if (bytesSent == -1)
-		Log(CLog::Error, "Couldn't send data to datadog.");
+		Log(Error, "Couldn't send data to datadog.");
 
 	close(s);
 #endif

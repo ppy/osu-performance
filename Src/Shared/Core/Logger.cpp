@@ -4,7 +4,7 @@
 #include <iomanip>
 #include <sstream>
 
-void Log(CLog::EType flags, std::string text)
+void Log(ELogType flags, std::string text)
 {
 	static auto pLog = CLog::CreateLogger();
 	pLog->Log(flags, std::move(text));
@@ -15,10 +15,10 @@ std::unique_ptr<CLog> CLog::CreateLogger()
 	auto pLogger = std::make_unique<CLog>();
 
 	// Reset initially (also blank line)
-	pLogger->Log(EType::None, CONSOLE_RESET "");
+	pLogger->Log(None, CONSOLE_RESET "");
 
 #ifdef __DEBUG
-	pLogger->Log(EType::Info, "Program runs in debug mode.");
+	pLogger->Log(Info, "Program runs in debug mode.");
 #endif
 
 	return pLogger;
@@ -33,26 +33,26 @@ CLog::~CLog()
 {
 #ifndef __WIN32
 	// Reset
-	Log(EType::None, CONSOLE_RESET);
+	Log(None, CONSOLE_RESET);
 #endif
 }
 
-void CLog::Log(EType flags, std::string text)
+void CLog::Log(ELogType flags, std::string text)
 {
 	_pActive->Send([this, flags, text]() { logText(flags, std::move(text)); });
 }
 
-void CLog::logText(EType flags, std::string text)
+void CLog::logText(ELogType flags, std::string text)
 {
 	EStream stream;
-	if (flags & EType::Error || flags & EType::CriticalError || flags & EType::SQL || flags & EType::Exception)
+	if (flags & Error || flags & CriticalError || flags & SQL || flags & Exception)
 		stream = EStream::STDERR;
 	else
 		stream = EStream::STDOUT;
 
 	std::string textOut;
 
-	if (!(flags & EType::None))
+	if (!(flags & None))
 	{
 		// Display time format
 		const auto currentTime = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
@@ -68,30 +68,30 @@ void CLog::logText(EType flags, std::string text)
 #endif
 	}
 
-	if (flags & EType::Success)
+	if (flags & Success)
 		textOut += CONSOLE_GREEN "SUCCESS" CONSOLE_RESET;
-	else if (flags & EType::SQL)
+	else if (flags & SQL)
 		textOut += CONSOLE_BOLD_BLUE "SQL" CONSOLE_RESET;
-	else if (flags & EType::Threads)
+	else if (flags & Threads)
 		textOut += CONSOLE_BOLD_MAGENTA "THREADS" CONSOLE_RESET;
-	else if (flags & EType::Info)
+	else if (flags & Info)
 		textOut += CONSOLE_CYAN "INFO" CONSOLE_RESET;
-	else if (flags & EType::Notice)
+	else if (flags & Notice)
 		textOut += CONSOLE_BOLD_WHITE "NOTICE" CONSOLE_RESET;
-	else if (flags & EType::Warning)
+	else if (flags & Warning)
 		textOut += CONSOLE_BOLD_YELLOW "WARNING" CONSOLE_RESET;
-	else if (flags & EType::Debug)
+	else if (flags & Debug)
 		textOut += CONSOLE_BOLD_CYAN "DEBUG" CONSOLE_RESET;
-	else if (flags & EType::Error)
+	else if (flags & Error)
 		textOut += CONSOLE_RED "ERROR" CONSOLE_RESET;
-	else if (flags & EType::CriticalError)
+	else if (flags & CriticalError)
 		textOut += CONSOLE_RED "CRITICAL" CONSOLE_RESET;
-	else if (flags & EType::Exception)
+	else if (flags & Exception)
 		textOut += CONSOLE_BOLD_RED "EXCEPT" CONSOLE_RESET;
-	else if (flags & EType::Graphics)
+	else if (flags & Graphics)
 		textOut += CONSOLE_BOLD_BLUE "GRAPHICS" CONSOLE_RESET;
 
-	if (!(flags & EType::None))
+	if (!(flags & None))
 	{
 #ifdef __WIN32
 		textOut.resize(CONSOLE_PREFIX_LEN - 1, ' ');

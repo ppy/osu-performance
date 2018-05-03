@@ -2,7 +2,7 @@
 
 enum EMods : u32
 {
-	None = 0,
+	Nomod = 0,
 	NoFail = 1 << 0,
 	Easy = 1 << 1,
 	TouchDevice = 1 << 2,

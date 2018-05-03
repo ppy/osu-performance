@@ -100,7 +100,7 @@ void CConfig::ReadFromFile(const char* filename)
 
 			case FIND_SEPERATOR:
 				if (buffer[pos] != ':')
-					Log(CLog::Warning, StrFormat("Config '{0}' is corrupted. (Wrong seperator.)", filename));
+					Log(Warning, StrFormat("Config '{0}' is corrupted. (Wrong seperator.)", filename));
 
 				pos++;
 				readingState = TOKEN_VALUE;

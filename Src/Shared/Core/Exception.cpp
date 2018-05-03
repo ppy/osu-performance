@@ -18,5 +18,5 @@ CLoggedException::CLoggedException(std::string file, s32 line, std::string descr
 
 void CLoggedException::Log()
 {
-	::Log(CLog::EType::Exception, StrFormat("{0}:{1} - {2}", _file, _line, _description));
+	::Log(Exception, StrFormat("{0}:{1} - {2}", _file, _line, _description));
 }

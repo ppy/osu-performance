@@ -54,32 +54,32 @@
 
 DEFINE_EXCEPTION(CLoggerException);
 
+enum ELogType : u32
+{
+	None          = 0x00000001,
+	Success       = 0x00000002,
+	SQL           = 0x00000004,
+	Threads       = 0x00000008,
+	Info          = 0x00000010,
+	Notice        = 0x00000020,
+	Warning       = 0x00000040,
+	Debug         = 0x00000080,
+	Error         = 0x00000100,
+	CriticalError = 0x00000200,
+	Exception     = 0x00000400,
+	Graphics      = 0x00000800,
+};
+
 class CLog
 {
 public:
 	CLog();
 	~CLog();
 
-	enum EType : u32
-	{
-		None          = 0x00000001,
-		Success       = 0x00000002,
-		SQL           = 0x00000004,
-		Threads       = 0x00000008,
-		Info          = 0x00000010,
-		Notice        = 0x00000020,
-		Warning       = 0x00000040,
-		Debug         = 0x00000080,
-		Error         = 0x00000100,
-		CriticalError = 0x00000200,
-		Exception     = 0x00000400,
-		Graphics      = 0x00000800,
-	};
-
 	static std::unique_ptr<CLog> CreateLogger();
 
 	//void log(byte bColor, const char* pcSys, const char* pcFmt, ...);
-	void Log(EType flags, std::string text);
+	void Log(ELogType flags, std::string text);
 
 	enum class EStream : byte
 	{
@@ -95,9 +95,9 @@ private:
 	char _outputBufferStdout[CLog::s_outputBufferSize];
 	char _outputBufferStderr[CLog::s_outputBufferSize];
 
-	void logText(EType flags, std::string text);
+	void logText(ELogType flags, std::string text);
 
 	void write(const std::string& text, EStream Stream);
 };
 
-void Log(CLog::EType flags, std::string text);
+void Log(ELogType flags, std::string text);
