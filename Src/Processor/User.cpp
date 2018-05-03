@@ -5,7 +5,7 @@
 // Our own implementation of unique ensures that the first unique element
 // (in our case the highest pp-giving score) is always kept
 template<class ForwardIt, class BinaryPredicate>
-ForwardIt unique_own(ForwardIt first, ForwardIt last, BinaryPredicate p)
+ForwardIt highestUnique(ForwardIt first, ForwardIt last, BinaryPredicate p)
 {
 	if (first == last)
 		return last;
@@ -27,7 +27,7 @@ void User::ComputePPRecord()
 	});
 
 	_scores.erase(
-		unique_own(
+		highestUnique(
 			_scores.begin(),
 			_scores.end(),
 			[](const Score::PPRecord& a, const Score::PPRecord& b) { return a.BeatmapId == b.BeatmapId; }
