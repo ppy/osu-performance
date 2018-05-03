@@ -65,8 +65,8 @@ enum ELogType : u32
 	Warning       = 0x00000040,
 	Debug         = 0x00000080,
 	Error         = 0x00000100,
-	CriticalError = 0x00000200,
-	Exception     = 0x00000400,
+	Critical      = 0x00000200,
+	Except        = 0x00000400,
 	Graphics      = 0x00000800,
 };
 

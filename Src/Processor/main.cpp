@@ -166,7 +166,7 @@ int main(s32 argc, char* argv[])
 		e.Log();
 		return 1;
 	}
-	catch (const class Exception& e)
+	catch (const Exception& e)
 	{
 		e.Print();
 		return 1;

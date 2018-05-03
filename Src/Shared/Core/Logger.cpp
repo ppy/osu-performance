@@ -45,7 +45,7 @@ void Logger::Log(ELogType flags, std::string text)
 void Logger::logText(ELogType flags, std::string text)
 {
 	EStream stream;
-	if (flags & Error || flags & CriticalError || flags & SQL || flags & Exception)
+	if (flags & Error || flags & Critical || flags & SQL || flags & Except)
 		stream = EStream::STDERR;
 	else
 		stream = EStream::STDOUT;
@@ -84,9 +84,9 @@ void Logger::logText(ELogType flags, std::string text)
 		textOut += CONSOLE_BOLD_CYAN "DEBUG" CONSOLE_RESET;
 	else if (flags & Error)
 		textOut += CONSOLE_RED "ERROR" CONSOLE_RESET;
-	else if (flags & CriticalError)
+	else if (flags & Critical)
 		textOut += CONSOLE_RED "CRITICAL" CONSOLE_RESET;
-	else if (flags & Exception)
+	else if (flags & Except)
 		textOut += CONSOLE_BOLD_RED "EXCEPT" CONSOLE_RESET;
 	else if (flags & Graphics)
 		textOut += CONSOLE_BOLD_BLUE "GRAPHICS" CONSOLE_RESET;

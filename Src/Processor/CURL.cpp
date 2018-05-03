@@ -85,7 +85,7 @@ void CURL::SendToSentry(
 	s32 projectID,
 	std::string publicKey,
 	std::string secretKey,
-	class Exception& e,
+	Exception& e,
 	std::string mode,
 	bool warning)
 {
