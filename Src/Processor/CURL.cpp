@@ -11,15 +11,10 @@ size_t EmptyCURLWriteData(void *buffer, size_t size, size_t nmemb, void *userp)
 }
 
 CURL::CURL()
+: _pCURL{curl_easy_init(), &curl_easy_cleanup}
 {
-	_pCURL = curl_easy_init();
-	curl_easy_setopt(_pCURL, CURLOPT_SSL_VERIFYPEER, false);
-	curl_easy_setopt(_pCURL, CURLOPT_WRITEFUNCTION, EmptyCURLWriteData);
-}
-
-CURL::~CURL()
-{
-	curl_easy_cleanup(_pCURL);
+	curl_easy_setopt(_pCURL.get(), CURLOPT_SSL_VERIFYPEER, false);
+	curl_easy_setopt(_pCURL.get(), CURLOPT_WRITEFUNCTION, EmptyCURLWriteData);
 }
 
 void CURL::SendToSlack(
@@ -34,7 +29,7 @@ void CURL::SendToSlack(
 		"https://{0}/services/hooks/incoming-webhook?token={1}", domain, key
 	);
 
-	curl_easy_setopt(_pCURL, CURLOPT_URL, url.c_str());
+	curl_easy_setopt(_pCURL.get(), CURLOPT_URL, url.c_str());
 
 	std::string postData = StrFormat(
 		R"(
@@ -48,8 +43,8 @@ void CURL::SendToSlack(
 		channel, username, iconURL, message
 	);
 
-	curl_easy_setopt(_pCURL, CURLOPT_CUSTOMREQUEST, "POST");
-	curl_easy_setopt(_pCURL, CURLOPT_POSTFIELDS, postData.c_str());
+	curl_easy_setopt(_pCURL.get(), CURLOPT_CUSTOMREQUEST, "POST");
+	curl_easy_setopt(_pCURL.get(), CURLOPT_POSTFIELDS, postData.c_str());
 
 	struct curl_slist* headers = nullptr;
 	headers = curl_slist_append(headers, "Content-Type: application/json");
@@ -57,9 +52,9 @@ void CURL::SendToSlack(
 	std::string httpHeader = StrFormat("Content-Length: {0}", postData.length());
 	headers = curl_slist_append(headers, httpHeader.c_str());
 
-	curl_easy_setopt(_pCURL, CURLOPT_HTTPHEADER, headers);
+	curl_easy_setopt(_pCURL.get(), CURLOPT_HTTPHEADER, headers);
 
-	CURLcode error = curl_easy_perform(_pCURL);
+	CURLcode error = curl_easy_perform(_pCURL.get());
 	curl_slist_free_all(headers);
 
 	if (error != CURLE_OK)
@@ -69,7 +64,7 @@ void CURL::SendToSlack(
 	}
 
 	long responseCode;
-	curl_easy_getinfo(_pCURL, CURLINFO_RESPONSE_CODE, &responseCode);
+	curl_easy_getinfo(_pCURL.get(), CURLINFO_RESPONSE_CODE, &responseCode);
 
 	if (responseCode != 200)
 	{
@@ -90,7 +85,7 @@ void CURL::SendToSentry(
 	bool warning)
 {
 	std::string url = StrFormat("https://{0}/api/{1}/store/", domain, projectID);
-	curl_easy_setopt(_pCURL, CURLOPT_URL, url.c_str());
+	curl_easy_setopt(_pCURL.get(), CURLOPT_URL, url.c_str());
 
 	std::string file = e.File();
 	std::replace(std::begin(file), std::end(file), '\\', '/');
@@ -116,8 +111,8 @@ void CURL::SendToSentry(
 		e.Line()
 	);
 
-	curl_easy_setopt(_pCURL, CURLOPT_CUSTOMREQUEST, "POST");
-	curl_easy_setopt(_pCURL, CURLOPT_POSTFIELDS, postData.c_str());
+	curl_easy_setopt(_pCURL.get(), CURLOPT_CUSTOMREQUEST, "POST");
+	curl_easy_setopt(_pCURL.get(), CURLOPT_POSTFIELDS, postData.c_str());
 
 	struct curl_slist* headers = nullptr;
 	std::string httpHeader = StrFormat(
@@ -129,9 +124,9 @@ void CURL::SendToSentry(
 		std::time(nullptr), publicKey, secretKey);
 	headers = curl_slist_append(headers, httpHeader.c_str());
 
-	curl_easy_setopt(_pCURL, CURLOPT_HTTPHEADER, headers);
+	curl_easy_setopt(_pCURL.get(), CURLOPT_HTTPHEADER, headers);
 
-	CURLcode error = curl_easy_perform(_pCURL);
+	CURLcode error = curl_easy_perform(_pCURL.get());
 	curl_slist_free_all(headers);
 
 	if (error != CURLE_OK)
@@ -141,7 +136,7 @@ void CURL::SendToSentry(
 	}
 
 	long responseCode;
-	curl_easy_getinfo(_pCURL, CURLINFO_RESPONSE_CODE, &responseCode);
+	curl_easy_getinfo(_pCURL.get(), CURLINFO_RESPONSE_CODE, &responseCode);
 
 	if (responseCode != 200)
 	{
