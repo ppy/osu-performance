@@ -106,7 +106,7 @@ void Processor::ProcessAllUsers(bool reProcess, u32 numThreads)
 	std::vector<UpdateBatch> newUsersBatches;
 	std::vector<UpdateBatch> newScoresBatches;
 
-	for (int i = 0; i < numThreads; ++i)
+	for (u32 i = 0; i < numThreads; ++i)
 	{
 		databaseConnections.push_back(newDBConnectionMaster());
 
