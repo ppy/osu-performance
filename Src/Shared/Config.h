@@ -18,10 +18,10 @@ public:
 	void WriteToFile(const char* filename);
 
 private:
-	enum E_READING_STATE
+	enum EReadingState
 	{
-		TOKEN_NAME = 0,
-		FIND_SEPERATOR,
-		TOKEN_VALUE
+		TokenName = 0,
+		FindSeparator,
+		TokenValue,
 	};
 };

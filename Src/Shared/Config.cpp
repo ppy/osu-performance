@@ -49,7 +49,7 @@ void Config::ReadFromFile(const char* filename)
 	// Now evaluate the contents
 	u32 pos = 0;
 	u32 i;
-	E_READING_STATE readingState = TOKEN_NAME;
+	EReadingState readingState = TokenName;
 	char szCurrentToken[256] = "";
 	char szCurrentValue[1024] = "";
 
@@ -80,7 +80,7 @@ void Config::ReadFromFile(const char* filename)
 		{
 			switch (readingState)
 			{
-			case TOKEN_NAME:
+			case TokenName:
 				// Read token
 				i = 0;
 				while (pos < Size && !std::isspace(buffer[pos]) && buffer[pos] != ':')
@@ -91,22 +91,22 @@ void Config::ReadFromFile(const char* filename)
 				if (buffer[pos] == ':')
 				{
 					pos++;
-					readingState = TOKEN_VALUE;
+					readingState = TokenValue;
 				}
 				else
-					readingState = FIND_SEPERATOR;
+					readingState = FindSeparator;
 
 				break;
 
-			case FIND_SEPERATOR:
+			case FindSeparator:
 				if (buffer[pos] != ':')
 					Log(Warning, StrFormat("Config '{0}' is corrupted. (Wrong seperator.)", filename));
 
 				pos++;
-				readingState = TOKEN_VALUE;
+				readingState = TokenValue;
 				break;
 
-			case TOKEN_VALUE:
+			case TokenValue:
 				// Read token
 				i = 0;
 
@@ -137,7 +137,7 @@ void Config::ReadFromFile(const char* filename)
 				}
 
 				// Update reading state
-				readingState = TOKEN_NAME;
+				readingState = TokenName;
 
 #define MACRO_CONFIG_INT( name, def, min, max, desc ) \
 				if (!strcmp(#name, szCurrentToken)) \
