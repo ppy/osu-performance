@@ -58,7 +58,9 @@ void Logger::logText(ELogType flags, std::string text)
 		const auto currentTime = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
 
 #ifdef __WIN32
+#define STREAMTOSTRING(x) dynamic_cast<std::ostringstream &>((std::ostringstream{} << std::dec << x)).str()
 		textOut += STREAMTOSTRING(std::put_time(std::localtime(&currentTime), CONSOLE_TIMESTAMP));
+#undef STREAMTOSTRING
 #else
 		char timeBuf[128];
 		const auto tmCurrentTime = localtime(&currentTime);
