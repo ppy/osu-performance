@@ -33,10 +33,10 @@ private:
 	f32 _speedValue;
 	f32 _accValue;
 
-	void ComputeTotalValue();
+	void computeTotalValue();
 	f32 _totalValue;
 
-	void ComputeAimValue(const CBeatmap& beatmap);
-	void ComputeSpeedValue(const CBeatmap& beatmap);
-	void ComputeAccValue(const CBeatmap& beatmap);
+	void computeAimValue(const CBeatmap& beatmap);
+	void computeSpeedValue(const CBeatmap& beatmap);
+	void computeAccValue(const CBeatmap& beatmap);
 };

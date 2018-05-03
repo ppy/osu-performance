@@ -6,16 +6,14 @@
 CUpdateBatch::CUpdateBatch(std::shared_ptr<CDatabaseConnection> pDB, u32 sizeThreshold)
 : _pDB{std::move(pDB)}, _sizeThreshold{sizeThreshold}
 {
-	Reset();
+	reset();
 }
 
 CUpdateBatch::~CUpdateBatch()
 {
 	// If we are not empty we want to commit what's left in here
 	if (!_empty)
-	{
-		Execute();
-	}
+		execute();
 }
 
 CUpdateBatch::CUpdateBatch(CUpdateBatch&& other)
@@ -44,30 +42,30 @@ void CUpdateBatch::AppendAndCommit(const std::string& values)
 
 void CUpdateBatch::AppendAndCommitNonThreadsafe(const std::string& values)
 {
-	Append(values);
+	append(values);
 
 	if (Size() > _sizeThreshold)
 	{
-		Execute();
-		Reset();
+		execute();
+		reset();
 	}
 }
 
-void CUpdateBatch::Reset()
+void CUpdateBatch::reset()
 {
 	_query = "";//"START TRANSACTION;";
 	_empty = true;
 }
 
-const std::string& CUpdateBatch::Query()
+const std::string& CUpdateBatch::query()
 {
 	//m_Query += "COMMIT;";
 	return _query;
 }
 
-void CUpdateBatch::Execute()
+void CUpdateBatch::execute()
 {
-	_pDB->NonQueryBackground(Query());
+	_pDB->NonQueryBackground(query());
 
 	/*FILE* pFile = fopen("./updates.log", "ab");
 

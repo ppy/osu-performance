@@ -33,7 +33,7 @@ CCatchTheBeatScore::CCatchTheBeatScore(
 	_value = pow(5.0f * std::max(1.0f, beatmap.DifficultyAttribute(_mods, CBeatmap::Aim) / 0.0049f) - 4.0f, 2.0f) / 100000.0f;
 
 	// Longer maps are worth more. "Longer" means how many hits there are which can contribute to combo
-	int numTotalHits = TotalComboHits();
+	int numTotalHits = totalComboHits();
 
 	// Longer maps are worth more
 	f32 lengthBonus =
@@ -89,7 +89,7 @@ f32 CCatchTheBeatScore::Accuracy() const
 	if (TotalHits() == 0)
 		return 0;
 
-	return clamp(static_cast<f32>(TotalSuccessfulHits()) / TotalHits(), 0.0f, 1.0f);
+	return Clamp(static_cast<f32>(TotalSuccessfulHits()) / TotalHits(), 0.0f, 1.0f);
 }
 
 s32 CCatchTheBeatScore::TotalHits() const
@@ -102,7 +102,7 @@ s32 CCatchTheBeatScore::TotalSuccessfulHits() const
 	return _num50 + _num100 + _num300;
 }
 
-s32 CCatchTheBeatScore::TotalComboHits() const
+s32 CCatchTheBeatScore::totalComboHits() const
 {
 	return _num300 + _num100 + _numMiss;
 }

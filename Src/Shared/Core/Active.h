@@ -21,9 +21,9 @@ public:
 private:
 	// See Create
 	CActive();
-	void Run();
+	void run();
 
-	void Send(std::function<void()> callback, bool checkForException);
+	void send(std::function<void()> callback, bool checkForException);
 
 	CSharedQueue<std::function<void()>> _tasks;
 
@@ -32,6 +32,6 @@ private:
 
 	mutable std::exception_ptr _activeException = nullptr;
 
-	void DoDone();
-	void CheckForAndThrowException() const;
+	void doDone();
+	void checkForAndThrowException() const;
 };

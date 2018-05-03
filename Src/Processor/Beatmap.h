@@ -58,7 +58,7 @@ private:
 		DoubleTime | HalfTime | HardRock | Easy | keyMod
 	);
 
-	static EMods MaskRelevantDifficultyMods(EMods mods)
+	static EMods maskRelevantDifficultyMods(EMods mods)
 	{
 		return static_cast<EMods>(mods & s_relevantDifficultyMods);
 	}

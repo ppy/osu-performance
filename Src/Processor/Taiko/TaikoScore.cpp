@@ -20,10 +20,10 @@ CTaikoScore::CTaikoScore(
 	const CBeatmap& beatmap
 ) : CScore{scoreId, mode, userId, beatmapId, score, maxCombo, num300, num100, num50, numMiss, numGeki, numKatu, mods}
 {
-	ComputeStrainValue(beatmap);
-	ComputeAccValue(beatmap);
+	computeStrainValue(beatmap);
+	computeAccValue(beatmap);
 
-	ComputeTotalValue();
+	computeTotalValue();
 }
 
 f32 CTaikoScore::TotalValue() const
@@ -31,7 +31,7 @@ f32 CTaikoScore::TotalValue() const
 	return _totalValue;
 }
 
-void CTaikoScore::ComputeTotalValue()
+void CTaikoScore::computeTotalValue()
 {
 	// Don't count scores made with supposedly unranked mods
 	if ((_mods & EMods::Relax) > 0 ||
@@ -58,7 +58,7 @@ void CTaikoScore::ComputeTotalValue()
 		) * multiplier;
 }
 
-void CTaikoScore::ComputeStrainValue(const CBeatmap& beatmap)
+void CTaikoScore::computeStrainValue(const CBeatmap& beatmap)
 {
 	_strainValue = pow(5.0f * std::max(1.0f, beatmap.DifficultyAttribute(_mods, CBeatmap::Strain) / 0.0075f) - 4.0f, 2.0f) / 100000.0f;
 
@@ -85,7 +85,7 @@ void CTaikoScore::ComputeStrainValue(const CBeatmap& beatmap)
 	_strainValue *= Accuracy();
 }
 
-void CTaikoScore::ComputeAccValue(const CBeatmap& beatmap)
+void CTaikoScore::computeAccValue(const CBeatmap& beatmap)
 {
 	f32 hitWindow300 = beatmap.DifficultyAttribute(_mods, CBeatmap::HitWindow300);
 	if (hitWindow300 <= 0)
@@ -108,7 +108,7 @@ f32 CTaikoScore::Accuracy() const
 		return 0;
 
 	return
-		clamp(static_cast<f32>(_num100 * 150 + _num300 * 300)
+		Clamp(static_cast<f32>(_num100 * 150 + _num300 * 300)
 		/ (TotalHits() * 300), 0.0f, 1.0f);
 }
 

@@ -7,7 +7,7 @@
 
 using namespace std::chrono;
 
-EGamemode stringToGamemode(const std::string& modeString)
+EGamemode StringToGamemode(const std::string& modeString)
 {
 	EGamemode mode;
 	if (modeString == "osu")
@@ -74,7 +74,7 @@ int main(s32 argc, char* argv[])
 		args::Command newCommand(commands, "new", "Continually poll for new scores and compute pp of these", [&](args::Subparser& parser)
 		{
 			parser.Parse();
-			CProcessor processor{stringToGamemode(args::get(modePositional)), args::get(configFlag)};
+			CProcessor processor{StringToGamemode(args::get(modePositional)), args::get(configFlag)};
 			processor.MonitorNewScores();
 		});
 
@@ -101,7 +101,7 @@ int main(s32 argc, char* argv[])
 
 			u32 numThreads = args::get(threadsFlag);
 
-			CProcessor processor{stringToGamemode(args::get(modePositional)), args::get(configFlag)};
+			CProcessor processor{StringToGamemode(args::get(modePositional)), args::get(configFlag)};
 			processor.ProcessAllUsers(!continueFlag, numThreads);
 		});
 
@@ -116,7 +116,7 @@ int main(s32 argc, char* argv[])
 			parser.Parse();
 
 			std::vector<std::string> userNames = args::get(usersPositional);
-			CProcessor processor{stringToGamemode(args::get(modePositional)), args::get(configFlag)};
+			CProcessor processor{StringToGamemode(args::get(modePositional)), args::get(configFlag)};
 			processor.ProcessUsers(args::get(usersPositional));
 		});
 

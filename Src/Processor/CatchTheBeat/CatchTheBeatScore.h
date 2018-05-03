@@ -29,5 +29,5 @@ public:
 
 private:
 	f32 _value;
-	s32 TotalComboHits() const;
+	s32 totalComboHits() const;
 };

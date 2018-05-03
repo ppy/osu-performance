@@ -35,20 +35,7 @@ public:
 	//returns the number of rows e.g. returned by a SELECT
 	u32 AffectedRows();
 
-	inline void escape(char* dest, char* src)
-	{
-		mysql_real_escape_string(&_mySQL, dest, src, strlen(src));
-	}
-
-	inline s32 get_FieldCount()
-	{
-		return mysql_field_count(&_mySQL);
-	}
-
-	size_t NumPendingQueries()
-	{
-		return _pActive->NumPending();
-	}
+	size_t NumPendingQueries() const { return _pActive->NumPending(); }
 
 private:
 	void connect();

@@ -28,11 +28,11 @@ public:
 	s32 TotalSuccessfulHits() const override;
 
 private:
-	void ComputeTotalValue();
+	void computeTotalValue();
 	f32 _totalValue;
 
-	void ComputeStrainValue(const CBeatmap& beatmap);
-	void ComputeAccValue(const CBeatmap& beatmap);
+	void computeStrainValue(const CBeatmap& beatmap);
+	void computeAccValue(const CBeatmap& beatmap);
 
 	f32 _strainValue;
 	f32 _accValue;

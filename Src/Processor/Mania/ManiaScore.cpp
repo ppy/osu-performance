@@ -20,10 +20,10 @@ CManiaScore::CManiaScore(
 	const CBeatmap& beatmap
 ) : CScore{scoreId, mode, userId, beatmapId, score, maxCombo, num300, num100, num50, numMiss, numGeki, numKatu, mods}
 {
-	ComputeStrainValue(beatmap);
-	ComputeAccValue(beatmap);
+	computeStrainValue(beatmap);
+	computeAccValue(beatmap);
 
-	ComputeTotalValue();
+	computeTotalValue();
 }
 
 f32 CManiaScore::TotalValue() const
@@ -31,7 +31,7 @@ f32 CManiaScore::TotalValue() const
 	return _totalValue;
 }
 
-void CManiaScore::ComputeTotalValue()
+void CManiaScore::computeTotalValue()
 {
 	// Don't count scores made with supposedly unranked mods
 	if ((_mods & EMods::Relax) > 0 ||
@@ -61,7 +61,7 @@ void CManiaScore::ComputeTotalValue()
 		) * multiplier;
 }
 
-void CManiaScore::ComputeStrainValue(const CBeatmap& beatmap)
+void CManiaScore::computeStrainValue(const CBeatmap& beatmap)
 {
 	// Scale score up, so it's comparable to other keymods
 	f32 scoreMultiplier = beatmap.DifficultyAttribute(_mods, CBeatmap::ScoreMultiplier);
@@ -95,7 +95,7 @@ void CManiaScore::ComputeStrainValue(const CBeatmap& beatmap)
 		_strainValue *= 0.95f + static_cast<f32>(_score - 900000) / 100000.0f * 0.05f;
 }
 
-void CManiaScore::ComputeAccValue(const CBeatmap& beatmap)
+void CManiaScore::computeAccValue(const CBeatmap& beatmap)
 {
 	f32 hitWindow300 = beatmap.DifficultyAttribute(_mods, CBeatmap::HitWindow300);
 	if (hitWindow300 <= 0)
@@ -118,7 +118,7 @@ f32 CManiaScore::Accuracy() const
 		return 0;
 
 	return
-		clamp(static_cast<f32>(_num50 * 50 + _num100 * 100 + _numKatu * 200 + (_num300 + _numGeki) * 300)
+		Clamp(static_cast<f32>(_num50 * 50 + _num100 * 100 + _numKatu * 200 + (_num300 + _numGeki) * 300)
 		/ (TotalHits() * 300), 0.0f, 1.0f);
 }
 

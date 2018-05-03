@@ -39,10 +39,10 @@ CLog::~CLog()
 
 void CLog::Log(EType flags, std::string text)
 {
-	_pActive->Send([this, flags, text]() { LogText(flags, std::move(text)); });
+	_pActive->Send([this, flags, text]() { logText(flags, std::move(text)); });
 }
 
-void CLog::LogText(EType flags, std::string text)
+void CLog::logText(EType flags, std::string text)
 {
 	EStream stream;
 	if (flags & EType::Error || flags & EType::CriticalError || flags & EType::SQL || flags & EType::Exception)
@@ -100,7 +100,7 @@ void CLog::LogText(EType flags, std::string text)
 #endif
 
 		// start with processing
-		Write(textOut, stream);
+		write(textOut, stream);
 	}
 
 	// Make sure there is a linebreak in the end. We don't want duplicates!
@@ -110,10 +110,10 @@ void CLog::LogText(EType flags, std::string text)
 	// Reset after each message
 	text += CONSOLE_RESET "";
 
-	Write(text, stream);
+	write(text, stream);
 }
 
-void CLog::Write(const std::string& text, EStream stream)
+void CLog::write(const std::string& text, EStream stream)
 {
 	if (stream == EStream::STDERR)
 		fwrite(text.c_str(), sizeof(char), text.length(), stderr);

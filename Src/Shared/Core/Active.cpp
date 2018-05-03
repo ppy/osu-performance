@@ -6,7 +6,7 @@ CActive::~CActive()
 {
 	if (!_isDone)
 	{
-		Send(std::bind(&CActive::DoDone, this), false);
+		send(std::bind(&CActive::doDone, this), false);
 		if (_thread.joinable())
 			_thread.join();
 	}
@@ -14,19 +14,19 @@ CActive::~CActive()
 
 void CActive::Send(std::function<void()> callback)
 {
-	Send(callback, true);
+	send(callback, true);
 }
 
 std::unique_ptr<CActive> CActive::Create()
 {
 	auto pActive = std::unique_ptr<CActive>{ new CActive{} };
-	pActive->_thread = std::thread(&CActive::Run, pActive.get());
+	pActive->_thread = std::thread(&CActive::run, pActive.get());
 	return pActive;
 }
 
 size_t CActive::NumPending() const
 {
-	CheckForAndThrowException();
+	checkForAndThrowException();
 	return _tasks.Size();
 }
 
@@ -42,7 +42,7 @@ CActive::CActive()
 	_isDone = false;
 }
 
-void CActive::Run()
+void CActive::run()
 {
 	try
 	{
@@ -57,20 +57,20 @@ void CActive::Run()
 	}
 }
 
-void CActive::Send(std::function<void()> callback, bool checkForException)
+void CActive::send(std::function<void()> callback, bool checkForException)
 {
 	if (checkForException)
-		CheckForAndThrowException();
+		checkForAndThrowException();
 
 	_tasks.Push(callback);
 }
 
-void CActive::DoDone()
+void CActive::doDone()
 {
 	_isDone = true;
 }
 
-void CActive::CheckForAndThrowException() const
+void CActive::checkForAndThrowException() const
 {
 	if (_isDone)
 	{

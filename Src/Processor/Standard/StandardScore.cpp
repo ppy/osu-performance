@@ -20,11 +20,11 @@ CStandardScore::CStandardScore(
 	const CBeatmap& beatmap
 ) : CScore{scoreId, mode, userId, beatmapId, score, maxCombo, num300, num100, num50, numMiss, numGeki, numKatu, mods}
 {
-	ComputeAimValue(beatmap);
-	ComputeSpeedValue(beatmap);
-	ComputeAccValue(beatmap);
+	computeAimValue(beatmap);
+	computeSpeedValue(beatmap);
+	computeAccValue(beatmap);
 
-	ComputeTotalValue();
+	computeTotalValue();
 }
 
 
@@ -38,7 +38,7 @@ f32 CStandardScore::Accuracy() const
 	if (TotalHits() == 0)
 		return 0;
 
-	return clamp(
+	return Clamp(
 		static_cast<f32>(_num50 * 50 + _num100 * 100 + _num300 * 300) / (TotalHits() * 300), 0.0f, 1.0f
 	);
 }
@@ -53,7 +53,7 @@ s32 CStandardScore::TotalSuccessfulHits() const
 	return _num50 + _num100 + _num300;
 }
 
-void CStandardScore::ComputeTotalValue()
+void CStandardScore::computeTotalValue()
 {
 	// Don't count scores made with supposedly unranked mods
 	if ((_mods & EMods::Relax) > 0 ||
@@ -81,7 +81,7 @@ void CStandardScore::ComputeTotalValue()
 		) * multiplier;
 }
 
-void CStandardScore::ComputeAimValue(const CBeatmap& beatmap)
+void CStandardScore::computeAimValue(const CBeatmap& beatmap)
 {
 	f32 rawAim = beatmap.DifficultyAttribute(_mods, CBeatmap::Aim);
 
@@ -134,7 +134,7 @@ void CStandardScore::ComputeAimValue(const CBeatmap& beatmap)
 	_aimValue *= 0.98f + (pow(beatmap.DifficultyAttribute(_mods, CBeatmap::OD), 2) / 2500);
 }
 
-void CStandardScore::ComputeSpeedValue(const CBeatmap& beatmap)
+void CStandardScore::computeSpeedValue(const CBeatmap& beatmap)
 {
 	_speedValue = pow(5.0f * std::max(1.0f, beatmap.DifficultyAttribute(_mods, CBeatmap::Speed) / 0.0675f) - 4.0f, 3.0f) / 100000.0f;
 
@@ -159,7 +159,7 @@ void CStandardScore::ComputeSpeedValue(const CBeatmap& beatmap)
 	_speedValue *= 0.98f + (pow(beatmap.DifficultyAttribute(_mods, CBeatmap::OD), 2) / 2500);
 }
 
-void CStandardScore::ComputeAccValue(const CBeatmap& beatmap)
+void CStandardScore::computeAccValue(const CBeatmap& beatmap)
 {
 	// This percentage only considers HitCircles of any value - in this part of the calculation we focus on hitting the timing hit window
 	f32 betterAccuracyPercentage;

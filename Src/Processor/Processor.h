@@ -47,20 +47,20 @@ private:
 	static const CBeatmap::ERankedStatus s_minRankedStatus = CBeatmap::ERankedStatus::Ranked;
 	static const CBeatmap::ERankedStatus s_maxRankedStatus = CBeatmap::ERankedStatus::Approved;
 
-	std::string LastScoreIdKey()
+	std::string lastScoreIdKey()
 	{
 		return StrFormat("pp_last_score_id{0}", GamemodeSuffix(_gamemode));
 	}
 
-	std::string LastUserIdKey()
+	std::string lastUserIdKey()
 	{
 		return StrFormat("pp_last_user_id{0}", GamemodeSuffix(_gamemode));
 	}
 
 	CConfig _config;
 
-	std::shared_ptr<CDatabaseConnection> NewDBConnectionMaster();
-	std::shared_ptr<CDatabaseConnection> NewDBConnectionSlave();
+	std::shared_ptr<CDatabaseConnection> newDBConnectionMaster();
+	std::shared_ptr<CDatabaseConnection> newDBConnectionSlave();
 
 	// Difficulty data is held in RAM.
 	// A few hundred megabytes.
@@ -68,8 +68,8 @@ private:
 	std::unordered_map<s32, CBeatmap> _beatmaps;
 	std::string _lastApprovedDate;
 
-	void QueryBeatmapDifficulty();
-	bool QueryBeatmapDifficulty(s32 startId, s32 endId = 0);
+	void queryBeatmapDifficulty();
+	bool queryBeatmapDifficulty(s32 startId, s32 endId = 0);
 
 	std::shared_ptr<CDatabaseConnection> _pDB;
 	std::shared_ptr<CDatabaseConnection> _pDBSlave;
@@ -79,17 +79,17 @@ private:
 
 	s64 _currentScoreId;
 	s64 _numScoresProcessedSinceLastStore = 0;
-	void PollAndProcessNewScores();
-	void PollAndProcessNewBeatmapSets();
+	void pollAndProcessNewScores();
+	void pollAndProcessNewBeatmapSets();
 
 	std::unordered_set<s32> _blacklistedBeatmapIds;
-	void QueryBeatmapBlacklist();
+	void queryBeatmapBlacklist();
 
 	std::vector<CBeatmap::EDifficultyAttributeType> _difficultyAttributes;
-	void QueryBeatmapDifficultyAttributes();
+	void queryBeatmapDifficultyAttributes();
 
 	// Not thread safe with beatmap data!
-	CUser ProcessSingleUser(
+	CUser processSingleUser(
 		s64 selectedScoreId, // If this is not 0, then the score is looked at in isolation, triggering a notable event if it's good enough
 		CDatabaseConnection& db,
 		CUpdateBatch& newUsers,
@@ -98,7 +98,7 @@ private:
 	);
 
 	template <class TScore>
-	CUser ProcessSingleUserTemplate(
+	CUser processSingleUserGeneric(
 		s64 selectedScoreId, // If this is not 0, then the score is looked at in isolation, triggering a notable event if it's good enough
 		CDatabaseConnection& db,
 		CUpdateBatch& newUsers,
@@ -106,8 +106,8 @@ private:
 		s64 userId
 	);
 
-	void StoreCount(CDatabaseConnection& db, std::string key, s64 value);
-	s64 RetrieveCount(CDatabaseConnection& db, std::string key);
+	void storeCount(CDatabaseConnection& db, std::string key, s64 value);
+	s64 retrieveCount(CDatabaseConnection& db, std::string key);
 
 	EGamemode _gamemode;
 

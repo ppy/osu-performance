@@ -95,9 +95,9 @@ private:
 	char _outputBufferStdout[CLog::s_outputBufferSize];
 	char _outputBufferStderr[CLog::s_outputBufferSize];
 
-	void LogText(EType flags, std::string text);
+	void logText(EType flags, std::string text);
 
-	void Write(const std::string& text, EStream Stream);
+	void write(const std::string& text, EStream Stream);
 };
 
 void Log(CLog::EType flags, std::string text);

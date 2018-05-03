@@ -29,35 +29,35 @@ CDDog::CDDog(std::string host, s16 port)
 
 void CDDog::Increment(std::string metric, s64 amount, std::vector<std::string> tags, f32 sampleRate)
 {
-	UpdateStats(metric, amount, tags, sampleRate);
+	updateStats(metric, amount, tags, sampleRate);
 }
 
 void CDDog::Decrement(std::string metric, s64 amount, std::vector<std::string> tags, f32 sampleRate)
 {
-	UpdateStats(metric, -amount, tags, sampleRate);
+	updateStats(metric, -amount, tags, sampleRate);
 }
 
 void CDDog::Timing(std::string metric, s64 value, std::vector<std::string> tags, f32 sampleRate)
 {
-	Send(StrFormat("{0}:{1}|ms", metric, value), tags, sampleRate);
+	send(StrFormat("{0}:{1}|ms", metric, value), tags, sampleRate);
 }
 
 void CDDog::Gauge(std::string metric, s64 value, std::vector<std::string> tags, f32 sampleRate)
 {
-	Send(StrFormat("{0}:{1}|g", metric, value), tags, sampleRate);
+	send(StrFormat("{0}:{1}|g", metric, value), tags, sampleRate);
 }
 
 void CDDog::Histogram(std::string metric, s64 value, std::vector<std::string> tags, f32 sampleRate)
 {
-	Send(StrFormat("{0}:{1}|h", metric, value), tags, sampleRate);
+	send(StrFormat("{0}:{1}|h", metric, value), tags, sampleRate);
 }
 
 void CDDog::Set(std::string metric, s64 value, std::vector<std::string> tags, f32 sampleRate)
 {
-	Send(StrFormat("{0}:{1}|s", metric, value), tags, sampleRate);
+	send(StrFormat("{0}:{1}|s", metric, value), tags, sampleRate);
 }
 
-void CDDog::AddTags(std::string& message, const std::vector<std::string>& tags)
+void CDDog::addTags(std::string& message, const std::vector<std::string>& tags)
 {
 	if (tags.empty())
 		return;
@@ -71,15 +71,15 @@ void CDDog::AddTags(std::string& message, const std::vector<std::string>& tags)
 }
 
 
-void CDDog::UpdateStats(std::string metric, s64 delta, const std::vector<std::string>& tags, f32 sampleRate)
+void CDDog::updateStats(std::string metric, s64 delta, const std::vector<std::string>& tags, f32 sampleRate)
 {
 	if (delta == 0)
 		return;
 
-	Send(StrFormat("{0}:{1}|c", metric, delta), tags, sampleRate);
+	send(StrFormat("{0}:{1}|c", metric, delta), tags, sampleRate);
 }
 
-void CDDog::Send(std::string data, const std::vector<std::string>& tags, f32 sampleRate)
+void CDDog::send(std::string data, const std::vector<std::string>& tags, f32 sampleRate)
 {
 	static thread_local std::mt19937_64 generator{
 		std::hash<std::thread::id>()(std::this_thread::get_id())
@@ -94,7 +94,7 @@ void CDDog::Send(std::string data, const std::vector<std::string>& tags, f32 sam
 		data += StrFormat("|@{0p2}", sampleRate);
 	}
 
-	AddTags(data, tags);
+	addTags(data, tags);
 
 #ifdef __WIN32
 	SOCKET s = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);

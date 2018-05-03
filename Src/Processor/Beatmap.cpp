@@ -21,7 +21,7 @@ CBeatmap::CBeatmap(s32 id)
 
 f32 CBeatmap::DifficultyAttribute(EMods mods, EDifficultyAttributeType type) const
 {
-	mods = MaskRelevantDifficultyMods(mods);
+	mods = maskRelevantDifficultyMods(mods);
 
 	if (_difficulty.count(mods) == 0 || _difficulty.at(mods).count(type) == 0)
 		return 0.0f;
@@ -31,6 +31,6 @@ f32 CBeatmap::DifficultyAttribute(EMods mods, EDifficultyAttributeType type) con
 
 void CBeatmap::SetDifficultyAttribute(EMods mods, EDifficultyAttributeType type, f32 value)
 {
-	mods = MaskRelevantDifficultyMods(mods);
+	mods = maskRelevantDifficultyMods(mods);
 	_difficulty[mods][type] = value;
 }
