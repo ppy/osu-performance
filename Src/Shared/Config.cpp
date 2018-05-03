@@ -2,7 +2,7 @@
 
 #include "Config.h"
 
-CConfig::CConfig(const std::string& filename)
+Config::Config(const std::string& filename)
 {
 #define MACRO_CONFIG_INT( name, def, min, max, desc ) name = def;
 #define MACRO_CONFIG_FLOAT( name, def, min, max, desc ) name = def;
@@ -24,13 +24,13 @@ s32 config_switch(const char* str)
 	return (s32)strtol(str, nullptr, 0);
 }
 
-void CConfig::ReadFromFile(const char* filename)
+void Config::ReadFromFile(const char* filename)
 {
 	// Has to use non-filesystem based opening funcs.
 	FILE* pFile = fopen(filename, "rb");
 
 	if (pFile == NULL)
-		throw CConfigException(SRC_POS, StrFormat("Config file '{0}' could not be opened.", filename));
+		throw ConfigException(SRC_POS, StrFormat("Config file '{0}' could not be opened.", filename));
 
 	// Find file size
 	fseek(pFile, 0, SEEK_END);
@@ -41,7 +41,7 @@ void CConfig::ReadFromFile(const char* filename)
 
 	size_t NumBytesRead = fread(buffer, sizeof(char), Size, pFile);
 	if (NumBytesRead != Size)
-		throw CConfigException(SRC_POS, StrFormat("Config file '{0}' could not be fully read. (read {1} of {2} bytes)", filename, NumBytesRead, Size));
+		throw ConfigException(SRC_POS, StrFormat("Config file '{0}' could not be fully read. (read {1} of {2} bytes)", filename, NumBytesRead, Size));
 
 	// No need for the file anymore
 	fclose(pFile);
@@ -49,7 +49,7 @@ void CConfig::ReadFromFile(const char* filename)
 	// Now evaluate the contents
 	u32 pos = 0;
 	u32 i;
-	E_READING_STATE readingState = TOKEN_NAME;
+	EReadingState readingState = TokenName;
 	char szCurrentToken[256] = "";
 	char szCurrentValue[1024] = "";
 
@@ -80,7 +80,7 @@ void CConfig::ReadFromFile(const char* filename)
 		{
 			switch (readingState)
 			{
-			case TOKEN_NAME:
+			case TokenName:
 				// Read token
 				i = 0;
 				while (pos < Size && !std::isspace(buffer[pos]) && buffer[pos] != ':')
@@ -91,22 +91,22 @@ void CConfig::ReadFromFile(const char* filename)
 				if (buffer[pos] == ':')
 				{
 					pos++;
-					readingState = TOKEN_VALUE;
+					readingState = TokenValue;
 				}
 				else
-					readingState = FIND_SEPERATOR;
+					readingState = FindSeparator;
 
 				break;
 
-			case FIND_SEPERATOR:
+			case FindSeparator:
 				if (buffer[pos] != ':')
-					Log(CLog::Warning, StrFormat("Config '{0}' is corrupted. (Wrong seperator.)", filename));
+					Log(Warning, StrFormat("Config '{0}' is corrupted. (Wrong seperator.)", filename));
 
 				pos++;
-				readingState = TOKEN_VALUE;
+				readingState = TokenValue;
 				break;
 
-			case TOKEN_VALUE:
+			case TokenValue:
 				// Read token
 				i = 0;
 
@@ -137,7 +137,7 @@ void CConfig::ReadFromFile(const char* filename)
 				}
 
 				// Update reading state
-				readingState = TOKEN_NAME;
+				readingState = TokenName;
 
 #define MACRO_CONFIG_INT( name, def, min, max, desc ) \
 				if (!strcmp(#name, szCurrentToken)) \
@@ -172,7 +172,7 @@ void CConfig::ReadFromFile(const char* filename)
 	delete[] buffer;
 }
 
-void CConfig::WriteToFile(const char* Filename)
+void Config::WriteToFile(const char* Filename)
 {
 	// TODO: implement
 }

@@ -7,7 +7,9 @@
 
 #include "../Shared/Network/UpdateBatch.h"
 
-CScore::CScore(
+PP_NAMESPACE_BEGIN
+
+Score::Score(
 	s64 scoreId,
 	EGamemode mode,
 	s32 userId,
@@ -39,14 +41,16 @@ _mods{mods}
 {
 }
 
-void CScore::AppendToUpdateBatch(CUpdateBatch& batch) const
+void Score::AppendToUpdateBatch(UpdateBatch& batch) const
 {
 	batch.AppendAndCommitNonThreadsafe(StrFormat(
 		"UPDATE `osu_scores{0}_high` "
 		"SET `pp`={1} "
 		"WHERE `score_id`={2};",
-		CProcessor::GamemodeSuffix(_mode),
+		Processor::GamemodeSuffix(_mode),
 		TotalValue(),
 		_scoreId
 	));
 }
+
+PP_NAMESPACE_END

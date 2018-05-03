@@ -2,14 +2,14 @@
 
 #include "SharedEnums.h"
 
-DEFINE_LOGGED_EXCEPTION(CBeatmapException);
+PP_NAMESPACE_BEGIN
 
-class CInsertionBatch;
+DEFINE_LOGGED_EXCEPTION(BeatmapException);
 
-class CBeatmap
+class Beatmap
 {
 public:
-	CBeatmap(s32 id);
+	Beatmap(s32 id);
 
 	enum EDifficultyAttributeType : byte
 	{
@@ -58,7 +58,7 @@ private:
 		DoubleTime | HalfTime | HardRock | Easy | keyMod
 	);
 
-	static EMods MaskRelevantDifficultyMods(EMods mods)
+	static EMods maskRelevantDifficultyMods(EMods mods)
 	{
 		return static_cast<EMods>(mods & s_relevantDifficultyMods);
 	}
@@ -85,3 +85,5 @@ private:
 	EScoreVersion _scoreVersion;
 	s32 _numHitCircles = 0;
 };
+
+PP_NAMESPACE_END

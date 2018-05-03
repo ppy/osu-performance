@@ -2,10 +2,12 @@
 
 #include "Score.h"
 
-class CTaikoScore : public CScore
+PP_NAMESPACE_BEGIN
+
+class TaikoScore : public Score
 {
 public:
-	CTaikoScore(
+	TaikoScore(
 		s64 scoreId,
 		EGamemode mode,
 		s32 userId,
@@ -19,7 +21,7 @@ public:
 		s32 numGeki,
 		s32 numKatu,
 		EMods mods,
-		const CBeatmap& beatmap
+		const Beatmap& beatmap
 	);
 
 	f32 TotalValue() const override;
@@ -28,12 +30,14 @@ public:
 	s32 TotalSuccessfulHits() const override;
 
 private:
-	void ComputeTotalValue();
+	void computeTotalValue();
 	f32 _totalValue;
 
-	void ComputeStrainValue(const CBeatmap& beatmap);
-	void ComputeAccValue(const CBeatmap& beatmap);
+	void computeStrainValue(const Beatmap& beatmap);
+	void computeAccValue(const Beatmap& beatmap);
 
 	f32 _strainValue;
 	f32 _accValue;
 };
+
+PP_NAMESPACE_END

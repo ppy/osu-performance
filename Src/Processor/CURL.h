@@ -2,11 +2,13 @@
 
 typedef void CURL;
 
-class CCURL
+PP_NAMESPACE_BEGIN
+
+class CURL
 {
 public:
-	CCURL();
-	~CCURL();
+	CURL();
+	~CURL();
 
 	void SendToSlack(
 		std::string domain,
@@ -22,11 +24,13 @@ public:
 		s32 projectID,
 		std::string publicKey,
 		std::string secretKey,
-		CException& e,
+		Exception& e,
 		std::string mode,
 		bool warning = false
 	);
 
 private:
-	CURL* _pCURL = nullptr;
+	::CURL* _pCURL = nullptr;
 };
+
+PP_NAMESPACE_END

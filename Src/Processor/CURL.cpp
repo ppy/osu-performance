@@ -3,24 +3,26 @@
 #include "UUID.h"
 #include "CURL.h"
 
+PP_NAMESPACE_BEGIN
+
 size_t EmptyCURLWriteData(void *buffer, size_t size, size_t nmemb, void *userp)
 {
 	return size * nmemb;
 }
 
-CCURL::CCURL()
+CURL::CURL()
 {
 	_pCURL = curl_easy_init();
 	curl_easy_setopt(_pCURL, CURLOPT_SSL_VERIFYPEER, false);
 	curl_easy_setopt(_pCURL, CURLOPT_WRITEFUNCTION, EmptyCURLWriteData);
 }
 
-CCURL::~CCURL()
+CURL::~CURL()
 {
 	curl_easy_cleanup(_pCURL);
 }
 
-void CCURL::SendToSlack(
+void CURL::SendToSlack(
 	std::string domain,
 	std::string key,
 	std::string username,
@@ -34,7 +36,7 @@ void CCURL::SendToSlack(
 
 	curl_easy_setopt(_pCURL, CURLOPT_URL, url.c_str());
 
-	std::string PostData = StrFormat(
+	std::string postData = StrFormat(
 		R"(
 			{{
 				"channel":"{0}",
@@ -47,43 +49,43 @@ void CCURL::SendToSlack(
 	);
 
 	curl_easy_setopt(_pCURL, CURLOPT_CUSTOMREQUEST, "POST");
-	curl_easy_setopt(_pCURL, CURLOPT_POSTFIELDS, PostData.c_str());
+	curl_easy_setopt(_pCURL, CURLOPT_POSTFIELDS, postData.c_str());
 
 	struct curl_slist* headers = nullptr;
 	headers = curl_slist_append(headers, "Content-Type: application/json");
 
-	std::string HTTPHeader = StrFormat("Content-Length: {0}", PostData.length());
-	headers = curl_slist_append(headers, HTTPHeader.c_str());
+	std::string httpHeader = StrFormat("Content-Length: {0}", postData.length());
+	headers = curl_slist_append(headers, httpHeader.c_str());
 
 	curl_easy_setopt(_pCURL, CURLOPT_HTTPHEADER, headers);
 
-	CURLcode Error = curl_easy_perform(_pCURL);
+	CURLcode error = curl_easy_perform(_pCURL);
 	curl_slist_free_all(headers);
 
-	if (Error != CURLE_OK)
+	if (error != CURLE_OK)
 	{
-		Log(CLog::Error, StrFormat("Slack CURL error {0}", Error));
+		Log(Error, StrFormat("Slack CURL error {0}", error));
 		return;
 	}
 
-	long ResponseCode;
-	curl_easy_getinfo(_pCURL, CURLINFO_RESPONSE_CODE, &ResponseCode);
+	long responseCode;
+	curl_easy_getinfo(_pCURL, CURLINFO_RESPONSE_CODE, &responseCode);
 
-	if (ResponseCode != 200)
+	if (responseCode != 200)
 	{
-		Log(CLog::Error, StrFormat("Slack CURL response {0}", ResponseCode));
+		Log(Error, StrFormat("Slack CURL response {0}", responseCode));
 		return;
 	}
 
-	Log(CLog::Success, StrFormat("Sent message to slack channel \"{0}\". \"{1}: {2}\".", channel, username, message));
+	Log(Success, StrFormat("Sent message to slack channel \"{0}\". \"{1}: {2}\".", channel, username, message));
 }
 
-void CCURL::SendToSentry(
+void CURL::SendToSentry(
 	std::string domain,
 	s32 projectID,
 	std::string publicKey,
 	std::string secretKey,
-	CException& e,
+	Exception& e,
 	std::string mode,
 	bool warning)
 {
@@ -106,7 +108,7 @@ void CCURL::SendToSentry(
 				"line":"{5}"
 			}
 		})",
-		CUUID::V4().ToString(),
+		UUID::V4().ToString(),
 		e.Description(),
 		warning ? "warning" : "error",
 		mode,
@@ -134,7 +136,7 @@ void CCURL::SendToSentry(
 
 	if (error != CURLE_OK)
 	{
-		Log(CLog::Error, StrFormat("Sentry CURL error {0}", error));
+		Log(Error, StrFormat("Sentry CURL error {0}", error));
 		return;
 	}
 
@@ -143,9 +145,11 @@ void CCURL::SendToSentry(
 
 	if (responseCode != 200)
 	{
-		Log(CLog::Error, StrFormat("Sentry CURL response {0}", responseCode));
+		Log(Error, StrFormat("Sentry CURL response {0}", responseCode));
 		return;
 	}
 
-	Log(CLog::Success, "Submitted exception to sentry.");
+	Log(Success, "Submitted exception to sentry.");
 }
+
+PP_NAMESPACE_END

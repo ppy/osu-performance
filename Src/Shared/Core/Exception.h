@@ -1,39 +1,30 @@
 #pragma once
 
 #define DEFINE_EXCEPTION(x) \
-	class x : public CException \
+	class x : public Exception \
 	{ public: x(std::string File, s32 Line, std::string Description) \
-	: CException{std::move(File), Line, std::move(Description)} {} }
+	: Exception{std::move(File), Line, std::move(Description)} {} }
 
 #define DEFINE_LOGGED_EXCEPTION(x) \
-	class x : public CLoggedException \
+	class x : public LoggedException \
 	{ public: x(std::string File, s32 Line, std::string Description) \
-	: CLoggedException{std::move(File), Line, std::move(Description)} {} }
+	: LoggedException{std::move(File), Line, std::move(Description)} {} }
 
 #define SRC_POS __FILE__,__LINE__
 
-class CException
+class Exception
 {
 public:
-	CException(std::string file, s32 line, std::string description);
-	~CException() = default;
+	Exception(std::string file, s32 line, std::string description);
+	~Exception() = default;
 
-	void Print();
+	void Print() const;
 
-	std::string Description()
-	{
-		return _description;
-	}
+	std::string Description() const { return _description; }
 
-	std::string File()
-	{
-		return _file;
-	}
+	std::string File() const { return _file; }
 
-	s32 Line()
-	{
-		return _line;
-	}
+	s32 Line() const { return _line; }
 
 protected:
 	std::string _file;
@@ -41,11 +32,11 @@ protected:
 	std::string _description;
 };
 
-class CLoggedException : public CException
+class LoggedException : public Exception
 {
 public:
-	CLoggedException(std::string file, s32 fine, std::string description);
-	~CLoggedException() = default;
+	LoggedException(std::string file, s32 fine, std::string description);
+	~LoggedException() = default;
 
-	void Log();
+	void Log() const;
 };

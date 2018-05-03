@@ -4,61 +4,63 @@
 #include <iomanip>
 #include <sstream>
 
-void Log(CLog::EType flags, std::string text)
+void Log(ELogType flags, std::string text)
 {
-	static auto pLog = CLog::CreateLogger();
+	static auto pLog = Logger::CreateLogger();
 	pLog->Log(flags, std::move(text));
 }
 
-std::unique_ptr<CLog> CLog::CreateLogger()
+std::unique_ptr<Logger> Logger::CreateLogger()
 {
-	auto pLogger = std::make_unique<CLog>();
+	auto pLogger = std::make_unique<Logger>();
 
 	// Reset initially (also blank line)
-	pLogger->Log(EType::None, CONSOLE_RESET "");
+	pLogger->Log(None, CONSOLE_RESET "");
 
 #ifdef __DEBUG
-	pLogger->Log(EType::Info, "Program runs in debug mode.");
+	pLogger->Log(Info, "Program runs in debug mode.");
 #endif
 
 	return pLogger;
 }
 
-CLog::CLog()
+Logger::Logger()
 {
-	_pActive = CActive::Create();
+	_pActive = Active::Create();
 }
 
-CLog::~CLog()
+Logger::~Logger()
 {
 #ifndef __WIN32
 	// Reset
-	Log(EType::None, CONSOLE_RESET);
+	Log(None, CONSOLE_RESET);
 #endif
 }
 
-void CLog::Log(EType flags, std::string text)
+void Logger::Log(ELogType flags, std::string text)
 {
-	_pActive->Send([this, flags, text]() { LogText(flags, std::move(text)); });
+	_pActive->Send([this, flags, text]() { logText(flags, std::move(text)); });
 }
 
-void CLog::LogText(EType flags, std::string text)
+void Logger::logText(ELogType flags, std::string text)
 {
 	EStream stream;
-	if (flags & EType::Error || flags & EType::CriticalError || flags & EType::SQL || flags & EType::Exception)
+	if (flags & Error || flags & Critical || flags & SQL || flags & Except)
 		stream = EStream::STDERR;
 	else
 		stream = EStream::STDOUT;
 
 	std::string textOut;
 
-	if (!(flags & EType::None))
+	if (!(flags & None))
 	{
 		// Display time format
 		const auto currentTime = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
 
 #ifdef __WIN32
+#define STREAMTOSTRING(x) dynamic_cast<std::ostringstream &>((std::ostringstream{} << std::dec << x)).str()
 		textOut += STREAMTOSTRING(std::put_time(std::localtime(&currentTime), CONSOLE_TIMESTAMP));
+#undef STREAMTOSTRING
 #else
 		char timeBuf[128];
 		const auto tmCurrentTime = localtime(&currentTime);
@@ -68,30 +70,30 @@ void CLog::LogText(EType flags, std::string text)
 #endif
 	}
 
-	if (flags & EType::Success)
+	if (flags & Success)
 		textOut += CONSOLE_GREEN "SUCCESS" CONSOLE_RESET;
-	else if (flags & EType::SQL)
+	else if (flags & SQL)
 		textOut += CONSOLE_BOLD_BLUE "SQL" CONSOLE_RESET;
-	else if (flags & EType::Threads)
+	else if (flags & Threads)
 		textOut += CONSOLE_BOLD_MAGENTA "THREADS" CONSOLE_RESET;
-	else if (flags & EType::Info)
+	else if (flags & Info)
 		textOut += CONSOLE_CYAN "INFO" CONSOLE_RESET;
-	else if (flags & EType::Notice)
+	else if (flags & Notice)
 		textOut += CONSOLE_BOLD_WHITE "NOTICE" CONSOLE_RESET;
-	else if (flags & EType::Warning)
+	else if (flags & Warning)
 		textOut += CONSOLE_BOLD_YELLOW "WARNING" CONSOLE_RESET;
-	else if (flags & EType::Debug)
+	else if (flags & Debug)
 		textOut += CONSOLE_BOLD_CYAN "DEBUG" CONSOLE_RESET;
-	else if (flags & EType::Error)
+	else if (flags & Error)
 		textOut += CONSOLE_RED "ERROR" CONSOLE_RESET;
-	else if (flags & EType::CriticalError)
+	else if (flags & Critical)
 		textOut += CONSOLE_RED "CRITICAL" CONSOLE_RESET;
-	else if (flags & EType::Exception)
+	else if (flags & Except)
 		textOut += CONSOLE_BOLD_RED "EXCEPT" CONSOLE_RESET;
-	else if (flags & EType::Graphics)
+	else if (flags & Graphics)
 		textOut += CONSOLE_BOLD_BLUE "GRAPHICS" CONSOLE_RESET;
 
-	if (!(flags & EType::None))
+	if (!(flags & None))
 	{
 #ifdef __WIN32
 		textOut.resize(CONSOLE_PREFIX_LEN - 1, ' ');
@@ -100,7 +102,7 @@ void CLog::LogText(EType flags, std::string text)
 #endif
 
 		// start with processing
-		Write(textOut, stream);
+		write(textOut, stream);
 	}
 
 	// Make sure there is a linebreak in the end. We don't want duplicates!
@@ -110,10 +112,10 @@ void CLog::LogText(EType flags, std::string text)
 	// Reset after each message
 	text += CONSOLE_RESET "";
 
-	Write(text, stream);
+	write(text, stream);
 }
 
-void CLog::Write(const std::string& text, EStream stream)
+void Logger::write(const std::string& text, EStream stream)
 {
 	if (stream == EStream::STDERR)
 		fwrite(text.c_str(), sizeof(char), text.length(), stderr);

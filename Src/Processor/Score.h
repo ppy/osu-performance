@@ -3,14 +3,14 @@
 #include "Beatmap.h"
 #include "SharedEnums.h"
 
-class CDatabaseConnection;
-class CInsertionBatch;
-class CUpdateBatch;
+class UpdateBatch;
 
-class CScore
+PP_NAMESPACE_BEGIN
+
+class Score
 {
 public:
-	struct SPPRecord
+	struct PPRecord
 	{
 		s64 ScoreId;
 		s32 BeatmapId;
@@ -18,7 +18,7 @@ public:
 		f32 Accuracy;
 	};
 
-	CScore(
+	Score(
 		s64 scoreId,
 		EGamemode mode,
 		s32 userId,
@@ -33,7 +33,7 @@ public:
 		s32 numKatu,
 		EMods mods
 	);
-	~CScore() = default;
+	~Score() = default;
 
 	s32 UserId() const { return _userId; }
 	s32 BeatmapId() const { return _beatmapId; }
@@ -43,9 +43,9 @@ public:
 	virtual s32 TotalHits() const = 0;
 	virtual s32 TotalSuccessfulHits() const = 0;
 
-	void AppendToUpdateBatch(CUpdateBatch& batch) const;
+	void AppendToUpdateBatch(UpdateBatch& batch) const;
 
-	SPPRecord PPRecord() { return SPPRecord{_scoreId, _beatmapId, TotalValue(), Accuracy()}; }
+	PPRecord CreatePPRecord() { return PPRecord{_scoreId, _beatmapId, TotalValue(), Accuracy()}; }
 
 protected:
 	s64 _scoreId;
@@ -65,3 +65,5 @@ protected:
 
 	EMods _mods;
 };
+
+PP_NAMESPACE_END

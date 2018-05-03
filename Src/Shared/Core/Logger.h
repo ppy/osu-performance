@@ -52,34 +52,34 @@
 	#define CONSOLE_BOLD_WHITE     CONSOLE_FMT_ESCAPE"[1;37m"
 #endif
 
-DEFINE_EXCEPTION(CLoggerException);
+DEFINE_EXCEPTION(LoggerException);
 
-class CLog
+enum ELogType : u32
+{
+	None          = 0x00000001,
+	Success       = 0x00000002,
+	SQL           = 0x00000004,
+	Threads       = 0x00000008,
+	Info          = 0x00000010,
+	Notice        = 0x00000020,
+	Warning       = 0x00000040,
+	Debug         = 0x00000080,
+	Error         = 0x00000100,
+	Critical      = 0x00000200,
+	Except        = 0x00000400,
+	Graphics      = 0x00000800,
+};
+
+class Logger
 {
 public:
-	CLog();
-	~CLog();
+	Logger();
+	~Logger();
 
-	enum EType : u32
-	{
-		None          = 0x00000001,
-		Success       = 0x00000002,
-		SQL           = 0x00000004,
-		Threads       = 0x00000008,
-		Info          = 0x00000010,
-		Notice        = 0x00000020,
-		Warning       = 0x00000040,
-		Debug         = 0x00000080,
-		Error         = 0x00000100,
-		CriticalError = 0x00000200,
-		Exception     = 0x00000400,
-		Graphics      = 0x00000800,
-	};
-
-	static std::unique_ptr<CLog> CreateLogger();
+	static std::unique_ptr<Logger> CreateLogger();
 
 	//void log(byte bColor, const char* pcSys, const char* pcFmt, ...);
-	void Log(EType flags, std::string text);
+	void Log(ELogType flags, std::string text);
 
 	enum class EStream : byte
 	{
@@ -88,16 +88,16 @@ public:
 	};
 
 private:
-	std::unique_ptr<CActive> _pActive;
+	std::unique_ptr<Active> _pActive;
 
 	static const size_t s_outputBufferSize = 10000;
 
-	char _outputBufferStdout[CLog::s_outputBufferSize];
-	char _outputBufferStderr[CLog::s_outputBufferSize];
+	char _outputBufferStdout[Logger::s_outputBufferSize];
+	char _outputBufferStderr[Logger::s_outputBufferSize];
 
-	void LogText(EType flags, std::string text);
+	void logText(ELogType flags, std::string text);
 
-	void Write(const std::string& text, EStream Stream);
+	void write(const std::string& text, EStream Stream);
 };
 
-void Log(CLog::EType flags, std::string text);
+void Log(ELogType flags, std::string text);

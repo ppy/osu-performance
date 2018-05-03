@@ -2,22 +2,21 @@
 
 #include "UUID.h"
 
-namespace
-{
-	uint32_t rand32()
-	{
-		// we need to do this, because there is no
-		// gaurantee that RAND_MAX is >= 0xffffffff
-		// in fact, it is LIKELY to be 0x7fffffff
-		const uint32_t r1 = rand() & 0x0ff;
-		const uint32_t r2 = rand() & 0xfff;
-		const uint32_t r3 = rand() & 0xfff;
+PP_NAMESPACE_BEGIN
 
-		return (r3 << 20) | (r2 << 8) | r1;
-	}
+uint32_t rand32()
+{
+	// we need to do this, because there is no
+	// gaurantee that RAND_MAX is >= 0xffffffff
+	// in fact, it is LIKELY to be 0x7fffffff
+	const uint32_t r1 = rand() & 0x0ff;
+	const uint32_t r2 = rand() & 0xfff;
+	const uint32_t r3 = rand() & 0xfff;
+
+	return (r3 << 20) | (r2 << 8) | r1;
 }
 
-CUUID CUUID::V4()
+UUID UUID::V4()
 {
 	static const uint16_t c[] = {
 		0x8000,
@@ -26,7 +25,7 @@ CUUID CUUID::V4()
 		0xb000,
 	};
 
-	CUUID uuid;
+	UUID uuid;
 
 	const uint32_t rand_1 = (rand32() & 0xffffffff);
 	const uint32_t rand_2 = (rand32() & 0xffff0fff) | 0x4000;
@@ -56,7 +55,7 @@ CUUID CUUID::V4()
 	return uuid;
 }
 
-std::string CUUID::ToString()
+std::string UUID::ToString()
 {
 	std::stringstream ss;
 	ss << std::hex;
@@ -66,3 +65,5 @@ std::string CUUID::ToString()
 
 	return ss.str();
 }
+
+PP_NAMESPACE_END

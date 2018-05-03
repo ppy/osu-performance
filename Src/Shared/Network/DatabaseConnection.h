@@ -4,12 +4,12 @@
 
 #include "QueryResult.h"
 
-DEFINE_LOGGED_EXCEPTION(CDatabaseException);
+DEFINE_LOGGED_EXCEPTION(DatabaseException);
 
-class CDatabaseConnection
+class DatabaseConnection
 {
 public:
-	CDatabaseConnection(
+	DatabaseConnection(
 		std::string host,
 		s16 port,
 		std::string username,
@@ -17,17 +17,17 @@ public:
 		std::string database
 	);
 
-	CDatabaseConnection& operator=(const CDatabaseConnection&) = delete;
-	CDatabaseConnection(const CDatabaseConnection&) = delete;
+	DatabaseConnection& operator=(const DatabaseConnection&) = delete;
+	DatabaseConnection(const DatabaseConnection&) = delete;
 
-	CDatabaseConnection& operator=(CDatabaseConnection&& other);
-	CDatabaseConnection(CDatabaseConnection&& other);
+	DatabaseConnection& operator=(DatabaseConnection&& other);
+	DatabaseConnection(DatabaseConnection&& other);
 
-	~CDatabaseConnection();
+	~DatabaseConnection();
 
 	void NonQueryBackground(const std::string& queryString);
 	void NonQuery(const std::string& queryString);
-	CQueryResult Query(const std::string& queryString);
+	QueryResult Query(const std::string& queryString);
 
 	//returns error messages
 	const char* Error();
@@ -35,25 +35,12 @@ public:
 	//returns the number of rows e.g. returned by a SELECT
 	u32 AffectedRows();
 
-	inline void escape(char* dest, char* src)
-	{
-		mysql_real_escape_string(&_mySQL, dest, src, strlen(src));
-	}
-
-	inline s32 get_FieldCount()
-	{
-		return mysql_field_count(&_mySQL);
-	}
-
-	size_t NumPendingQueries()
-	{
-		return _pActive->NumPending();
-	}
+	size_t NumPendingQueries() const { return _pActive->NumPending(); }
 
 private:
 	void connect();
 
-	std::unique_ptr<CActive> _pActive;
+	std::unique_ptr<Active> _pActive;
 	std::recursive_mutex _dbMutex;
 
 	std::string _host;
