@@ -2,30 +2,30 @@
 
 #include "SharedQueue.h"
 
-DEFINE_LOGGED_EXCEPTION(CActiveException);
+DEFINE_LOGGED_EXCEPTION(ActiveException);
 
-class CActive
+class Active
 {
 public:
-	CActive(const CActive&) = delete;
-	CActive& operator=(const CActive&) = delete;
+	Active(const Active&) = delete;
+	Active& operator=(const Active&) = delete;
 
-	virtual ~CActive();
+	virtual ~Active();
 
 	void Send(std::function<void()> callback);
-	static std::unique_ptr<CActive> Create();
+	static std::unique_ptr<Active> Create();
 
 	size_t NumPending() const;
 	bool IsBusy() const;
 
 private:
 	// See Create
-	CActive();
+	Active();
 	void run();
 
 	void send(std::function<void()> callback, bool checkForException);
 
-	CSharedQueue<std::function<void()>> _tasks;
+	SharedQueue<std::function<void()>> _tasks;
 
 	std::thread _thread;
 	std::atomic<bool> _isDone;

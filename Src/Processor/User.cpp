@@ -18,10 +18,10 @@ ForwardIt unique_own(ForwardIt first, ForwardIt last, BinaryPredicate p)
 	return ++result;
 }
 
-void CUser::ComputePPRecord()
+void User::ComputePPRecord()
 {
 	// Eliminate duplicate beatmaps with lower pp
-	std::sort(std::begin(_scores), std::end(_scores), [](const CScore::SPPRecord& a, const CScore::SPPRecord& b)
+	std::sort(std::begin(_scores), std::end(_scores), [](const Score::PPRecord& a, const Score::PPRecord& b)
 	{
 		return a.BeatmapId < b.BeatmapId || (a.BeatmapId == b.BeatmapId && b.Value < a.Value);
 	});
@@ -30,18 +30,18 @@ void CUser::ComputePPRecord()
 		unique_own(
 			_scores.begin(),
 			_scores.end(),
-			[](const CScore::SPPRecord& a, const CScore::SPPRecord& b) { return a.BeatmapId == b.BeatmapId; }
+			[](const Score::PPRecord& a, const Score::PPRecord& b) { return a.BeatmapId == b.BeatmapId; }
 		),
 		_scores.end()
 	);
 
 	// Sort values in descending order
-	std::sort(std::begin(_scores), std::end(_scores), [](const CScore::SPPRecord& a, const CScore::SPPRecord& b)
+	std::sort(std::begin(_scores), std::end(_scores), [](const Score::PPRecord& a, const Score::PPRecord& b)
 	{
 		return b.Value < a.Value;
 	});
 
-	_rating = SPPRecord{};
+	_rating = PPRecord{};
 
 	// Build the diminishing sum
 	f64 factor = 1;
@@ -62,10 +62,10 @@ void CUser::ComputePPRecord()
 		_rating.Accuracy *= 100.0 / (20 * (1 - pow(0.95, _scores.size())));
 }
 
-CScore::SPPRecord CUser::XthBestScorePPRecord(unsigned int i)
+Score::PPRecord User::XthBestScorePPRecord(unsigned int i)
 {
 	if (i >= _scores.size())
-		return CScore::SPPRecord{0, 0, 0, 0};
+		return Score::PPRecord{0, 0, 0, 0};
 
 	return _scores[i];
 }

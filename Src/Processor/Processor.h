@@ -9,15 +9,13 @@
 #include "../Shared/Config.h"
 #include "../Shared/Network/DatabaseConnection.h"
 
-DEFINE_LOGGED_EXCEPTION(CProcessorException);
+DEFINE_LOGGED_EXCEPTION(ProcessorException);
 
-struct SScore;
-
-class CProcessor
+class Processor
 {
 public:
-	CProcessor(EGamemode gamemode, const std::string& configFile);
-	~CProcessor();
+	Processor(EGamemode gamemode, const std::string& configFile);
+	~Processor();
 
 	static const std::string& GamemodeSuffix(EGamemode gamemode)
 	{
@@ -44,8 +42,8 @@ private:
 	static const std::array<const std::string, NumGamemodes> s_gamemodeNames;
 	static const std::array<const std::string, NumGamemodes> s_gamemodeTags;
 
-	static const CBeatmap::ERankedStatus s_minRankedStatus = CBeatmap::ERankedStatus::Ranked;
-	static const CBeatmap::ERankedStatus s_maxRankedStatus = CBeatmap::ERankedStatus::Approved;
+	static const Beatmap::ERankedStatus s_minRankedStatus = Beatmap::ERankedStatus::Ranked;
+	static const Beatmap::ERankedStatus s_maxRankedStatus = Beatmap::ERankedStatus::Approved;
 
 	std::string lastScoreIdKey()
 	{
@@ -57,22 +55,22 @@ private:
 		return StrFormat("pp_last_user_id{0}", GamemodeSuffix(_gamemode));
 	}
 
-	CConfig _config;
+	Config _config;
 
-	std::shared_ptr<CDatabaseConnection> newDBConnectionMaster();
-	std::shared_ptr<CDatabaseConnection> newDBConnectionSlave();
+	std::shared_ptr<DatabaseConnection> newDBConnectionMaster();
+	std::shared_ptr<DatabaseConnection> newDBConnectionSlave();
 
 	// Difficulty data is held in RAM.
 	// A few hundred megabytes.
 	// Stored inside a hashmap with the beatmap ID as key
-	std::unordered_map<s32, CBeatmap> _beatmaps;
+	std::unordered_map<s32, Beatmap> _beatmaps;
 	std::string _lastApprovedDate;
 
 	void queryBeatmapDifficulty();
 	bool queryBeatmapDifficulty(s32 startId, s32 endId = 0);
 
-	std::shared_ptr<CDatabaseConnection> _pDB;
-	std::shared_ptr<CDatabaseConnection> _pDBSlave;
+	std::shared_ptr<DatabaseConnection> _pDB;
+	std::shared_ptr<DatabaseConnection> _pDBSlave;
 
 	std::chrono::steady_clock::time_point _lastScorePollTime;
 	std::chrono::steady_clock::time_point _lastBeatmapSetPollTime;
@@ -85,35 +83,35 @@ private:
 	std::unordered_set<s32> _blacklistedBeatmapIds;
 	void queryBeatmapBlacklist();
 
-	std::vector<CBeatmap::EDifficultyAttributeType> _difficultyAttributes;
+	std::vector<Beatmap::EDifficultyAttributeType> _difficultyAttributes;
 	void queryBeatmapDifficultyAttributes();
 
 	// Not thread safe with beatmap data!
-	CUser processSingleUser(
+	User processSingleUser(
 		s64 selectedScoreId, // If this is not 0, then the score is looked at in isolation, triggering a notable event if it's good enough
-		CDatabaseConnection& db,
-		CUpdateBatch& newUsers,
-		CUpdateBatch& newScores,
+		DatabaseConnection& db,
+		UpdateBatch& newUsers,
+		UpdateBatch& newScores,
 		s64 userId
 	);
 
 	template <class TScore>
-	CUser processSingleUserGeneric(
+	User processSingleUserGeneric(
 		s64 selectedScoreId, // If this is not 0, then the score is looked at in isolation, triggering a notable event if it's good enough
-		CDatabaseConnection& db,
-		CUpdateBatch& newUsers,
-		CUpdateBatch& newScores,
+		DatabaseConnection& db,
+		UpdateBatch& newUsers,
+		UpdateBatch& newScores,
 		s64 userId
 	);
 
-	void storeCount(CDatabaseConnection& db, std::string key, s64 value);
-	s64 retrieveCount(CDatabaseConnection& db, std::string key);
+	void storeCount(DatabaseConnection& db, std::string key, s64 value);
+	s64 retrieveCount(DatabaseConnection& db, std::string key);
 
 	EGamemode _gamemode;
 
-	CRWMutex _beatmapMutex;
+	RWMutex _beatmapMutex;
 	bool _shallShutdown = false;
 
 	CCURL _curl;
-	CDDog _dataDog;
+	DDog _dataDog;
 };

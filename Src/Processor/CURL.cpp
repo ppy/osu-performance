@@ -83,7 +83,7 @@ void CCURL::SendToSentry(
 	s32 projectID,
 	std::string publicKey,
 	std::string secretKey,
-	CException& e,
+	class Exception& e,
 	std::string mode,
 	bool warning)
 {
@@ -106,7 +106,7 @@ void CCURL::SendToSentry(
 				"line":"{5}"
 			}
 		})",
-		CUUID::V4().ToString(),
+		UUID::V4().ToString(),
 		e.Description(),
 		warning ? "warning" : "error",
 		mode,

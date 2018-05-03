@@ -2,10 +2,10 @@
 
 #include "Score.h"
 
-class CCatchTheBeatScore : public CScore
+class CatchTheBeatScore : public Score
 {
 public:
-	CCatchTheBeatScore(
+	CatchTheBeatScore(
 		s64 scoreId,
 		EGamemode mode,
 		s32 userId,
@@ -19,7 +19,7 @@ public:
 		s32 numGeki,
 		s32 numKatu,
 		EMods mods,
-		const CBeatmap& beatmap
+		const Beatmap& beatmap
 	);
 
 	f32 TotalValue() const override;

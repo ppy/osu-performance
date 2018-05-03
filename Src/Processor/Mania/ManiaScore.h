@@ -2,10 +2,10 @@
 
 #include "Score.h"
 
-class CManiaScore : public CScore
+class ManiaScore : public Score
 {
 public:
-	CManiaScore(
+	ManiaScore(
 		s64 scoreId,
 		EGamemode mode,
 		s32 userId,
@@ -19,7 +19,7 @@ public:
 		s32 numGeki,
 		s32 numKatu,
 		EMods mods,
-		const CBeatmap& beatmap
+		const Beatmap& beatmap
 	);
 
 	f32 TotalValue() const override;
@@ -31,8 +31,8 @@ private:
 	void computeTotalValue();
 	f32 _totalValue;
 
-	void computeStrainValue(const CBeatmap& beatmap);
-	void computeAccValue(const CBeatmap& beatmap);
+	void computeStrainValue(const Beatmap& beatmap);
+	void computeAccValue(const Beatmap& beatmap);
 
 	f32 _strainValue;
 	f32 _accValue;

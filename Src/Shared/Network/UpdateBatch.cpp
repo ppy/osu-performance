@@ -3,25 +3,25 @@
 #include "DatabaseConnection.h"
 #include "UpdateBatch.h"
 
-CUpdateBatch::CUpdateBatch(std::shared_ptr<CDatabaseConnection> pDB, u32 sizeThreshold)
+UpdateBatch::UpdateBatch(std::shared_ptr<DatabaseConnection> pDB, u32 sizeThreshold)
 : _pDB{std::move(pDB)}, _sizeThreshold{sizeThreshold}
 {
 	reset();
 }
 
-CUpdateBatch::~CUpdateBatch()
+UpdateBatch::~UpdateBatch()
 {
 	// If we are not empty we want to commit what's left in here
 	if (!_empty)
 		execute();
 }
 
-CUpdateBatch::CUpdateBatch(CUpdateBatch&& other)
+UpdateBatch::UpdateBatch(UpdateBatch&& other)
 {
 	*this = std::move(other);
 }
 
-CUpdateBatch& CUpdateBatch::operator=(CUpdateBatch&& other)
+UpdateBatch& UpdateBatch::operator=(UpdateBatch&& other)
 {
 	std::lock_guard<std::mutex> otherLock{other._batchMutex};
 	std::lock_guard<std::mutex> lock{_batchMutex};
@@ -34,13 +34,13 @@ CUpdateBatch& CUpdateBatch::operator=(CUpdateBatch&& other)
 	return *this;
 }
 
-void CUpdateBatch::AppendAndCommit(const std::string& values)
+void UpdateBatch::AppendAndCommit(const std::string& values)
 {
 	std::lock_guard<std::mutex> lock{_batchMutex};
 	AppendAndCommitNonThreadsafe(values);
 }
 
-void CUpdateBatch::AppendAndCommitNonThreadsafe(const std::string& values)
+void UpdateBatch::AppendAndCommitNonThreadsafe(const std::string& values)
 {
 	append(values);
 
@@ -51,19 +51,19 @@ void CUpdateBatch::AppendAndCommitNonThreadsafe(const std::string& values)
 	}
 }
 
-void CUpdateBatch::reset()
+void UpdateBatch::reset()
 {
 	_query = "";//"START TRANSACTION;";
 	_empty = true;
 }
 
-const std::string& CUpdateBatch::query()
+const std::string& UpdateBatch::query()
 {
 	//m_Query += "COMMIT;";
 	return _query;
 }
 
-void CUpdateBatch::execute()
+void UpdateBatch::execute()
 {
 	_pDB->NonQueryBackground(query());
 

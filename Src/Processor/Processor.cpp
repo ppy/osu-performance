@@ -11,7 +11,7 @@
 
 using namespace std::chrono;
 
-const std::array<const std::string, NumGamemodes> CProcessor::s_gamemodeSuffixes =
+const std::array<const std::string, NumGamemodes> Processor::s_gamemodeSuffixes =
 {
 	"",
 	"_taiko",
@@ -19,7 +19,7 @@ const std::array<const std::string, NumGamemodes> CProcessor::s_gamemodeSuffixes
 	"_mania",
 };
 
-const std::array<const std::string, NumGamemodes> CProcessor::s_gamemodeNames =
+const std::array<const std::string, NumGamemodes> Processor::s_gamemodeNames =
 {
 	"osu!",
 	"Taiko",
@@ -27,7 +27,7 @@ const std::array<const std::string, NumGamemodes> CProcessor::s_gamemodeNames =
 	"osu!mania",
 };
 
-const std::array<const std::string, NumGamemodes> CProcessor::s_gamemodeTags =
+const std::array<const std::string, NumGamemodes> Processor::s_gamemodeTags =
 {
 	"osu",
 	"taiko",
@@ -35,7 +35,7 @@ const std::array<const std::string, NumGamemodes> CProcessor::s_gamemodeTags =
 	"osu_mania",
 };
 
-CProcessor::CProcessor(EGamemode gamemode, const std::string& configFile)
+Processor::Processor(EGamemode gamemode, const std::string& configFile)
 : _gamemode{gamemode}, _config{configFile}, _dataDog{"127.0.0.1", 8125}
 {
 	Log(None,           "---------------------------------------------------");
@@ -52,12 +52,12 @@ CProcessor::CProcessor(EGamemode gamemode, const std::string& configFile)
 	queryBeatmapDifficulty();
 }
 
-CProcessor::~CProcessor()
+Processor::~Processor()
 {
 	Log(Info, "Shutting down.");
 }
 
-void CProcessor::MonitorNewScores()
+void Processor::MonitorNewScores()
 {
 	_lastScorePollTime = steady_clock::now();
 	_lastBeatmapSetPollTime = steady_clock::now();
@@ -67,7 +67,7 @@ void CProcessor::MonitorNewScores()
 	auto res = _pDBSlave->Query("SELECT MAX(`approved_date`) FROM `osu_beatmapsets` WHERE 1");
 
 	if (!res.NextRow())
-		throw CProcessorException(SRC_POS, "Couldn't find maximum approved date.");
+		throw ProcessorException(SRC_POS, "Couldn't find maximum approved date.");
 
 	_lastApprovedDate = res.String(0);
 
@@ -97,12 +97,12 @@ void CProcessor::MonitorNewScores()
 	beatmapPollThread.join();
 }
 
-void CProcessor::ProcessAllUsers(bool reProcess, u32 numThreads)
+void Processor::ProcessAllUsers(bool reProcess, u32 numThreads)
 {
-	CThreadPool threadPool{numThreads};
-	std::vector<std::shared_ptr<CDatabaseConnection>> databaseConnections;
-	std::vector<CUpdateBatch> newUsersBatches;
-	std::vector<CUpdateBatch> newScoresBatches;
+	ThreadPool threadPool{numThreads};
+	std::vector<std::shared_ptr<DatabaseConnection>> databaseConnections;
+	std::vector<UpdateBatch> newUsersBatches;
+	std::vector<UpdateBatch> newScoresBatches;
 
 	for (int i = 0; i < numThreads; ++i)
 	{
@@ -137,7 +137,7 @@ void CProcessor::ProcessAllUsers(bool reProcess, u32 numThreads)
 	));
 
 	if (!res.NextRow())
-		throw CProcessorException(SRC_POS, "Couldn't find maximum user ID.");
+		throw ProcessorException(SRC_POS, "Couldn't find maximum user ID.");
 
 	const s64 maxUserId = res.S64(0);
 
@@ -206,7 +206,7 @@ void CProcessor::ProcessAllUsers(bool reProcess, u32 numThreads)
 	}
 }
 
-void CProcessor::ProcessUsers(const std::vector<std::string>& userNames)
+void Processor::ProcessUsers(const std::vector<std::string>& userNames)
 {
 	std::vector<s64> userIds;
 	for (const auto& name : userNames)
@@ -223,12 +223,12 @@ void CProcessor::ProcessUsers(const std::vector<std::string>& userNames)
 	ProcessUsers(userIds);
 }
 
-void CProcessor::ProcessUsers(const std::vector<s64>& userIds)
+void Processor::ProcessUsers(const std::vector<s64>& userIds)
 {
-	CUpdateBatch newUsers{_pDB, 10000};
-	CUpdateBatch newScores{_pDB, 10000};
+	UpdateBatch newUsers{_pDB, 10000};
+	UpdateBatch newScores{_pDB, 10000};
 
-	std::vector<CUser> users;
+	std::vector<User> users;
 	for (s64 userId : userIds)
 	{
 		users.emplace_back(processSingleUser(
@@ -240,9 +240,9 @@ void CProcessor::ProcessUsers(const std::vector<s64>& userIds)
 		));
 	}
 
-	std::sort(std::begin(users), std::end(users), [](const CUser& a, const CUser& b) {
-		if (a.PPRecord().Value != b.PPRecord().Value)
-			return a.PPRecord().Value > b.PPRecord().Value;
+	std::sort(std::begin(users), std::end(users), [](const User& a, const User& b) {
+		if (a.GetPPRecord().Value != b.GetPPRecord().Value)
+			return a.GetPPRecord().Value > b.GetPPRecord().Value;
 
 		return a.Id() > b.Id();
 	});
@@ -254,14 +254,14 @@ void CProcessor::ProcessUsers(const std::vector<s64>& userIds)
 	Log(Info, "----------------------------");
 
 	for (const auto& user : users)
-		Log(Info, StrFormat("{0w10ar}  {1w5ar}pp  {2w6arp2}%", user.Id(), (s32)user.PPRecord().Value, user.PPRecord().Accuracy));
+		Log(Info, StrFormat("{0w10ar}  {1w5ar}pp  {2w6arp2}%", user.Id(), (s32)user.GetPPRecord().Value, user.GetPPRecord().Accuracy));
 
 	Log(Info, "=============================");
 }
 
-std::shared_ptr<CDatabaseConnection> CProcessor::newDBConnectionMaster()
+std::shared_ptr<DatabaseConnection> Processor::newDBConnectionMaster()
 {
-	return std::make_shared<CDatabaseConnection>(
+	return std::make_shared<DatabaseConnection>(
 		_config.MySQL_db_host,
 		_config.MySQL_db_port,
 		_config.MySQL_db_username,
@@ -270,9 +270,9 @@ std::shared_ptr<CDatabaseConnection> CProcessor::newDBConnectionMaster()
 	);
 }
 
-std::shared_ptr<CDatabaseConnection> CProcessor::newDBConnectionSlave()
+std::shared_ptr<DatabaseConnection> Processor::newDBConnectionSlave()
 {
-	return std::make_shared<CDatabaseConnection>(
+	return std::make_shared<DatabaseConnection>(
 		_config.MySQL_db_slave_host,
 		_config.MySQL_db_slave_port,
 		_config.MySQL_db_slave_username,
@@ -281,7 +281,7 @@ std::shared_ptr<CDatabaseConnection> CProcessor::newDBConnectionSlave()
 	);
 }
 
-void CProcessor::queryBeatmapDifficulty()
+void Processor::queryBeatmapDifficulty()
 {
 	static const s32 step = 10000;
 
@@ -297,7 +297,7 @@ void CProcessor::queryBeatmapDifficulty()
 	Log(Success, StrFormat("Loaded difficulties for a total of {0} beatmaps.", _beatmaps.size()));
 }
 
-bool CProcessor::queryBeatmapDifficulty(s32 startId, s32 endId)
+bool Processor::queryBeatmapDifficulty(s32 startId, s32 endId)
 {
 	static thread_local auto pDBSlave = newDBConnectionSlave();
 
@@ -318,7 +318,7 @@ bool CProcessor::queryBeatmapDifficulty(s32 startId, s32 endId)
 
 	bool success = res.NumRows() != 0;
 
-	CRWLock lock{&_beatmapMutex, success};
+	RWLock lock{&_beatmapMutex, success};
 
 	while (res.NextRow())
 	{
@@ -329,8 +329,8 @@ bool CProcessor::queryBeatmapDifficulty(s32 startId, s32 endId)
 
 		auto& beatmap = _beatmaps.at(id);
 
-		beatmap.SetRankedStatus(static_cast<CBeatmap::ERankedStatus>(res.S32(5)));
-		beatmap.SetScoreVersion(static_cast<CBeatmap::EScoreVersion>(res.S32(6)));
+		beatmap.SetRankedStatus(static_cast<Beatmap::ERankedStatus>(res.S32(5)));
+		beatmap.SetScoreVersion(static_cast<Beatmap::EScoreVersion>(res.S32(6)));
 		beatmap.SetNumHitCircles(res.IsNull(1) ? 0 : res.S32(1));
 		beatmap.SetDifficultyAttribute(
 			static_cast<EMods>(res.U32(2)),
@@ -351,7 +351,7 @@ bool CProcessor::queryBeatmapDifficulty(s32 startId, s32 endId)
 		Log(Warning, message.c_str());
 		_dataDog.Increment("osu.pp.difficulty.retrieval_not_found", 1, {StrFormat("mode:{0}", GamemodeTag(_gamemode))});
 
-		/*CProcessorException e{SRC_POS, message};
+		/*ProcessorException e{SRC_POS, message};
 		m_CURL.SendToSentry(
 			m_Config.SentryDomain,
 			m_Config.SentryProjectID,
@@ -372,12 +372,12 @@ bool CProcessor::queryBeatmapDifficulty(s32 startId, s32 endId)
 	return success;
 }
 
-void CProcessor::pollAndProcessNewScores()
+void Processor::pollAndProcessNewScores()
 {
 	static const s64 s_lastScoreIdUpdateStep = 100;
 
-	CUpdateBatch newUsers{_pDB, 0};  // We want the updates to occur immediately
-	CUpdateBatch newScores{_pDB, 0}; // batches are used to conform the interface of processSingleUser
+	UpdateBatch newUsers{_pDB, 0};  // We want the updates to occur immediately
+	UpdateBatch newScores{_pDB, 0}; // batches are used to conform the interface of processSingleUser
 
 	// Obtain all new scores since the last poll and process them
 	auto res = _pDBSlave->Query(StrFormat(
@@ -427,7 +427,7 @@ void CProcessor::pollAndProcessNewScores()
 	}
 }
 
-void CProcessor::pollAndProcessNewBeatmapSets()
+void Processor::pollAndProcessNewBeatmapSets()
 {
 	static thread_local auto pDBSlave = newDBConnectionSlave();
 
@@ -454,7 +454,7 @@ void CProcessor::pollAndProcessNewBeatmapSets()
 	}
 }
 
-void CProcessor::queryBeatmapBlacklist()
+void Processor::queryBeatmapBlacklist()
 {
 	Log(Info, "Retrieving blacklisted beatmaps.");
 
@@ -470,7 +470,7 @@ void CProcessor::queryBeatmapBlacklist()
 	Log(Success, StrFormat("Retrieved {0} blacklisted beatmaps.", _blacklistedBeatmapIds.size()));
 }
 
-void CProcessor::queryBeatmapDifficultyAttributes()
+void Processor::queryBeatmapDifficultyAttributes()
 {
 	Log(Info, "Retrieving difficulty attribute names.");
 
@@ -483,52 +483,52 @@ void CProcessor::queryBeatmapDifficultyAttributes()
 		if (_difficultyAttributes.size() < id + 1)
 			_difficultyAttributes.resize(id + 1);
 
-		_difficultyAttributes[id] = CBeatmap::DifficultyAttributeFromName(res.String(1));
+		_difficultyAttributes[id] = Beatmap::DifficultyAttributeFromName(res.String(1));
 		++numEntries;
 	}
 
 	Log(Success, StrFormat("Retrieved {0} difficulty attributes, stored in {1} entries.", numEntries, _difficultyAttributes.size()));
 }
 
-CUser CProcessor::processSingleUser(
+User Processor::processSingleUser(
 	s64 selectedScoreId,
-	CDatabaseConnection& db,
-	CUpdateBatch& newUsers,
-	CUpdateBatch& newScores,
+	DatabaseConnection& db,
+	UpdateBatch& newUsers,
+	UpdateBatch& newScores,
 	s64 userId
 )
 {
 	switch (_gamemode)
 	{
 	case EGamemode::Standard:
-		return processSingleUserGeneric<CStandardScore>(selectedScoreId, db, newUsers, newScores, userId);
+		return processSingleUserGeneric<StandardScore>(selectedScoreId, db, newUsers, newScores, userId);
 
 	case EGamemode::Taiko:
-		return processSingleUserGeneric<CTaikoScore>(selectedScoreId, db, newUsers, newScores, userId);
+		return processSingleUserGeneric<TaikoScore>(selectedScoreId, db, newUsers, newScores, userId);
 
 	case EGamemode::CatchTheBeat:
-		return processSingleUserGeneric<CCatchTheBeatScore>(selectedScoreId, db, newUsers, newScores, userId);
+		return processSingleUserGeneric<CatchTheBeatScore>(selectedScoreId, db, newUsers, newScores, userId);
 
 	case EGamemode::Mania:
-		return processSingleUserGeneric<CManiaScore>(selectedScoreId, db, newUsers, newScores, userId);
+		return processSingleUserGeneric<ManiaScore>(selectedScoreId, db, newUsers, newScores, userId);
 
 	default:
-		throw CProcessorException(SRC_POS, StrFormat("Unknown gamemode requested. ({0})", _gamemode));
+		throw ProcessorException(SRC_POS, StrFormat("Unknown gamemode requested. ({0})", _gamemode));
 	}
 }
 
 template <class TScore>
-CUser CProcessor::processSingleUserGeneric(
+User Processor::processSingleUserGeneric(
 	s64 selectedScoreId,
-	CDatabaseConnection& db,
-	CUpdateBatch& newUsers,
-	CUpdateBatch& newScores,
+	DatabaseConnection& db,
+	UpdateBatch& newUsers,
+	UpdateBatch& newScores,
 	s64 userId
 )
 {
-	static thread_local std::shared_ptr<CDatabaseConnection> pDBSlave = newDBConnectionSlave();
+	static thread_local std::shared_ptr<DatabaseConnection> pDBSlave = newDBConnectionSlave();
 
-	CDatabaseConnection& dbSlave = *pDBSlave;
+	DatabaseConnection& dbSlave = *pDBSlave;
 
 	static const f32 s_notableEventRatingThreshold = 1.0f / 21.5f;
 	static const f32 s_notableEventRatingDifferenceMinimum = 5.0f;
@@ -552,11 +552,11 @@ CUser CProcessor::processSingleUserGeneric(
 		"WHERE `user_id`={1}", GamemodeSuffix(_gamemode), userId
 	));
 
-	CUser user{userId};
+	User user{userId};
 	std::vector<TScore> scoresThatNeedDBUpdate;
 
 	{
-		CRWLock lock{&_beatmapMutex, false};
+		RWLock lock{&_beatmapMutex, false};
 
 		// Process the data we got
 		while (res.NextRow())
@@ -606,7 +606,7 @@ CUser CProcessor::processSingleUserGeneric(
 				_beatmaps.at(beatmapId),
 			};
 
-			user.AddScorePPRecord(score.PPRecord());
+			user.AddScorePPRecord(score.CreatePPRecord());
 
 			if (res.IsNull(12) || selectedScoreId == 0 || selectedScoreId == scoreId)
 			{
@@ -628,7 +628,7 @@ CUser CProcessor::processSingleUserGeneric(
 	_dataDog.Increment("osu.pp.score.updated", scoresThatNeedDBUpdate.size(), {StrFormat("mode:{0}", GamemodeTag(_gamemode))}, 0.01f);
 
 	user.ComputePPRecord();
-	CUser::SPPRecord userPPRecord = user.PPRecord();
+	auto userPPRecord = user.GetPPRecord();
 
 	// Check for notable event
 	if (selectedScoreId > 0 && // We only check for notable events if a score has been selected
@@ -693,7 +693,7 @@ CUser CProcessor::processSingleUserGeneric(
 	return user;
 }
 
-void CProcessor::storeCount(CDatabaseConnection& db, std::string key, s64 value)
+void Processor::storeCount(DatabaseConnection& db, std::string key, s64 value)
 {
 	db.NonQueryBackground(StrFormat(
 		"INSERT INTO `osu_counts`(`name`,`count`) VALUES('{0}',{1}) "
@@ -702,7 +702,7 @@ void CProcessor::storeCount(CDatabaseConnection& db, std::string key, s64 value)
 	));
 }
 
-s64 CProcessor::retrieveCount(CDatabaseConnection& db, std::string key)
+s64 Processor::retrieveCount(DatabaseConnection& db, std::string key)
 {
 	auto res = db.Query(StrFormat(
 		"SELECT `count` FROM `osu_counts` WHERE `name`='{0}'", key

@@ -2,7 +2,7 @@
 
 #include "Config.h"
 
-CConfig::CConfig(const std::string& filename)
+Config::Config(const std::string& filename)
 {
 #define MACRO_CONFIG_INT( name, def, min, max, desc ) name = def;
 #define MACRO_CONFIG_FLOAT( name, def, min, max, desc ) name = def;
@@ -24,13 +24,13 @@ s32 config_switch(const char* str)
 	return (s32)strtol(str, nullptr, 0);
 }
 
-void CConfig::ReadFromFile(const char* filename)
+void Config::ReadFromFile(const char* filename)
 {
 	// Has to use non-filesystem based opening funcs.
 	FILE* pFile = fopen(filename, "rb");
 
 	if (pFile == NULL)
-		throw CConfigException(SRC_POS, StrFormat("Config file '{0}' could not be opened.", filename));
+		throw ConfigException(SRC_POS, StrFormat("Config file '{0}' could not be opened.", filename));
 
 	// Find file size
 	fseek(pFile, 0, SEEK_END);
@@ -41,7 +41,7 @@ void CConfig::ReadFromFile(const char* filename)
 
 	size_t NumBytesRead = fread(buffer, sizeof(char), Size, pFile);
 	if (NumBytesRead != Size)
-		throw CConfigException(SRC_POS, StrFormat("Config file '{0}' could not be fully read. (read {1} of {2} bytes)", filename, NumBytesRead, Size));
+		throw ConfigException(SRC_POS, StrFormat("Config file '{0}' could not be fully read. (read {1} of {2} bytes)", filename, NumBytesRead, Size));
 
 	// No need for the file anymore
 	fclose(pFile);
@@ -172,7 +172,7 @@ void CConfig::ReadFromFile(const char* filename)
 	delete[] buffer;
 }
 
-void CConfig::WriteToFile(const char* Filename)
+void Config::WriteToFile(const char* Filename)
 {
 	// TODO: implement
 }

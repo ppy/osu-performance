@@ -1,7 +1,7 @@
 #include <Shared.h>
 #include "Threading.h"
 
-void CPriorityMutex::LockLowPrio()
+void PriorityMutex::LockLowPrio()
 {
 	L.lock();
 	N.lock();
@@ -9,36 +9,36 @@ void CPriorityMutex::LockLowPrio()
 	N.unlock();
 }
 
-void CPriorityMutex::UnlockLowPrio()
+void PriorityMutex::UnlockLowPrio()
 {
 	M.unlock();
 	L.unlock();
 }
 
-void CPriorityMutex::LockHighPrio()
+void PriorityMutex::LockHighPrio()
 {
 	N.lock();
 	M.lock();
 	N.unlock();
 }
 
-void CPriorityMutex::UnlockHighPrio()
+void PriorityMutex::UnlockHighPrio()
 {
 	M.unlock();
 }
 
-CPriorityLock::CPriorityLock(CPriorityMutex* pPriorityMutex, bool isHighPriority)
+PriorityLock::PriorityLock(PriorityMutex* pPriorityMutex, bool isHighPriority)
 : _pPriorityMutex{pPriorityMutex}, _isHighPriority{isHighPriority}, _isLocked{false}
 {
 	Lock();
 }
 
-CPriorityLock::~CPriorityLock()
+PriorityLock::~PriorityLock()
 {
 	Unlock();
 }
 
-void CPriorityLock::Lock()
+void PriorityLock::Lock()
 {
 	if (_isLocked)
 		return;
@@ -51,7 +51,7 @@ void CPriorityLock::Lock()
 	_isLocked = true;
 }
 
-void CPriorityLock::Unlock()
+void PriorityLock::Unlock()
 {
 	if (!_isLocked)
 		return;
@@ -64,18 +64,18 @@ void CPriorityLock::Unlock()
 	_isLocked = false;
 }
 
-CRWLock::CRWLock(CRWMutex* pRWMutex, bool isWriter)
+RWLock::RWLock(RWMutex* pRWMutex, bool isWriter)
 	: _pRWMutex{pRWMutex}, _isWriter{isWriter}, _isLocked{false}
 {
 	Lock();
 }
 
-CRWLock::~CRWLock()
+RWLock::~RWLock()
 {
 	Unlock();
 }
 
-void CRWLock::Lock()
+void RWLock::Lock()
 {
 	if (_isLocked)
 		return;
@@ -88,7 +88,7 @@ void CRWLock::Lock()
 	_isLocked = true;
 }
 
-void CRWLock::Unlock()
+void RWLock::Unlock()
 {
 	if (!_isLocked)
 		return;
@@ -101,23 +101,23 @@ void CRWLock::Unlock()
 	_isLocked = false;
 }
 
-CThreadPool::CThreadPool()
-: CThreadPool{0}
+ThreadPool::ThreadPool()
+: ThreadPool{0}
 {
 }
 
-CThreadPool::CThreadPool(const u32 numThreads)
+ThreadPool::ThreadPool(const u32 numThreads)
 {
 	StartThreads(numThreads);
 }
 
-CThreadPool::~CThreadPool()
+ThreadPool::~ThreadPool()
 {
 	ShutdownThreads((u32)_threads.size());
 	Log(Threads, "All threads terminated.");
 }
 
-void CThreadPool::StartThreads(const u32 num)
+void ThreadPool::StartThreads(const u32 num)
 {
 	_numThreads += num;
 	for (u32 i = (u32)_threads.size(); i < _numThreads; ++i)
@@ -152,7 +152,7 @@ void CThreadPool::StartThreads(const u32 num)
 				{
 					task();
 				}
-				catch (CLoggedException& e)
+				catch (const LoggedException& e)
 				{
 					e.Log();
 				}
@@ -172,7 +172,7 @@ void CThreadPool::StartThreads(const u32 num)
 	}
 }
 
-void CThreadPool::ShutdownThreads(const u32 num)
+void ThreadPool::ShutdownThreads(const u32 num)
 {
 	auto numToClose = std::min(num, _numThreads);
 
@@ -193,7 +193,7 @@ void CThreadPool::ShutdownThreads(const u32 num)
 	}
 }
 
-void CThreadPool::WaitUntilFinished()
+void ThreadPool::WaitUntilFinished()
 {
 	std::unique_lock<std::mutex> lock{_systemBusyMutex};
 
@@ -203,7 +203,7 @@ void CThreadPool::WaitUntilFinished()
 	_systemBusyCondition.wait(lock);
 }
 
-void CThreadPool::WaitUntilFinishedFor(const std::chrono::microseconds Duration)
+void ThreadPool::WaitUntilFinishedFor(const std::chrono::microseconds Duration)
 {
 	std::unique_lock<std::mutex> lock{_systemBusyMutex};
 
@@ -213,7 +213,7 @@ void CThreadPool::WaitUntilFinishedFor(const std::chrono::microseconds Duration)
 	_systemBusyCondition.wait_for(lock, Duration);
 }
 
-void CThreadPool::FlushQueue()
+void ThreadPool::FlushQueue()
 {
 	std::lock_guard<std::mutex> lock{_taskQueueMutex};
 

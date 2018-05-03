@@ -1,9 +1,9 @@
 #pragma once
 
-class CDDog
+class DDog
 {
 public:
-	CDDog(std::string host, s16 port);
+	DDog(std::string host, s16 port);
 
 	void Increment(std::string metric, s64 amount = 1, std::vector<std::string> tags = {}, f32 sampleRate = 1);
 	void Decrement(std::string metric, s64 amount = 1, std::vector<std::string> tags = {}, f32 sampleRate = 1);

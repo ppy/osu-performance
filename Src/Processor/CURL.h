@@ -22,7 +22,7 @@ public:
 		s32 projectID,
 		std::string publicKey,
 		std::string secretKey,
-		CException& e,
+		class Exception& e,
 		std::string mode,
 		bool warning = false
 	);

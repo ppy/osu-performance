@@ -19,7 +19,7 @@ EGamemode StringToGamemode(const std::string& modeString)
 	else if (modeString == "mania")
 		mode = Mania;
 	else
-		throw CLoggedException(SRC_POS, StrFormat("Invalid mode '{0}'", modeString));
+		throw LoggedException(SRC_POS, StrFormat("Invalid mode '{0}'", modeString));
 
 	return mode;
 }
@@ -74,7 +74,7 @@ int main(s32 argc, char* argv[])
 		args::Command newCommand(commands, "new", "Continually poll for new scores and compute pp of these", [&](args::Subparser& parser)
 		{
 			parser.Parse();
-			CProcessor processor{StringToGamemode(args::get(modePositional)), args::get(configFlag)};
+			Processor processor{StringToGamemode(args::get(modePositional)), args::get(configFlag)};
 			processor.MonitorNewScores();
 		});
 
@@ -101,7 +101,7 @@ int main(s32 argc, char* argv[])
 
 			u32 numThreads = args::get(threadsFlag);
 
-			CProcessor processor{StringToGamemode(args::get(modePositional)), args::get(configFlag)};
+			Processor processor{StringToGamemode(args::get(modePositional)), args::get(configFlag)};
 			processor.ProcessAllUsers(!continueFlag, numThreads);
 		});
 
@@ -116,7 +116,7 @@ int main(s32 argc, char* argv[])
 			parser.Parse();
 
 			std::vector<std::string> userNames = args::get(usersPositional);
-			CProcessor processor{StringToGamemode(args::get(modePositional)), args::get(configFlag)};
+			Processor processor{StringToGamemode(args::get(modePositional)), args::get(configFlag)};
 			processor.ProcessUsers(args::get(usersPositional));
 		});
 
@@ -159,12 +159,12 @@ int main(s32 argc, char* argv[])
 		auto modeString = arguments[1];
 		auto targetString = arguments[2];
 	}
-	catch (CLoggedException& e)
+	catch (const LoggedException& e)
 	{
 		e.Log();
 		return 1;
 	}
-	catch (CException& e)
+	catch (const class Exception& e)
 	{
 		e.Print();
 		return 1;

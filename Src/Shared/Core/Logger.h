@@ -52,7 +52,7 @@
 	#define CONSOLE_BOLD_WHITE     CONSOLE_FMT_ESCAPE"[1;37m"
 #endif
 
-DEFINE_EXCEPTION(CLoggerException);
+DEFINE_EXCEPTION(LoggerException);
 
 enum ELogType : u32
 {
@@ -70,13 +70,13 @@ enum ELogType : u32
 	Graphics      = 0x00000800,
 };
 
-class CLog
+class Logger
 {
 public:
-	CLog();
-	~CLog();
+	Logger();
+	~Logger();
 
-	static std::unique_ptr<CLog> CreateLogger();
+	static std::unique_ptr<Logger> CreateLogger();
 
 	//void log(byte bColor, const char* pcSys, const char* pcFmt, ...);
 	void Log(ELogType flags, std::string text);
@@ -88,12 +88,12 @@ public:
 	};
 
 private:
-	std::unique_ptr<CActive> _pActive;
+	std::unique_ptr<Active> _pActive;
 
 	static const size_t s_outputBufferSize = 10000;
 
-	char _outputBufferStdout[CLog::s_outputBufferSize];
-	char _outputBufferStderr[CLog::s_outputBufferSize];
+	char _outputBufferStdout[Logger::s_outputBufferSize];
+	char _outputBufferStderr[Logger::s_outputBufferSize];
 
 	void logText(ELogType flags, std::string text);
 

@@ -1,12 +1,12 @@
 #pragma once
 
-DEFINE_LOGGED_EXCEPTION(CConfigException);
+DEFINE_LOGGED_EXCEPTION(ConfigException);
 
-class CConfig
+class Config
 {
 public:
-	CConfig(const std::string& filename);
-	~CConfig() = default;
+	Config(const std::string& filename);
+	~Config() = default;
 
 #define MACRO_CONFIG_INT( name, def, min, max, desc ) s32 name;
 #define MACRO_CONFIG_FLOAT( name, def, min, max, desc ) f32 name;

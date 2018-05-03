@@ -6,13 +6,13 @@
 
 void Log(ELogType flags, std::string text)
 {
-	static auto pLog = CLog::CreateLogger();
+	static auto pLog = Logger::CreateLogger();
 	pLog->Log(flags, std::move(text));
 }
 
-std::unique_ptr<CLog> CLog::CreateLogger()
+std::unique_ptr<Logger> Logger::CreateLogger()
 {
-	auto pLogger = std::make_unique<CLog>();
+	auto pLogger = std::make_unique<Logger>();
 
 	// Reset initially (also blank line)
 	pLogger->Log(None, CONSOLE_RESET "");
@@ -24,12 +24,12 @@ std::unique_ptr<CLog> CLog::CreateLogger()
 	return pLogger;
 }
 
-CLog::CLog()
+Logger::Logger()
 {
-	_pActive = CActive::Create();
+	_pActive = Active::Create();
 }
 
-CLog::~CLog()
+Logger::~Logger()
 {
 #ifndef __WIN32
 	// Reset
@@ -37,12 +37,12 @@ CLog::~CLog()
 #endif
 }
 
-void CLog::Log(ELogType flags, std::string text)
+void Logger::Log(ELogType flags, std::string text)
 {
 	_pActive->Send([this, flags, text]() { logText(flags, std::move(text)); });
 }
 
-void CLog::logText(ELogType flags, std::string text)
+void Logger::logText(ELogType flags, std::string text)
 {
 	EStream stream;
 	if (flags & Error || flags & CriticalError || flags & SQL || flags & Exception)
@@ -113,7 +113,7 @@ void CLog::logText(ELogType flags, std::string text)
 	write(text, stream);
 }
 
-void CLog::write(const std::string& text, EStream stream)
+void Logger::write(const std::string& text, EStream stream)
 {
 	if (stream == EStream::STDERR)
 		fwrite(text.c_str(), sizeof(char), text.length(), stderr);

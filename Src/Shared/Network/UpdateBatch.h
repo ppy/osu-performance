@@ -1,15 +1,15 @@
 #pragma once
 
-class CDatabaseConnection;
+class DatabaseConnection;
 
-class CUpdateBatch
+class UpdateBatch
 {
 public:
-	CUpdateBatch(std::shared_ptr<CDatabaseConnection> pDB, u32 sizeThreshold);
-	~CUpdateBatch();
+	UpdateBatch(std::shared_ptr<DatabaseConnection> pDB, u32 sizeThreshold);
+	~UpdateBatch();
 
-	CUpdateBatch& operator=(CUpdateBatch&& other);
-	CUpdateBatch(CUpdateBatch&& other);
+	UpdateBatch& operator=(UpdateBatch&& other);
+	UpdateBatch(UpdateBatch&& other);
 
 	void AppendAndCommit(const std::string& values);
 	void AppendAndCommitNonThreadsafe(const std::string& values);
@@ -34,7 +34,7 @@ private:
 
 	bool _empty = true;
 
-	std::shared_ptr<CDatabaseConnection> _pDB;
+	std::shared_ptr<DatabaseConnection> _pDB;
 	std::mutex _batchMutex;
 
 	std::string _query;

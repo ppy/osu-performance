@@ -2,14 +2,12 @@
 
 #include "SharedEnums.h"
 
-DEFINE_LOGGED_EXCEPTION(CBeatmapException);
+DEFINE_LOGGED_EXCEPTION(BeatmapException);
 
-class CInsertionBatch;
-
-class CBeatmap
+class Beatmap
 {
 public:
-	CBeatmap(s32 id);
+	Beatmap(s32 id);
 
 	enum EDifficultyAttributeType : byte
 	{

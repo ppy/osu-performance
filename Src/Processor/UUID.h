@@ -1,9 +1,9 @@
 #pragma once
 
-class CUUID
+class UUID
 {
 public:
-	static CUUID V4();
+	static UUID V4();
 
 	std::string ToString();
 

@@ -17,7 +17,7 @@ namespace
 	}
 }
 
-CUUID CUUID::V4()
+UUID UUID::V4()
 {
 	static const uint16_t c[] = {
 		0x8000,
@@ -26,7 +26,7 @@ CUUID CUUID::V4()
 		0xb000,
 	};
 
-	CUUID uuid;
+	UUID uuid;
 
 	const uint32_t rand_1 = (rand32() & 0xffffffff);
 	const uint32_t rand_2 = (rand32() & 0xffff0fff) | 0x4000;
@@ -56,7 +56,7 @@ CUUID CUUID::V4()
 	return uuid;
 }
 
-std::string CUUID::ToString()
+std::string UUID::ToString()
 {
 	std::stringstream ss;
 	ss << std::hex;

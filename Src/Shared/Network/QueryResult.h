@@ -32,16 +32,16 @@ inline double xtod(const char *str)
 	return ::atof(str);
 }
 
-class CQueryResult
+class QueryResult
 {
 public:
-	CQueryResult(CQueryResult&& other);
-	CQueryResult(CQueryResult& other) = delete;
+	QueryResult(QueryResult&& other);
+	QueryResult(QueryResult& other) = delete;
 
-	CQueryResult& operator=(CQueryResult&& other);
-	CQueryResult& operator=(CQueryResult& other) = delete;
+	QueryResult& operator=(QueryResult&& other);
+	QueryResult& operator=(QueryResult& other) = delete;
 
-	~CQueryResult();
+	~QueryResult();
 
 	bool NextRow();
 
@@ -62,10 +62,10 @@ public:
 	inline f64 F64(u32 i) const { return xtod(_Row[i]); }
 
 private:
-	CQueryResult(MYSQL_RES* pRes);
+	QueryResult(MYSQL_RES* pRes);
 
 	MYSQL_RES* _pRes;
 	MYSQL_ROW  _Row;
 
-	friend class CDatabaseConnection;
+	friend class DatabaseConnection;
 };
