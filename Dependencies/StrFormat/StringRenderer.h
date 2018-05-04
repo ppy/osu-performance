@@ -24,10 +24,8 @@ namespace ts_printf
 				// No need to allocate any buffer, we already have the buffer right here!
 				// TODO: implement
 
-
 				CharType* pCur = Output.Allocate(Length);
 				const CharType* end = pCur + Length;
-
 
 				// Copy into buffer
 				for(; pCur != end; pCur++, pData++)
@@ -51,7 +49,7 @@ namespace ts_printf
 			static void StringDispatcher(const T(&p)[N], CharBuffer &Output)
 			{
 				// we don't need the trailing zero character
-				RenderString(Output, p, N - 1);
+				RenderString(Output, p, std::char_traits<T>::length(p));
 			}
 
 
@@ -73,14 +71,14 @@ namespace ts_printf
 				// We have a pointer to an allowed char type.
 				// (It is assumed, that it is a pointer to a zero terminated string. anyone providing a raw byte pointer for printing should specify so by using an unsigned type pointer.)
 				(std::is_pointer<typename std::remove_reference<StringType>::type>::value && is_char_type<typename std::remove_cv<typename std::remove_pointer<typename std::decay<typename std::remove_reference<StringType>::type>::type>::type>::type>::value) ||
-				
+
 				// We have an array of an allowed char type
 				(std::is_array<typename std::remove_reference<StringType>::type>::value && is_char_type<typename std::remove_cv<typename std::remove_pointer<typename std::decay<typename std::remove_reference<StringType>::type>::type>::type>::type>::value) ||
-				
+
 				// We have a non-Plain-Old-Data type. This is MOST LIKELY a basic_string<CharType>. The compiler will complain if it isn't.
 				// Other containers from the std don't have the length() method.
 				!std::is_pod<typename std::remove_reference<StringType>::type>::value
-			
+
 			>::type
 
 			irender_parameter(const FormatDesc& FormatDescription, StringType&& String, CharBuffer& Output)

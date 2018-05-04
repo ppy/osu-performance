@@ -222,9 +222,18 @@ void Processor::ProcessUsers(const std::vector<std::string>& userNames)
 	for (const auto& name : userNames)
 	{
 		s64 id = xtoi64(name.c_str());
-		if (id == 0) {
-			// TODO: Allow querying IDs by name once it's available in the DB
-			continue;
+		if (id == 0)
+		{
+			// If the given string is not a number, try treating it as a username
+			auto res = _pDBSlave->Query(StrFormat(
+				"SELECT `user_id` FROM `{0}` WHERE `username`='{1}'",
+				_config.UserMetadataTableName, name
+			));
+
+			if (!res.NextRow())
+				continue;
+
+			id = res.S64(0);
 		}
 
 		userIds.emplace_back(id);
@@ -265,16 +274,34 @@ void Processor::ProcessUsers(const std::vector<s64>& userIds)
 
 	Log(Success, StrFormat("Processed all {0} users.", users.size()));
 
-	Log(Info, "============================");
-	Log(Info, "======= USER SUMMARY =======");
-	Log(Info, "============================");
-	Log(Info, "      User    Perf.     Acc.");
-	Log(Info, "----------------------------");
+	Log(Info, "=============================================");
+	Log(Info, "======= USER SUMMARY ========================");
+	Log(Info, "=============================================");
+	Log(Info, "            Name        Id    Perf.      Acc.");
+	Log(Info, "---------------------------------------------");
 
 	for (const auto& user : users)
-		Log(Info, StrFormat("{0w10ar}  {1w5ar}pp  {2w6arp2}%", user.Id(), (s32)user.GetPPRecord().Value, user.GetPPRecord().Accuracy));
+	{
+		// Try to obtain name
+		std::string name = "<not-found>";
+		auto res = _pDBSlave->Query(StrFormat(
+			"SELECT `username` FROM `{0}` WHERE `user_id`='{1}'",
+			_config.UserMetadataTableName, user.Id()
+		));
 
-	Log(Info, "=============================");
+		if (res.NextRow())
+			name = res.String(0);
+
+		Log(Info, StrFormat(
+			"{0w16ar}  {1w8ar}  {2w5ar}pp  {3w6arp2} %",
+			name,
+			user.Id(),
+			(s32)user.GetPPRecord().Value,
+			user.GetPPRecord().Accuracy
+		));
+	}
+
+	Log(Info, "=============================================");
 }
 
 std::shared_ptr<DatabaseConnection> Processor::newDBConnectionMaster()
@@ -669,7 +696,7 @@ User Processor::processSingleUserGeneric(
 		// Obtain user's previous pp rating for determining the difference
 		auto res = dbSlave.Query(StrFormat(
 			"SELECT `{0}` FROM `osu_user_stats{1}` WHERE `user_id`={2}",
-			std::string{_config.UserPPColumnName},
+			_config.UserPPColumnName,
 			GamemodeSuffix(_gamemode),
 			userId
 		));
@@ -703,16 +730,17 @@ User Processor::processSingleUserGeneric(
 		"UPDATE `osu_user_stats{0}` "
 		"SET `{1}`= CASE "
 			// Set pp to 0 if the user is inactive or restricted.
-			"WHEN CURDATE() > DATE_ADD(`last_played`, INTERVAL 3 MONTH) THEN 0 "
+			"WHEN (CURDATE() > DATE_ADD(`last_played`, INTERVAL 3 MONTH) OR (SELECT `user_warnings` FROM `{5}` WHERE `user_id`={4}) > 0) THEN 0 "
 			"ELSE {2} "
 		"END,"
 		"`accuracy_new`={3} "
 		"WHERE `user_id`={4} AND ABS(`{1}` - {2}) > 0.01;",
 		GamemodeSuffix(_gamemode),
-		std::string{_config.UserPPColumnName},
+		_config.UserPPColumnName,
 		userPPRecord.Value,
 		userPPRecord.Accuracy,
-		userId
+		userId,
+		_config.UserMetadataTableName
 	));
 
 	_dataDog.Increment("osu.pp.user.amount_processed", 1, {StrFormat("mode:{0}", GamemodeTag(_gamemode))}, 0.01f);
