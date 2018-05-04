@@ -38,13 +38,15 @@ void Logger::Log(ELogType flags, const string& text)
 
 void Logger::LogProgress(u64 current, u64 total, chrono::milliseconds elapsedMs)
 {
-	string timeStr = toString(elapsedMs);
+	f64 fraction = (f64)current / total;
+
+	auto projectedMs = elapsedMs * (1 / fraction);
+	string timeStr = StrFormat("{0}/{1}", toString(elapsedMs), toString(projectedMs));
 
 	string totalStr = StrFormat("{0}", total);
-	string unitsFmt = string{"{0w"} + to_string(totalStr.size() * 2 + 12) + "}";
+	string unitsFmt = string{"{0w"} + to_string(totalStr.size() * 2 + 8) + "}";
 
-	f64 fraction = (f64)current / total;
-	string units = StrFormat("{2w6arp2} % ({0}/{1})", current, total, fraction * 100);
+	string units = StrFormat("{2w3ar}% ({0}/{1}) ", current, total, (s32)std::round(fraction * 100), timeStr);
 	// Give units some space in case they're short enough
 	units = StrFormat(unitsFmt, units);
 
