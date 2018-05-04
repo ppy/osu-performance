@@ -30,9 +30,6 @@ DatabaseConnection& DatabaseConnection::operator=(DatabaseConnection&& other)
 	std::lock_guard<std::recursive_mutex> otherLock{other._dbMutex};
 	std::lock_guard<std::recursive_mutex> lock{_dbMutex};
 
-	_port = other._port;
-	_mySQL = other._mySQL;
-
 	if (!other._pActive || other._pActive->IsBusy())
 	{
 		// Deconstruct the previous connection's active object
@@ -44,12 +41,15 @@ DatabaseConnection& DatabaseConnection::operator=(DatabaseConnection&& other)
 		_pActive = std::move(other._pActive);
 
 	_host = std::move(other._host);
+	_port = other._port;
 	_username = std::move(other._username);
 	_password = std::move(other._password);
 	_database = std::move(other._database);
 
 	other._isInitialized = false;
 	_isInitialized = true;
+
+	_mySQL = other._mySQL;
 
 	return *this;
 }
