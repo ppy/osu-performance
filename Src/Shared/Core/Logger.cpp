@@ -56,10 +56,10 @@ void Logger::LogProgress(u64 current, u64 total, chrono::milliseconds elapsedMs)
 
 	string body(usableWidth, ' ');
 	if (numFilledChars > 0) {
-		for (s32 i = 0; i < numFilledChars - 1; ++i)
+		for (s32 i = 0; i < numFilledChars; ++i)
 			body[i] = '=';
-		if (numFilledChars < (s32)body.size()) {
-			body[numFilledChars - 1] = '>';
+		if (numFilledChars < usableWidth) {
+			body[numFilledChars] = '>';
 		}
 	}
 
