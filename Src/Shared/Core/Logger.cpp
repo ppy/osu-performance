@@ -37,10 +37,10 @@ void Logger::Log(ELogType flags, const std::string& text)
 void Logger::LogProgress(u64 current, u64 total)
 {
 	std::string totalStr = StrFormat("{0}", total);
-	std::string unitsFmt = std::string{"{0w"} + std::to_string(totalStr.size() * 2 + 14) + "}";
+	std::string unitsFmt = std::string{"{0w"} + std::to_string(totalStr.size() * 2 + 12) + "}";
 
 	f64 fraction = (f64)current / total;
-	std::string units = StrFormat(" {2w6arp2} %  ({0}/{1})", current, total, fraction * 100);
+	std::string units = StrFormat("{2w6arp2} % ({0}/{1})", current, total, fraction * 100);
 	// Give units some space in case they're short enough
 	units = StrFormat(unitsFmt, units);
 
