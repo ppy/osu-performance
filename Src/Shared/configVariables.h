@@ -28,6 +28,7 @@ MACRO_CONFIG_INT(ScoreUpdateInterval, 50, 1, 1000000000, "Score update interval 
 MACRO_CONFIG_INT(StallTimeThreshold, 600000, 1, 1000000000, "Time in milliseconds after which an emergency shut down is performed if no beatmap updates occured")
 
 MACRO_CONFIG_STR(UserPPColumnName, "rank_score", 100, "Column name of the user's pp value in osu_users")
+MACRO_CONFIG_STR(UserMetadataTableName, "phpbb_users", 100, "Name of the table containing user metadata such as username and restriction status")
 
 MACRO_CONFIG_STR(SlackHookDomain, "", 100, "Slack domain")
 MACRO_CONFIG_STR(SlackHookKey, "", 100, "API key for authentication")
