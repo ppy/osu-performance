@@ -189,9 +189,9 @@ void Logger::logText(ELogType flags, const std::string& text)
 void Logger::write(const std::string& text, EStream stream)
 {
 	if (stream == EStream::STDERR)
-		fwrite(text.c_str(), sizeof(char), text.length(), stderr);
+		std::cerr << text << std::flush;
 	else if (stream == EStream::STDOUT)
-		fwrite(text.c_str(), sizeof(char), text.length(), stdout);
+		std::cout << text << std::flush;
 	else
 		std::cerr << "Unknown stream specified.\n";
 }
