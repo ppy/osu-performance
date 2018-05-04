@@ -10,7 +10,7 @@
 #define CONSOLE_RESET       CONSOLE_FMT_ESCAPE"[0;37m"
 #define CONSOLE_FMT_BEGIN   CONSOLE_FMT_ESCAPE"[" TOSTRING(CONSOLE_PREFIX_LEN) "G"
 
-#define CONSOLE_PREV_LINE   CONSOLE_FMT_ESCAPE"[0G" CONSOLE_FMT_ESCAPE"[1A"
+#define CONSOLE_LINE_BEGIN  CONSOLE_FMT_ESCAPE"[0G"
 
 #define CONSOLE_ERASE_TO_END_OF_LINE CONSOLE_FMT_ESCAPE"[K"
 
@@ -31,6 +31,9 @@
 #define CONSOLE_BOLD_MAGENTA   CONSOLE_FMT_ESCAPE"[1;35m"
 #define CONSOLE_BOLD_CYAN      CONSOLE_FMT_ESCAPE"[1;36m"
 #define CONSOLE_BOLD_WHITE     CONSOLE_FMT_ESCAPE"[1;37m"
+
+#define CONSOLE_HIDE_CURSOR    CONSOLE_FMT_ESCAPE"[?25l"
+#define CONSOLE_SHOW_CURSOR    CONSOLE_FMT_ESCAPE"[?25h"
 
 DEFINE_EXCEPTION(LoggerException);
 
@@ -77,7 +80,7 @@ private:
 
 	bool enableControlCharacters();
 
-	void logText(ELogType flags, std::string text);
+	void logText(ELogType flags, const std::string& text);
 
 	void write(const std::string& text, EStream Stream);
 

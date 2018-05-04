@@ -20,7 +20,7 @@ void LogProgress(u64 current, u64 total)
 
 Logger::~Logger()
 {
-	Log(None, CONSOLE_RESET "");
+	Log(None, CONSOLE_RESET CONSOLE_SHOW_CURSOR);
 }
 
 std::unique_ptr<Logger>& Logger::Instance()
@@ -49,13 +49,17 @@ void Logger::LogProgress(u64 current, u64 total)
 	s32 numFilledChars = (s32)std::round(usableWidth * fraction);
 
 	std::string body(usableWidth, ' ');
-	for (s32 i = 0; i < numFilledChars-1; ++i)
-		body[i] = '=';
-	body[numFilledChars-1] = '>';
+	if (numFilledChars > 0) {
+		for (s32 i = 0; i < numFilledChars - 1; ++i)
+			body[i] = '=';
+		if (numFilledChars < (s32)body.size()) {
+			body[numFilledChars - 1] = '>';
+		}
+	}
 
 	std::string message = StrFormat("[{0}] {1}", body, units);
 
-	Log(Progress, message + CONSOLE_PREV_LINE);
+	Log(Progress, message);
 }
 
 Logger::Logger()
@@ -69,7 +73,7 @@ std::unique_ptr<Logger> Logger::createLogger()
 	auto pLogger = std::unique_ptr<Logger>(new Logger());
 
 	// Reset initially (also blank line)
-	pLogger->Log(None, CONSOLE_RESET "");
+	pLogger->Log(None, CONSOLE_RESET);
 
 #ifdef __DEBUG
 	pLogger->Log(Info, "Program runs in debug mode.");
@@ -109,7 +113,7 @@ bool Logger::enableControlCharacters()
 	return true;
 }
 
-void Logger::logText(ELogType flags, std::string text)
+void Logger::logText(ELogType flags, const std::string& text)
 {
 	EStream stream;
 	if (flags & Error || flags & Critical || flags & SQL || flags & Except)
@@ -163,24 +167,23 @@ void Logger::logText(ELogType flags, std::string text)
 		textOut += CONSOLE_CYAN "PROGRESS" CONSOLE_RESET;
 
 	if (!(flags & None))
-	{
-		if (canHandleControlCharacters)
-			textOut += CONSOLE_FMT_BEGIN;
-		else
-			textOut.resize(CONSOLE_PREFIX_LEN - 1, ' ');
-
-		// start with processing
-		write(textOut, stream);
-	}
-
-	// Make sure there is a linebreak in the end. We don't want duplicates!
-	if (text.empty() || text.back() != '\n')
-		text += '\n';
+		textOut.resize(CONSOLE_PREFIX_LEN + 13, ' ');
 
 	// Reset after each message
-	text += CONSOLE_ERASE_TO_END_OF_LINE CONSOLE_RESET "";
+	textOut += text + CONSOLE_ERASE_TO_END_OF_LINE CONSOLE_RESET;
 
-	write(text, stream);
+	// Make sure there is a linebreak in the end. We don't want duplicates!
+	if (!(flags & Progress))
+	{
+		if (textOut.empty() || textOut.back() != '\n')
+			textOut += '\n';
+
+		textOut += CONSOLE_SHOW_CURSOR;
+	}
+	else
+		textOut += CONSOLE_LINE_BEGIN CONSOLE_HIDE_CURSOR;
+
+	write(textOut, stream);
 }
 
 void Logger::write(const std::string& text, EStream stream)
