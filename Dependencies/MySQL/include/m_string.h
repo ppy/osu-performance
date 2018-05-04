@@ -12,8 +12,8 @@
    
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
-   MA 02111-1307, USA */
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+   MA 02111-1301, USA */
 
 /* There may be prolems include all of theese. Try to test in
    configure with ones are needed? */
@@ -223,6 +223,16 @@ extern ulonglong strtoull(const char *str, char **ptr, int base);
 #endif
 #endif
 #endif
+
+typedef enum {
+  MY_GCVT_ARG_FLOAT,
+  MY_GCVT_ARG_DOUBLE
+} my_gcvt_arg_type;
+
+size_t ma_fcvt(double x, int precision, char *to, my_bool *error);
+size_t ma_gcvt(double x, my_gcvt_arg_type type, int width, char *to,
+               my_bool *error);
+
 
 #if defined(__cplusplus)
 }

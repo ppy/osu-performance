@@ -12,15 +12,14 @@
    
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
-   MA 02111-1307, USA */
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+   MA 02111-1301, USA */
 
 /* This is the main include file that should included 'first' in every
    C file. */
 
 #ifndef _global_h
 #define _global_h
-
 
 #ifdef _WIN32
 #include <config-win.h>
@@ -454,7 +453,8 @@ typedef SOCKET_SIZE_TYPE size_socket;
 #ifdef _WIN32
 #define NO_DIR_LIBRARY		/* Not standar dir-library */
 #define USE_MY_STAT_STRUCT	/* For my_lib */
-#ifdef _SIZE_T_DEFINED
+#ifdef _MSC_VER
+  
 typedef SSIZE_T ssize_t;
 #endif
 #endif
@@ -525,7 +525,7 @@ extern double		my_atof(const char*);
 #define HAVE_LONG_LONG 1
 #endif
 
-#if defined(HAVE_LONG_LONG) && !defined(LONGLONG_MIN)
+#if defined(HAVE_LONG_LONG) && !defined(LONGLONG_IN)
 #define LONGLONG_MIN	((long long) 0x8000000000000000LL)
 #define LONGLONG_MAX	((long long) 0x7FFFFFFFFFFFFFFFLL)
 #endif
@@ -644,6 +644,13 @@ typedef unsigned long	ulonglong;	/* ulong or unsigned long long */
 typedef long		longlong;
 #endif
 #define longlong_defined
+#endif
+
+#ifndef HAVE_INT64
+typedef longlong int64;
+#endif
+#ifndef HAVE_UINT64
+typedef ulonglong uint64;
 #endif
 
 #ifndef MIN
@@ -917,7 +924,7 @@ do { doubleget_union _tmp; \
 #define int8store(T,A)       do { uint def_temp= (uint) (A), def_temp2= (uint) ((A) >> 32); \
                                   int4store((T),def_temp); \
                                   int4store((T+4),def_temp2); } while(0)
-#ifdef WORDS_BIGENDIAN
+#ifdef HAVE_BIGENDIAN
 #define float4store(T,A) do { *(T)= ((uchar *) &A)[3];\
                               *((T)+1)=(char) ((uchar *) &A)[2];\
                               *((T)+2)=(char) ((uchar *) &A)[1];\
@@ -994,7 +1001,7 @@ do { doubleget_union _tmp; \
   register) variable, M is a pointer to byte
 */
 
-#ifdef WORDS_BIGENDIAN
+#ifdef HAVE_BIGENDIAN
 
 #define ushortget(V,M)  do { V = (uint16) (((uint16) ((uchar) (M)[1]))+\
                                  ((uint16) ((uint16) (M)[0]) << 8)); } while(0)

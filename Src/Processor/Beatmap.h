@@ -28,6 +28,7 @@ public:
 		Ranked = 1,
 		Approved = 2,
 		Qualified = 3,
+		Loved = 4,
 	};
 
 	enum EScoreVersion : s32

@@ -51,7 +51,7 @@ Processor::Processor(EGamemode gamemode, const std::string& configFile)
 
 	queryBeatmapBlacklist();
 	queryBeatmapDifficultyAttributes();
-	queryBeatmapDifficulty();
+	queryAllBeatmapDifficulties();
 }
 
 Processor::~Processor()
@@ -63,6 +63,8 @@ void Processor::MonitorNewScores()
 {
 	_lastScorePollTime = steady_clock::now();
 	_lastBeatmapSetPollTime = steady_clock::now();
+
+	Log(Info, "Monitoring new scores.");
 
 	_currentScoreId = retrieveCount(*_pDB, lastScoreIdKey());
 
@@ -131,25 +133,26 @@ void Processor::ProcessAllUsers(bool reProcess, u32 numThreads)
 	if (begin == -1)
 		return;
 
-	Log(Info, StrFormat("Querying all scores, starting from user id {0}.", begin));
+	Log(Info, StrFormat("Processing all users starting with ID {0}.", begin));
 
 	auto res = _pDBSlave->Query(StrFormat(
-		"SELECT MAX(`user_id`) FROM `osu_user_stats{0}` WHERE 1",
-		GamemodeSuffix(_gamemode)
+		"SELECT MAX(`user_id`),COUNT(`user_id`) FROM `osu_user_stats{0}` WHERE `user_id`>={1}",
+		GamemodeSuffix(_gamemode), begin
 	));
 
 	if (!res.NextRow())
-		throw ProcessorException(SRC_POS, "Couldn't find maximum user ID.");
+		throw ProcessorException(SRC_POS, "Could not find user ID stats.");
 
 	const s64 maxUserId = res.S64(0);
+	const s64 numUsers = res.S64(1);
 
+	s64 numUsersProcessed = 0;
 	u32 currentConnection = 0;
 
 	// We will break out as soon as there are no more results
 	while (begin <= maxUserId)
 	{
 		s64 end = begin + userIdStep;
-		Log(Info, StrFormat("Updating users {0} - {1}.", begin, end));
 
 		res = _pDBSlave->Query(StrFormat(
 			"SELECT "
@@ -184,6 +187,9 @@ void Processor::ProcessAllUsers(bool reProcess, u32 numThreads)
 		}
 
 		begin += userIdStep;
+		numUsersProcessed += res.NumRows();
+
+		LogProgress(numUsersProcessed, numUsers);
 
 		u32 numPendingQueries = 0;
 
@@ -206,6 +212,8 @@ void Processor::ProcessAllUsers(bool reProcess, u32 numThreads)
 		// Update our user_id counter
 		storeCount(*_pDB, lastUserIdKey(), begin);
 	}
+
+	Log(Success, StrFormat("Processed all {0} users.", numUsers));
 }
 
 void Processor::ProcessUsers(const std::vector<std::string>& userNames)
@@ -230,6 +238,8 @@ void Processor::ProcessUsers(const std::vector<s64>& userIds)
 	UpdateBatch newUsers{_pDB, 10000};
 	UpdateBatch newScores{_pDB, 10000};
 
+	Log(Info, StrFormat("Processing {0} users.", userIds.size()));
+
 	std::vector<User> users;
 	for (s64 userId : userIds)
 	{
@@ -240,7 +250,11 @@ void Processor::ProcessUsers(const std::vector<s64>& userIds)
 			newScores,
 			userId
 		));
+
+		LogProgress(users.size(), userIds.size());
 	}
+
+	Log(Info, StrFormat("Sorting {0} users.", users.size()));
 
 	std::sort(std::begin(users), std::end(users), [](const User& a, const User& b) {
 		if (a.GetPPRecord().Value != b.GetPPRecord().Value)
@@ -248,6 +262,8 @@ void Processor::ProcessUsers(const std::vector<s64>& userIds)
 
 		return a.Id() > b.Id();
 	});
+
+	Log(Success, StrFormat("Processed all {0} users.", users.size()));
 
 	Log(Info, "============================");
 	Log(Info, "======= USER SUMMARY =======");
@@ -283,14 +299,24 @@ std::shared_ptr<DatabaseConnection> Processor::newDBConnectionSlave()
 	);
 }
 
-void Processor::queryBeatmapDifficulty()
+void Processor::queryAllBeatmapDifficulties()
 {
 	static const s32 step = 10000;
 
-	s32 begin = 0;
-	while (queryBeatmapDifficulty(begin, begin + step))
+	Log(Info, "Retrieving all beatmap difficulties.");
+
+	auto res = _pDBSlave->Query("SELECT MAX(`beatmap_id`),COUNT(DISTINCT `beatmap_id`) FROM `osu_beatmap_difficulty_attribs` WHERE 1");
+
+	if (!res.NextRow())
+		throw ProcessorException(SRC_POS, "Could not find beatmap ID stats.");
+
+	const s32 maxBeatmapId = res.S32(0);
+	const s32 numBeatmaps = res.S32(1);
+	for (s32 begin = 0; begin < maxBeatmapId; begin += step)
 	{
-		begin += step;
+		queryBeatmapDifficulty(begin, std::min(begin + step, maxBeatmapId+1));
+
+		LogProgress(_beatmaps.size(), numBeatmaps);
 
 		// This prevents stall checks to kill us during difficulty load
 		_lastBeatmapSetPollTime = steady_clock::now();
@@ -342,7 +368,6 @@ bool Processor::queryBeatmapDifficulty(s32 startId, s32 endId)
 	}
 
 	if (endId != 0) {
-		Log(Success, StrFormat("Obtained beatmap difficulties from ID {0} to {1}.", startId, endId - 1));
 		return success;
 	}
 

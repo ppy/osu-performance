@@ -12,8 +12,8 @@
    
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
-   MA 02111-1307, USA */
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+   MA 02111-1301, USA */
 
 /* Defines to make different thread packages compatible */
 
@@ -62,10 +62,12 @@ typedef struct {
 } pthread_cond_t;
 
 #ifndef _TIMESPEC_DEFINED
+#if (!defined(_MSC_VER) || _MSC_VER < 1900)
 struct timespec {		/* For pthread_cond_timedwait() */
     time_t tv_sec;
     long tv_nsec;
 };
+#endif
 #endif
 
 typedef int pthread_mutexattr_t;

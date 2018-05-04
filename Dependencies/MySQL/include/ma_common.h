@@ -12,8 +12,8 @@
    
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
-   MA 02111-1307, USA */
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+   MA 02111-1301, USA */
 
 /* defines for the libmariadb library */
 
@@ -49,6 +49,9 @@ struct st_mysql_options_extension {
                           const char *proc_info,
                           unsigned int proc_info_length);
   MARIADB_DB_DRIVER       *db_driver;
+  char *ssl_fp; /* finger print of server certificate */
+  char *ssl_fp_list; /* white list of finger prints */
+  int (*verify_local_infile)(void *data, const char *filename);
 };
 
 

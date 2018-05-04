@@ -13,8 +13,8 @@
    
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
-   MA 02111-1307, USA */
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+   MA 02111-1301, USA */
 
 /* defines for the libmariadb library */
 
@@ -80,14 +80,14 @@ typedef int my_socket;
 
 extern unsigned int mysql_port;
 extern char *mysql_unix_port;
-extern uint mariadb_deinitialize_ssl;
+extern unsigned int mariadb_deinitialize_ssl;
 
 #define IS_PRI_KEY(n)	((n) & PRI_KEY_FLAG)
 #define IS_NOT_NULL(n)	((n) & NOT_NULL_FLAG)
 #define IS_BLOB(n)	((n) & BLOB_FLAG)
 #define IS_NUM(t)	((t) <= FIELD_TYPE_INT24 || (t) == FIELD_TYPE_YEAR)
 #define IS_NUM_FIELD(f)	 ((f)->flags & NUM_FLAG)
-#define INTERNAL_NUM_FIELD(f) (((f)->type <= MYSQL_TYPE_INT24 && ((f)->type != MYSQL_TYPE_TIMESTAMP || (f)->length == 14 || (f)->length == 8)) || (f)->type == MYSQL_TYPE_YEAR)
+#define INTERNAL_NUM_FIELD(f) (((f)->type <= MYSQL_TYPE_INT24 && ((f)->type != MYSQL_TYPE_TIMESTAMP || (f)->length == 14 || (f)->length == 8)) || (f)->type == MYSQL_TYPE_YEAR || (f)->type == MYSQL_TYPE_NEWDECIMAL || (f)->type == MYSQL_TYPE_DECIMAL)
 
   typedef struct st_mysql_field {
     char *name;			/* Name of column */
@@ -209,12 +209,16 @@ extern uint mariadb_deinitialize_ssl;
     /* MariaDB specific */
     MYSQL_PROGRESS_CALLBACK=5999,
     MYSQL_OPT_NONBLOCK,
-    MYSQL_DATABASE_DRIVER=7000
+    /* MariaDB Connector/C specific */
+    MYSQL_DATABASE_DRIVER=7000,
+    MARIADB_OPT_SSL_FP,             /* single finger print for server certificate verification */
+    MARIADB_OPT_SSL_FP_LIST,        /* finger print white list for server certificate verification */
+    MARIADB_OPT_VERIFY_LOCAL_INFILE_CALLBACK
   };
 
   enum mysql_status { MYSQL_STATUS_READY,
                       MYSQL_STATUS_GET_RESULT,
-          MYSQL_STATUS_USE_RESULT,
+                      MYSQL_STATUS_USE_RESULT,
                       MYSQL_STATUS_QUERY_SENT,
                       MYSQL_STATUS_SENDING_LOAD_DATA,
                       MYSQL_STATUS_FETCHING_DATA,
@@ -248,7 +252,7 @@ struct st_mysql_options {
     my_bool compress,named_pipe;
     my_bool unused_1, unused_2, unused_3, unused_4;
     enum mysql_option methods_to_use;
-    char *client_ip;
+    char *bind_address;
     my_bool secure_auth;
     my_bool report_data_truncation; 
     /* function pointers for local infile support */
@@ -256,7 +260,7 @@ struct st_mysql_options {
     int (*local_infile_read)(void *, char *, unsigned int);
     void (*local_infile_end)(void *);
     int (*local_infile_error)(void *, char *, unsigned int);
-    void *local_infile_userdata;
+    void *local_infile_userdata[2];
     struct st_mysql_options_extension *extension;
 };
 
@@ -328,6 +332,7 @@ typedef struct st_mysql_time
 
 #define AUTO_SEC_PART_DIGITS 31
 #define SEC_PART_DIGITS 6
+#define MARIADB_INVALID_SOCKET -1
 
 /* Ansynchronous API constants */
 #define MYSQL_WAIT_READ      1
@@ -360,7 +365,7 @@ typedef struct
 /* Local infile support functions */
 #define LOCAL_INFILE_ERROR_LEN 512
 
-#include <my_stmt.h>
+#include "my_stmt.h"
 
 void STDCALL mysql_set_local_infile_handler(MYSQL *mysql,
         int (*local_infile_init)(void **, const char *, void *),
@@ -394,8 +399,8 @@ my_bool STDCALL mysql_commit(MYSQL *mysql);
 my_bool STDCALL mysql_rollback(MYSQL *mysql);
 my_ulonglong STDCALL mysql_insert_id(MYSQL *mysql);
 unsigned int STDCALL mysql_errno(MYSQL *mysql);
-char * STDCALL mysql_error(MYSQL *mysql);
-char * STDCALL mysql_info(MYSQL *mysql);
+const char * STDCALL mysql_error(MYSQL *mysql);
+const char * STDCALL mysql_info(MYSQL *mysql);
 unsigned long STDCALL mysql_thread_id(MYSQL *mysql);
 const char * STDCALL mysql_character_set_name(MYSQL *mysql);
 void STDCALL mysql_get_character_set_info(MYSQL *mysql, MY_CHARSET_INFO *cs);
@@ -502,6 +507,8 @@ int STDCALL mysql_autocommit_start(my_bool *ret, MYSQL * mysql,
 int STDCALL mysql_autocommit_cont(my_bool *ret, MYSQL * mysql, int status);
 int STDCALL mysql_next_result_start(int *ret, MYSQL *mysql);
 int STDCALL mysql_next_result_cont(int *ret, MYSQL *mysql, int status);
+int STDCALL mysql_select_db_start(int *ret, MYSQL *mysql, const char *db);
+int STDCALL mysql_select_db_cont(int *ret, MYSQL *mysql, int ready_status);
 int STDCALL mysql_stmt_next_result_start(int *ret, MYSQL_STMT *stmt);
 int STDCALL mysql_stmt_next_result_cont(int *ret, MYSQL_STMT *stmt, int status);
 
