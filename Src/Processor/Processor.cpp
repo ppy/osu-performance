@@ -238,6 +238,8 @@ void Processor::ProcessUsers(const std::vector<s64>& userIds)
 	UpdateBatch newUsers{_pDB, 10000};
 	UpdateBatch newScores{_pDB, 10000};
 
+	Log(Info, StrFormat("Processing {0} users.", userIds.size()));
+
 	std::vector<User> users;
 	for (s64 userId : userIds)
 	{
@@ -248,7 +250,11 @@ void Processor::ProcessUsers(const std::vector<s64>& userIds)
 			newScores,
 			userId
 		));
+
+		LogProgress(users.size(), userIds.size());
 	}
+
+	Log(Info, StrFormat("Sorting {0} users.", users.size()));
 
 	std::sort(std::begin(users), std::end(users), [](const User& a, const User& b) {
 		if (a.GetPPRecord().Value != b.GetPPRecord().Value)
@@ -256,6 +262,8 @@ void Processor::ProcessUsers(const std::vector<s64>& userIds)
 
 		return a.Id() > b.Id();
 	});
+
+	Log(Success, StrFormat("Processed all {0} users.", users.size()));
 
 	Log(Info, "============================");
 	Log(Info, "======= USER SUMMARY =======");
