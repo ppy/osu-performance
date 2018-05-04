@@ -135,6 +135,8 @@ void Processor::ProcessAllUsers(bool reProcess, u32 numThreads)
 
 	Log(Info, StrFormat("Processing all users starting with ID {0}.", begin));
 
+	auto startTime = std::chrono::steady_clock::now();
+
 	auto res = _pDBSlave->Query(StrFormat(
 		"SELECT MAX(`user_id`),COUNT(`user_id`) FROM `osu_user_stats{0}` WHERE `user_id`>={1}",
 		GamemodeSuffix(_gamemode), begin
@@ -189,7 +191,8 @@ void Processor::ProcessAllUsers(bool reProcess, u32 numThreads)
 		begin += userIdStep;
 		numUsersProcessed += res.NumRows();
 
-		LogProgress(numUsersProcessed, numUsers);
+		auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - startTime);
+		LogProgress(numUsersProcessed, numUsers, elapsed);
 
 		u32 numPendingQueries = 0;
 
@@ -249,6 +252,8 @@ void Processor::ProcessUsers(const std::vector<s64>& userIds)
 
 	Log(Info, StrFormat("Processing {0} users.", userIds.size()));
 
+	auto startTime = std::chrono::steady_clock::now();
+
 	std::vector<User> users;
 	for (s64 userId : userIds)
 	{
@@ -260,7 +265,8 @@ void Processor::ProcessUsers(const std::vector<s64>& userIds)
 			userId
 		));
 
-		LogProgress(users.size(), userIds.size());
+		auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - startTime);
+		LogProgress(users.size(), userIds.size(), elapsed);
 	}
 
 	Log(Info, StrFormat("Sorting {0} users.", users.size()));
@@ -332,6 +338,8 @@ void Processor::queryAllBeatmapDifficulties()
 
 	Log(Info, "Retrieving all beatmap difficulties.");
 
+	auto startTime = std::chrono::steady_clock::now();
+
 	auto res = _pDBSlave->Query("SELECT MAX(`beatmap_id`),COUNT(DISTINCT `beatmap_id`) FROM `osu_beatmap_difficulty_attribs` WHERE 1");
 
 	if (!res.NextRow())
@@ -343,7 +351,8 @@ void Processor::queryAllBeatmapDifficulties()
 	{
 		queryBeatmapDifficulty(begin, std::min(begin + step, maxBeatmapId+1));
 
-		LogProgress(_beatmaps.size(), numBeatmaps);
+		auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - startTime);
+		LogProgress(_beatmaps.size(), numBeatmaps, elapsed);
 
 		// This prevents stall checks to kill us during difficulty load
 		_lastBeatmapSetPollTime = steady_clock::now();
