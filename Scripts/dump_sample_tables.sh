@@ -52,7 +52,7 @@ sample_beatmapsets_table="sample_beatmapsets${table_suffix}"
 sample_beatmaps_table="sample_beatmaps${table_suffix}"
 
 date=$(date +"%Y_%m_%d")
-output_folder="${date}_performance${suffix}"
+output_folder="${date}_performance${suffix}_${2}"
 
 # WHERE clause to exclude invalid beatmaps
 beatmap_set_validity_check="approved > 0 AND deleted_at IS NULL"
@@ -69,8 +69,11 @@ sql "Creating sample_users table"         "DROP TABLE IF EXISTS ${sample_users_t
 sql "Creating sample_beatmapsets table"   "DROP TABLE IF EXISTS ${sample_beatmapsets_table}; CREATE TABLE ${sample_beatmapsets_table} ( beatmapset_id INT PRIMARY KEY );"
 sql "Creating sample_beatmaps table"      "DROP TABLE IF EXISTS ${sample_beatmaps_table}; CREATE TABLE ${sample_beatmaps_table} ( beatmap_id INT PRIMARY KEY );"
 
-sql "Populating top users.."        "INSERT IGNORE INTO ${sample_users_table} SELECT user_id FROM osu_user_stats${table_suffix} ORDER BY rank_score desc LIMIT $TOP_USER_COUNT"
-sql "Populating random users.."     "INSERT IGNORE INTO ${sample_users_table} SELECT user_id FROM osu_user_stats WHERE rank_score_index > 0 ORDER BY RAND(1) LIMIT $RANDOM_USER_COUNT;"
+if [ "$2" == "random" ] ; then
+    sql "Populating random users.."     "INSERT IGNORE INTO ${sample_users_table} (user_id) SELECT user_id FROM osu_user_stats${table_suffix} WHERE rank_score_index > 0 ORDER BY RAND(1) LIMIT $RANDOM_USER_COUNT;"
+else
+    sql "Populating top users.."        "INSERT IGNORE INTO ${sample_users_table} (user_id) SELECT user_id FROM osu_user_stats${table_suffix} ORDER BY rank_score desc LIMIT $TOP_USER_COUNT"
+fi
 sql "Removing restricted users.."   "DELETE FROM ${sample_users_table} WHERE ${sample_users_table}.user_id NOT IN (SELECT user_id FROM phpbb_users WHERE ${user_validity_check});"
 sql "Populating beatmapsets.."      "INSERT IGNORE INTO ${sample_beatmapsets_table} SELECT beatmapset_id FROM osu_beatmapsets WHERE ${beatmap_set_validity_check};"
 sql "Populating beatmaps.."         "INSERT IGNORE INTO ${sample_beatmaps_table} SELECT beatmap_id FROM osu_beatmaps WHERE ${beatmap_validity_check} AND beatmapset_id IN (SELECT beatmapset_id FROM ${sample_beatmapsets_table});"
