@@ -17,41 +17,32 @@ namespace ts_printf
 		class CStringAdaptor : CBasicAdaptor
 		{
 		public:
-
-
 			typedef std::basic_string<CharType> CString;
-
 
 			CStringAdaptor()
 			{
 			}
 
-
 			void Write(CharType Char, size_t Count)
 			{
 				m_Result.append(Count, Char);
-			} 
+			}
 
 			void Write(const CharType* szString, size_t Length)
 			{
 				m_Result.append(szString, Length);
-			} 
-
+			}
 
 			CString& GetResult()
 			{
 				return m_Result;
 			}
-			
 
 		private:
-
 			CString m_Result;
 			CStringAdaptor &operator =(const CStringAdaptor &);
 		};
 	}
-
-
 };
 
 // Render from format.
@@ -65,8 +56,6 @@ std::basic_string<typename CFormat::char_type>
 	return Adaptor.GetResult();
 }
 
-
-
 // Create format object & render for zero terminated string pointers
 template<typename CharPointer, typename... A>
 auto StrFormat(CharPointer&& CharPtr, A&& ... Args) ->
@@ -76,8 +65,6 @@ decltype(StrFormat(ts_printf::Format(std::forward<CharPointer>(CharPtr)), std::f
 {
 	return StrFormat(ts_printf::Format(std::forward<CharPointer>(CharPtr)), std::forward<A>(Args)...);
 }
-
-
 
 // Create format object & render for string references
 template<class CString, typename... A>
