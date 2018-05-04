@@ -64,6 +64,8 @@ void Processor::MonitorNewScores()
 	_lastScorePollTime = steady_clock::now();
 	_lastBeatmapSetPollTime = steady_clock::now();
 
+	Log(Info, "Monitoring new scores.");
+
 	_currentScoreId = retrieveCount(*_pDB, lastScoreIdKey());
 
 	auto res = _pDBSlave->Query("SELECT MAX(`approved_date`) FROM `osu_beatmapsets` WHERE 1");
