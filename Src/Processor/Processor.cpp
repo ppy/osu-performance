@@ -222,7 +222,8 @@ void Processor::ProcessUsers(const std::vector<std::string>& userNames)
 	for (const auto& name : userNames)
 	{
 		s64 id = xtoi64(name.c_str());
-		if (id == 0) {
+		if (id == 0)
+		{
 			// If the given string is not a number, try treating it as a username
 			auto res = _pDBSlave->Query(StrFormat(
 				"SELECT `user_id` FROM `{0}` WHERE `username`='{1}'",
@@ -273,16 +274,34 @@ void Processor::ProcessUsers(const std::vector<s64>& userIds)
 
 	Log(Success, StrFormat("Processed all {0} users.", users.size()));
 
-	Log(Info, "============================");
-	Log(Info, "======= USER SUMMARY =======");
-	Log(Info, "============================");
-	Log(Info, "      User    Perf.     Acc.");
-	Log(Info, "----------------------------");
+	Log(Info, "=============================================");
+	Log(Info, "======= USER SUMMARY ========================");
+	Log(Info, "=============================================");
+	Log(Info, "            Name        Id    Perf.      Acc.");
+	Log(Info, "---------------------------------------------");
 
 	for (const auto& user : users)
-		Log(Info, StrFormat("{0w10ar}  {1w5ar}pp  {2w6arp2}%", user.Id(), (s32)user.GetPPRecord().Value, user.GetPPRecord().Accuracy));
+	{
+		// Try to obtain name
+		std::string name = "<not-found>";
+		auto res = _pDBSlave->Query(StrFormat(
+			"SELECT `username` FROM `{0}` WHERE `user_id`='{1}'",
+			_config.UserMetadataTableName, user.Id()
+		));
 
-	Log(Info, "=============================");
+		if (res.NextRow())
+			name = res.String(0);
+
+		Log(Info, StrFormat(
+			"{0w16ar}  {1w8ar}  {2w5ar}pp  {3w6arp2} %",
+			name,
+			user.Id(),
+			(s32)user.GetPPRecord().Value,
+			user.GetPPRecord().Accuracy
+		));
+	}
+
+	Log(Info, "=============================================");
 }
 
 std::shared_ptr<DatabaseConnection> Processor::newDBConnectionMaster()
