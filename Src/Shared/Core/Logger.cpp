@@ -26,15 +26,31 @@ std::unique_ptr<Logger> Logger::CreateLogger()
 
 Logger::Logger()
 {
+	canHandleControlCharacters = enableControlCharacters();
 	_pActive = Active::Create();
 }
 
 Logger::~Logger()
 {
-#ifndef __WIN32
-	// Reset
-	Log(None, CONSOLE_RESET);
+	Log(None, CONSOLE_RESET "");
+}
+
+bool Logger::enableControlCharacters()
+{
+#ifdef __WIN32
+	// Set output mode to handle virtual terminal sequences
+	HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+	if (hOut == INVALID_HANDLE_VALUE)
+		return false;
+	DWORD dwMode = 0;
+	if (!GetConsoleMode(hOut, &dwMode))
+		return false;
+	dwMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+	if (!SetConsoleMode(hOut, dwMode))
+		return false;
 #endif
+
+	return true;
 }
 
 void Logger::Log(ELogType flags, std::string text)
@@ -95,11 +111,10 @@ void Logger::logText(ELogType flags, std::string text)
 
 	if (!(flags & None))
 	{
-#ifdef __WIN32
-		textOut.resize(CONSOLE_PREFIX_LEN - 1, ' ');
-#else
-		textOut += CONSOLE_FMT_BEGIN;
-#endif
+		if (canHandleControlCharacters)
+			textOut += CONSOLE_FMT_BEGIN;
+		else
+			textOut.resize(CONSOLE_PREFIX_LEN - 1, ' ');
 
 		// start with processing
 		write(textOut, stream);
