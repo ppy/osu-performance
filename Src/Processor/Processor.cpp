@@ -669,7 +669,7 @@ User Processor::processSingleUserGeneric(
 		// Obtain user's previous pp rating for determining the difference
 		auto res = dbSlave.Query(StrFormat(
 			"SELECT `{0}` FROM `osu_user_stats{1}` WHERE `user_id`={2}",
-			std::string{_config.UserPPColumnName},
+			_config.UserPPColumnName,
 			GamemodeSuffix(_gamemode),
 			userId
 		));
@@ -703,16 +703,17 @@ User Processor::processSingleUserGeneric(
 		"UPDATE `osu_user_stats{0}` "
 		"SET `{1}`= CASE "
 			// Set pp to 0 if the user is inactive or restricted.
-			"WHEN CURDATE() > DATE_ADD(`last_played`, INTERVAL 3 MONTH) THEN 0 "
+			"WHEN (CURDATE() > DATE_ADD(`last_played`, INTERVAL 3 MONTH) OR (SELECT `user_warnings` FROM `{5}` WHERE `user_id`={4}) > 0) THEN 0 "
 			"ELSE {2} "
 		"END,"
 		"`accuracy_new`={3} "
 		"WHERE `user_id`={4} AND ABS(`{1}` - {2}) > 0.01;",
 		GamemodeSuffix(_gamemode),
-		std::string{_config.UserPPColumnName},
+		_config.UserPPColumnName,
 		userPPRecord.Value,
 		userPPRecord.Accuracy,
-		userId
+		userId,
+		_config.UserMetadataTableName
 	));
 
 	_dataDog.Increment("osu.pp.user.amount_processed", 1, {StrFormat("mode:{0}", GamemodeTag(_gamemode))}, 0.01f);
