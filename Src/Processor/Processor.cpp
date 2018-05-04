@@ -131,25 +131,26 @@ void Processor::ProcessAllUsers(bool reProcess, u32 numThreads)
 	if (begin == -1)
 		return;
 
-	Log(Info, StrFormat("Querying all scores, starting from user id {0}.", begin));
+	Log(Info, StrFormat("Processing all users starting with ID {0}.", begin));
 
 	auto res = _pDBSlave->Query(StrFormat(
-		"SELECT MAX(`user_id`) FROM `osu_user_stats{0}` WHERE 1",
-		GamemodeSuffix(_gamemode)
+		"SELECT MAX(`user_id`),COUNT(`user_id`) FROM `osu_user_stats{0}` WHERE `user_id`>={1}",
+		GamemodeSuffix(_gamemode), begin
 	));
 
 	if (!res.NextRow())
-		throw ProcessorException(SRC_POS, "Couldn't find maximum user ID.");
+		throw ProcessorException(SRC_POS, "Could not find user ID stats.");
 
 	const s64 maxUserId = res.S64(0);
+	const s64 numUsers = res.S64(1);
 
+	s64 numUsersProcessed = 0;
 	u32 currentConnection = 0;
 
 	// We will break out as soon as there are no more results
 	while (begin <= maxUserId)
 	{
 		s64 end = begin + userIdStep;
-		Log(Info, StrFormat("Updating users {0} - {1}.", begin, end));
 
 		res = _pDBSlave->Query(StrFormat(
 			"SELECT "
@@ -184,6 +185,9 @@ void Processor::ProcessAllUsers(bool reProcess, u32 numThreads)
 		}
 
 		begin += userIdStep;
+		numUsersProcessed += res.NumRows();
+
+		LogProgress(numUsersProcessed, numUsers);
 
 		u32 numPendingQueries = 0;
 
@@ -206,6 +210,8 @@ void Processor::ProcessAllUsers(bool reProcess, u32 numThreads)
 		// Update our user_id counter
 		storeCount(*_pDB, lastUserIdKey(), begin);
 	}
+
+	Log(Success, StrFormat("Processed all {0} users.", numUsers));
 }
 
 void Processor::ProcessUsers(const std::vector<std::string>& userNames)
