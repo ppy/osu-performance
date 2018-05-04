@@ -223,8 +223,16 @@ void Processor::ProcessUsers(const std::vector<std::string>& userNames)
 	{
 		s64 id = xtoi64(name.c_str());
 		if (id == 0) {
-			// TODO: Allow querying IDs by name once it's available in the DB
-			continue;
+			// If the given string is not a number, try treating it as a username
+			auto res = _pDBSlave->Query(StrFormat(
+				"SELECT `user_id` FROM `{0}` WHERE `username`='{1}'",
+				_config.UserMetadataTableName, name
+			));
+
+			if (!res.NextRow())
+				continue;
+
+			id = res.S64(0);
 		}
 
 		userIds.emplace_back(id);
