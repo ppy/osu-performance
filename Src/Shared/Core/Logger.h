@@ -10,6 +10,10 @@
 #define CONSOLE_RESET       CONSOLE_FMT_ESCAPE"[0;37m"
 #define CONSOLE_FMT_BEGIN   CONSOLE_FMT_ESCAPE"[" TOSTRING(CONSOLE_PREFIX_LEN) "G"
 
+#define CONSOLE_PREV_LINE   CONSOLE_FMT_ESCAPE"[0G" CONSOLE_FMT_ESCAPE"[1A"
+
+#define CONSOLE_ERASE_TO_END_OF_LINE CONSOLE_FMT_ESCAPE"[K"
+
 #define CONSOLE_BLACK     CONSOLE_FMT_ESCAPE"[0;30m"
 #define CONSOLE_RED       CONSOLE_FMT_ESCAPE"[0;31m"
 #define CONSOLE_GREEN     CONSOLE_FMT_ESCAPE"[0;32m"
@@ -44,18 +48,19 @@ enum ELogType : u32
 	Critical      = 0x00000200,
 	Except        = 0x00000400,
 	Graphics      = 0x00000800,
+	Progress      = 0x00001000,
 };
 
 class Logger
 {
 public:
-	Logger();
 	~Logger();
 
-	static std::unique_ptr<Logger> CreateLogger();
+	static std::unique_ptr<Logger>& Instance();
 
-	//void log(byte bColor, const char* pcSys, const char* pcFmt, ...);
-	void Log(ELogType flags, std::string text);
+	void Log(ELogType flags, const std::string& text);
+
+	void LogProgress(u64 current, u64 total);
 
 	enum class EStream : byte
 	{
@@ -64,7 +69,11 @@ public:
 	};
 
 private:
-	static const size_t s_outputBufferSize = 10000;
+	Logger();
+
+	static std::unique_ptr<Logger> createLogger();
+
+	static s32 consoleWidth();
 
 	bool enableControlCharacters();
 
@@ -74,10 +83,8 @@ private:
 
 	std::unique_ptr<Active> _pActive;
 
-	char _outputBufferStdout[Logger::s_outputBufferSize];
-	char _outputBufferStderr[Logger::s_outputBufferSize];
-
 	bool canHandleControlCharacters;
 };
 
-void Log(ELogType flags, std::string text);
+void Log(ELogType flags, const std::string& text);
+void LogProgress(u64 current, u64 total);

@@ -4,15 +4,69 @@
 #include <iomanip>
 #include <sstream>
 
-void Log(ELogType flags, std::string text)
+#ifndef __WIN32
+	#include <sys/ioctl.h>
+#endif
+
+void Log(ELogType flags, const std::string& text)
 {
-	static auto pLog = Logger::CreateLogger();
-	pLog->Log(flags, std::move(text));
+	Logger::Instance()->Log(flags, std::move(text));
 }
 
-std::unique_ptr<Logger> Logger::CreateLogger()
+void LogProgress(u64 current, u64 total)
 {
-	auto pLogger = std::make_unique<Logger>();
+	Logger::Instance()->LogProgress(current, total);
+}
+
+Logger::~Logger()
+{
+	Log(None, CONSOLE_RESET "");
+}
+
+std::unique_ptr<Logger>& Logger::Instance()
+{
+	static auto pLog = createLogger();
+	return pLog;
+}
+
+void Logger::Log(ELogType flags, const std::string& text)
+{
+	_pActive->Send([this, flags, text]() { logText(flags, text); });
+}
+
+void Logger::LogProgress(u64 current, u64 total)
+{
+	std::string totalStr = StrFormat("{0}", total);
+	std::string unitsFmt = std::string{"{0w"} + std::to_string(totalStr.size() * 2 + 14) + "}";
+
+	f64 fraction = (f64)current / total;
+	std::string units = StrFormat(" {2w6arp2} %  ({0}/{1})", current, total, fraction * 100);
+	// Give units some space in case they're short enough
+	units = StrFormat(unitsFmt, units);
+
+	s32 usableWidth = std::max(0, consoleWidth() - 3 - (s32)units.size() - CONSOLE_PREFIX_LEN);
+
+	s32 numFilledChars = (s32)std::round(usableWidth * fraction);
+
+	std::string body(usableWidth, ' ');
+	for (s32 i = 0; i < numFilledChars-1; ++i)
+		body[i] = '=';
+	body[numFilledChars-1] = '>';
+
+	std::string message = StrFormat("[{0}] {1}", body, units);
+
+	Log(Progress, message + CONSOLE_PREV_LINE);
+}
+
+Logger::Logger()
+{
+	canHandleControlCharacters = enableControlCharacters();
+	_pActive = Active::Create();
+}
+
+std::unique_ptr<Logger> Logger::createLogger()
+{
+	auto pLogger = std::unique_ptr<Logger>(new Logger());
 
 	// Reset initially (also blank line)
 	pLogger->Log(None, CONSOLE_RESET "");
@@ -24,15 +78,17 @@ std::unique_ptr<Logger> Logger::CreateLogger()
 	return pLogger;
 }
 
-Logger::Logger()
+s32 Logger::consoleWidth()
 {
-	canHandleControlCharacters = enableControlCharacters();
-	_pActive = Active::Create();
-}
-
-Logger::~Logger()
-{
-	Log(None, CONSOLE_RESET "");
+#ifdef __WIN32
+	CONSOLE_SCREEN_BUFFER_INFO csbi;
+	GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
+	return csbi.srWindow.Right - csbi.srWindow.Left + 1;
+#else
+	winsize size;
+	ioctl(STDOUT_FILENO, TIOCGWINSZ, &size);
+	return size.ws_col;
+#endif
 }
 
 bool Logger::enableControlCharacters()
@@ -51,11 +107,6 @@ bool Logger::enableControlCharacters()
 #endif
 
 	return true;
-}
-
-void Logger::Log(ELogType flags, std::string text)
-{
-	_pActive->Send([this, flags, text]() { logText(flags, std::move(text)); });
 }
 
 void Logger::logText(ELogType flags, std::string text)
@@ -108,6 +159,8 @@ void Logger::logText(ELogType flags, std::string text)
 		textOut += CONSOLE_BOLD_RED "EXCEPT" CONSOLE_RESET;
 	else if (flags & Graphics)
 		textOut += CONSOLE_BOLD_BLUE "GRAPHICS" CONSOLE_RESET;
+	else if (flags & Progress)
+		textOut += CONSOLE_CYAN "PROGRESS" CONSOLE_RESET;
 
 	if (!(flags & None))
 	{
@@ -125,7 +178,7 @@ void Logger::logText(ELogType flags, std::string text)
 		text += '\n';
 
 	// Reset after each message
-	text += CONSOLE_RESET "";
+	text += CONSOLE_ERASE_TO_END_OF_LINE CONSOLE_RESET "";
 
 	write(text, stream);
 }
