@@ -30,9 +30,6 @@ DatabaseConnection& DatabaseConnection::operator=(DatabaseConnection&& other)
 	std::lock_guard<std::recursive_mutex> otherLock{other._dbMutex};
 	std::lock_guard<std::recursive_mutex> lock{_dbMutex};
 
-	_port = other._port;
-	_mySQL = other._mySQL;
-
 	if (!other._pActive || other._pActive->IsBusy())
 	{
 		// Deconstruct the previous connection's active object
@@ -44,12 +41,15 @@ DatabaseConnection& DatabaseConnection::operator=(DatabaseConnection&& other)
 		_pActive = std::move(other._pActive);
 
 	_host = std::move(other._host);
+	_port = other._port;
 	_username = std::move(other._username);
 	_password = std::move(other._password);
 	_database = std::move(other._database);
 
 	other._isInitialized = false;
 	_isInitialized = true;
+
+	_mySQL = other._mySQL;
 
 	return *this;
 }
@@ -65,7 +65,7 @@ DatabaseConnection::~DatabaseConnection()
 void DatabaseConnection::connect()
 {
 	mysql_close(&_mySQL);
-	if (!mysql_real_connect(&_mySQL, _host.c_str(), _username.c_str(), _password.c_str(), _database.c_str(), _port, NULL, CLIENT_MULTI_STATEMENTS))
+	if (!mysql_real_connect(&_mySQL, _host.c_str(), _username.c_str(), _password.c_str(), _database.c_str(), _port, nullptr, CLIENT_MULTI_STATEMENTS))
 		throw DatabaseException(SRC_POS, StrFormat("Could not connect. ({0})", Error()));
 }
 
@@ -92,7 +92,7 @@ void DatabaseConnection::NonQuery(const std::string& queryString)
 	{
 		/* did current statement return data? */
 		MYSQL_RES* pRes = mysql_store_result(&_mySQL);
-		if (pRes != NULL)
+		if (pRes != nullptr)
 			mysql_free_result(pRes);
 		else          /* no result set or error */
 		{
@@ -117,7 +117,7 @@ QueryResult DatabaseConnection::Query(const std::string& queryString)
 		throw DatabaseException(SRC_POS, StrFormat("Error executing query {0}. ({1})", queryString, Error()));
 
 	MYSQL_RES* pRes = mysql_store_result(&_mySQL);
-	if (pRes == NULL)
+	if (pRes == nullptr)
 		throw DatabaseException(SRC_POS, StrFormat("Error getting result. ({0})", Error()));
 
 	return QueryResult{pRes};

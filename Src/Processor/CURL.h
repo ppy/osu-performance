@@ -8,7 +8,6 @@ class CURL
 {
 public:
 	CURL();
-	~CURL();
 
 	void SendToSlack(
 		std::string domain,
@@ -30,7 +29,7 @@ public:
 	);
 
 private:
-	::CURL* _pCURL = nullptr;
+	std::unique_ptr<::CURL, decltype(&curl_easy_cleanup)> _pCURL;
 };
 
 PP_NAMESPACE_END
