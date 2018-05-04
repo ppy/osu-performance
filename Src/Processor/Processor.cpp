@@ -51,7 +51,7 @@ Processor::Processor(EGamemode gamemode, const std::string& configFile)
 
 	queryBeatmapBlacklist();
 	queryBeatmapDifficultyAttributes();
-	queryBeatmapDifficulty();
+	queryAllBeatmapDifficulties();
 }
 
 Processor::~Processor()
@@ -283,14 +283,24 @@ std::shared_ptr<DatabaseConnection> Processor::newDBConnectionSlave()
 	);
 }
 
-void Processor::queryBeatmapDifficulty()
+void Processor::queryAllBeatmapDifficulties()
 {
 	static const s32 step = 10000;
 
-	s32 begin = 0;
-	while (queryBeatmapDifficulty(begin, begin + step))
+	Log(Info, "Retrieving all beatmap difficulties.");
+
+	auto res = _pDBSlave->Query("SELECT MAX(`beatmap_id`),COUNT(DISTINCT `beatmap_id`) FROM `osu_beatmap_difficulty_attribs` WHERE 1");
+
+	if (!res.NextRow())
+		throw ProcessorException(SRC_POS, "Could not find beatmap ID stats.");
+
+	const s32 maxBeatmapId = res.S32(0);
+	const s32 numBeatmaps = res.S32(1);
+	for (s32 begin = 0; begin < maxBeatmapId; begin += step)
 	{
-		begin += step;
+		queryBeatmapDifficulty(begin, std::min(begin + step, maxBeatmapId+1));
+
+		LogProgress(_beatmaps.size(), numBeatmaps);
 
 		// This prevents stall checks to kill us during difficulty load
 		_lastBeatmapSetPollTime = steady_clock::now();
@@ -342,7 +352,6 @@ bool Processor::queryBeatmapDifficulty(s32 startId, s32 endId)
 	}
 
 	if (endId != 0) {
-		Log(Success, StrFormat("Obtained beatmap difficulties from ID {0} to {1}.", startId, endId - 1));
 		return success;
 	}
 

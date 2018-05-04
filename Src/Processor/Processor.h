@@ -68,7 +68,7 @@ private:
 	std::unordered_map<s32, Beatmap> _beatmaps;
 	std::string _lastApprovedDate;
 
-	void queryBeatmapDifficulty();
+	void queryAllBeatmapDifficulties();
 	bool queryBeatmapDifficulty(s32 startId, s32 endId = 0);
 
 	std::shared_ptr<DatabaseConnection> _pDB;
