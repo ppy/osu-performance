@@ -39,13 +39,11 @@ osu-performance/Build$ cmake ..
 osu-performance/Build$ make -j
 ```
 
-# Data
+# Sample Data
 
-Sample data to compute __pp__ for is available [here](https://data.ppy.sh). The data consists of MySQL dumps from the official osu! database with the scores of the top-1000 users (according to the latest ranking system) and 1000 random users for each game mode.
+Database dumps with sample data can be found at https://data.ppy.sh. This data includes the top 10,000 users along with a random 10,000 user sample across all users, along with all required auxiliary tables to test this system. Please note that this data is released for development purposes only (full licence details [available here](https://data.ppy.sh/LICENCE.txt)).
 
-The data can be imported into a MySQL server of your choice for osu!performance to connect to. Make sure to import the latest available data since older snapshots may be incompatible with the latest version of osu!performance.
-
-Note, that this data is covered by a [separate licence](https://data.ppy.sh/LICENCE.txt) from osu!performance.
+You can import these dumps to mysql (after first extracting them) by running `cat *.sql | mysql`. Note that all existing data in tables will be dropped and replaced. Make sure to import the latest available data dumps as older snapshots may be incompatible with the latest version of osu!performance.
 
 # Usage
 
@@ -80,7 +78,6 @@ and further options specific to the chosen command can be queried via
 Configuration options beyond these parameters, such as various API hooks, can be adjusted in _Bin/Data/Config.cfg_.
 
 # Licence
-
 osu!performance is licensed under AGPL version 3 or later. Please see [the licence file](LICENCE) for more information. [tl;dr](https://tldrlegal.com/license/gnu-affero-general-public-license-v3-(agpl-3.0)) if you want to use any code, design or artwork from this project, attribute it and make your project open source under the same licence.
 
-Note, that the MySQL data is covered by a [separate licence](https://data.ppy.sh/LICENCE.txt).
+Note that the sample data is covered by a [separate licence](https://data.ppy.sh/LICENCE.txt).

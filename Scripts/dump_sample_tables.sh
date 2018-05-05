@@ -1,8 +1,8 @@
-#!/bin/sh
+#!/bin/bash
 # Select relevant sample users and dump to a file.
 
-TOP_USER_COUNT=1000
-RANDOM_USER_COUNT=1000
+TOP_USER_COUNT=10000
+RANDOM_USER_COUNT=10000
 
 DATABASE_HOST=db_delayed
 DATABASE_USER=pp-export
@@ -33,7 +33,7 @@ case "$1" in
         table_suffix=$suffix
         name="osu!taiko"
         ;;
-    fruits)
+    catch)
         mode_index=2
         suffix="_fruits"
         table_suffix=$suffix
@@ -47,12 +47,12 @@ case "$1" in
         ;;
 esac
 
-sample_users_table="sample_users${table_suffix}"
+sample_users_table="sample_users"
 sample_beatmapsets_table="sample_beatmapsets${table_suffix}"
 sample_beatmaps_table="sample_beatmaps${table_suffix}"
 
 date=$(date +"%Y_%m_%d")
-output_folder="${date}_performance${suffix}"
+output_folder="${date}_performance${suffix}_${2}"
 
 # WHERE clause to exclude invalid beatmaps
 beatmap_set_validity_check="approved > 0 AND deleted_at IS NULL"
@@ -65,12 +65,18 @@ echo
 
 # create sample users table
 
-sql "Creating sample_users table"         "DROP TABLE IF EXISTS ${sample_users_table}; CREATE TABLE ${sample_users_table} ( user_id INT PRIMARY KEY );"
+sql "Creating sample_users table"         "DROP TABLE IF EXISTS ${sample_users_table}; CREATE TABLE ${sample_users_table} ( user_id INT PRIMARY KEY, username varchar(255) CHARACTER SET utf8 NOT NULL DEFAULT '', user_warnings tinyint(4) NOT NULL DEFAULT '0', user_type tinyint(2) NOT NULL DEFAULT '0' )"
 sql "Creating sample_beatmapsets table"   "DROP TABLE IF EXISTS ${sample_beatmapsets_table}; CREATE TABLE ${sample_beatmapsets_table} ( beatmapset_id INT PRIMARY KEY );"
 sql "Creating sample_beatmaps table"      "DROP TABLE IF EXISTS ${sample_beatmaps_table}; CREATE TABLE ${sample_beatmaps_table} ( beatmap_id INT PRIMARY KEY );"
 
-sql "Populating top users.."        "INSERT IGNORE INTO ${sample_users_table} SELECT user_id FROM osu_user_stats${table_suffix} ORDER BY rank_score desc LIMIT $TOP_USER_COUNT"
-sql "Populating random users.."     "INSERT IGNORE INTO ${sample_users_table} SELECT user_id FROM osu_user_stats WHERE rank_score_index > 0 ORDER BY RAND(1) LIMIT $RANDOM_USER_COUNT;"
+if [ "$2" == "random" ] ; then
+    sql "Populating random users.."     "INSERT IGNORE INTO ${sample_users_table} (user_id) SELECT user_id FROM osu_user_stats${table_suffix} WHERE rank_score_index > 0 ORDER BY RAND(1) LIMIT $RANDOM_USER_COUNT;"
+else
+    sql "Populating top users.."        "INSERT IGNORE INTO ${sample_users_table} (user_id) SELECT user_id FROM osu_user_stats${table_suffix} ORDER BY rank_score desc LIMIT $TOP_USER_COUNT"
+fi
+
+sql "Adding user details.."         "REPLACE INTO ${sample_users_table} SELECT user_id, username, user_warnings, user_type FROM phpbb_users WHERE user_id IN (SELECT user_id FROM ${sample_users_table})"
+
 sql "Removing restricted users.."   "DELETE FROM ${sample_users_table} WHERE ${sample_users_table}.user_id NOT IN (SELECT user_id FROM phpbb_users WHERE ${user_validity_check});"
 sql "Populating beatmapsets.."      "INSERT IGNORE INTO ${sample_beatmapsets_table} SELECT beatmapset_id FROM osu_beatmapsets WHERE ${beatmap_set_validity_check};"
 sql "Populating beatmaps.."         "INSERT IGNORE INTO ${sample_beatmaps_table} SELECT beatmap_id FROM osu_beatmaps WHERE ${beatmap_validity_check} AND beatmapset_id IN (SELECT beatmapset_id FROM ${sample_beatmapsets_table});"
@@ -80,6 +86,7 @@ mkdir -p ${output_folder}
 echo
 
 # user stats (using sample users retrieved above)
+dump "${sample_users_table}"
 dump "osu_scores${table_suffix}_high"   "user_id IN (SELECT user_id FROM ${sample_users_table})"
 dump "osu_user_stats${table_suffix}"    "user_id IN (SELECT user_id FROM ${sample_users_table})"
 
