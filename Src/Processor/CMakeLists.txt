@@ -120,29 +120,31 @@ endif()
 COMMON_INCLUDE_DIRECTORIES()
 GENERATE_EXECUTABLE(osu-performance)
 
-# Copy DLLs
-if (CMAKE_SIZEOF_VOID_P EQUAL 8)
-	add_custom_command(TARGET osu-performance POST_BUILD
-		COMMAND ${CMAKE_COMMAND} -E copy_if_different
-			"${EXTERNAL}/curl/dll/64bit/libcurl.dll"
-			$<TARGET_FILE_DIR:osu-performance>
-	)
+if (WIN32)
+	# Copy DLLs
+	if (CMAKE_SIZEOF_VOID_P EQUAL 8)
+		add_custom_command(TARGET osu-performance POST_BUILD
+			COMMAND ${CMAKE_COMMAND} -E copy_if_different
+				"${EXTERNAL}/curl/dll/64bit/libcurl.dll"
+				$<TARGET_FILE_DIR:osu-performance>
+		)
 
-	add_custom_command(TARGET osu-performance POST_BUILD
-		COMMAND ${CMAKE_COMMAND} -E copy_if_different
-			"${EXTERNAL}/MySQL/dll/64bit/libmariadb.dll"
-			$<TARGET_FILE_DIR:osu-performance>
-	)
-else()
-	add_custom_command(TARGET osu-performance POST_BUILD
-		COMMAND ${CMAKE_COMMAND} -E copy_if_different
-			"${EXTERNAL}/curl/dll/32bit/libcurl.dll"
-			$<TARGET_FILE_DIR:osu-performance>
-	)
+		add_custom_command(TARGET osu-performance POST_BUILD
+			COMMAND ${CMAKE_COMMAND} -E copy_if_different
+				"${EXTERNAL}/MySQL/dll/64bit/libmariadb.dll"
+				$<TARGET_FILE_DIR:osu-performance>
+		)
+	else()
+		add_custom_command(TARGET osu-performance POST_BUILD
+			COMMAND ${CMAKE_COMMAND} -E copy_if_different
+				"${EXTERNAL}/curl/dll/32bit/libcurl.dll"
+				$<TARGET_FILE_DIR:osu-performance>
+		)
 
-	add_custom_command(TARGET osu-performance POST_BUILD
-		COMMAND ${CMAKE_COMMAND} -E copy_if_different
-			"${EXTERNAL}/MySQL/dll/32bit/libmariadb.dll"
-			$<TARGET_FILE_DIR:osu-performance>
-	)
+		add_custom_command(TARGET osu-performance POST_BUILD
+			COMMAND ${CMAKE_COMMAND} -E copy_if_different
+				"${EXTERNAL}/MySQL/dll/32bit/libmariadb.dll"
+				$<TARGET_FILE_DIR:osu-performance>
+		)
+	endif()
 endif()
