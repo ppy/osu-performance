@@ -8,58 +8,22 @@
 	#include <sys/ioctl.h>
 #endif
 
-void Log(ELogType flags, const std::string& text)
-{
-	Logger::Instance()->Log(flags, std::move(text));
-}
-
-void LogProgress(u64 current, u64 total)
-{
-	Logger::Instance()->LogProgress(current, total);
-}
+using namespace std;
 
 Logger::~Logger()
 {
 	Log(None, CONSOLE_RESET CONSOLE_SHOW_CURSOR);
 }
 
-std::unique_ptr<Logger>& Logger::Instance()
+unique_ptr<Logger>& Logger::Instance()
 {
 	static auto pLog = createLogger();
 	return pLog;
 }
 
-void Logger::Log(ELogType flags, const std::string& text)
+void Logger::Log(ELogType flags, const string& text)
 {
 	_pActive->Send([this, flags, text]() { logText(flags, text); });
-}
-
-void Logger::LogProgress(u64 current, u64 total)
-{
-	std::string totalStr = StrFormat("{0}", total);
-	std::string unitsFmt = std::string{"{0w"} + std::to_string(totalStr.size() * 2 + 12) + "}";
-
-	f64 fraction = (f64)current / total;
-	std::string units = StrFormat("{2w6arp2} % ({0}/{1})", current, total, fraction * 100);
-	// Give units some space in case they're short enough
-	units = StrFormat(unitsFmt, units);
-
-	s32 usableWidth = std::max(0, consoleWidth() - 3 - (s32)units.size() - CONSOLE_PREFIX_LEN);
-
-	s32 numFilledChars = (s32)std::round(usableWidth * fraction);
-
-	std::string body(usableWidth, ' ');
-	if (numFilledChars > 0) {
-		for (s32 i = 0; i < numFilledChars - 1; ++i)
-			body[i] = '=';
-		if (numFilledChars < (s32)body.size()) {
-			body[numFilledChars - 1] = '>';
-		}
-	}
-
-	std::string message = StrFormat("[{0}] {1}", body, units);
-
-	Log(Progress, message);
 }
 
 Logger::Logger()
@@ -68,9 +32,9 @@ Logger::Logger()
 	_pActive = Active::Create();
 }
 
-std::unique_ptr<Logger> Logger::createLogger()
+unique_ptr<Logger> Logger::createLogger()
 {
-	auto pLogger = std::unique_ptr<Logger>(new Logger());
+	auto pLogger = unique_ptr<Logger>(new Logger());
 
 	// Reset initially (also blank line)
 	pLogger->Log(None, CONSOLE_RESET);
@@ -113,7 +77,7 @@ bool Logger::enableControlCharacters()
 	return true;
 }
 
-void Logger::logText(ELogType flags, const std::string& text)
+void Logger::logText(ELogType flags, const string& text)
 {
 	EStream stream;
 	if (flags & Error || flags & Critical || flags & SQL || flags & Except)
@@ -121,16 +85,16 @@ void Logger::logText(ELogType flags, const std::string& text)
 	else
 		stream = EStream::STDOUT;
 
-	std::string textOut;
+	string textOut;
 
 	if (!(flags & None))
 	{
 		// Display time format
-		const auto currentTime = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+		const auto currentTime = chrono::system_clock::to_time_t(chrono::system_clock::now());
 
 #ifdef __WIN32
-#define STREAMTOSTRING(x) dynamic_cast<std::ostringstream &>((std::ostringstream{} << std::dec << x)).str()
-		textOut += STREAMTOSTRING(std::put_time(std::localtime(&currentTime), CONSOLE_TIMESTAMP));
+#define STREAMTOSTRING(x) dynamic_cast<ostringstream &>((ostringstream{} << dec << x)).str()
+		textOut += STREAMTOSTRING(put_time(localtime(&currentTime), CONSOLE_TIMESTAMP));
 #undef STREAMTOSTRING
 #else
 		char timeBuf[128];
@@ -186,12 +150,12 @@ void Logger::logText(ELogType flags, const std::string& text)
 	write(textOut, stream);
 }
 
-void Logger::write(const std::string& text, EStream stream)
+void Logger::write(const string& text, EStream stream)
 {
 	if (stream == EStream::STDERR)
-		std::cerr << text << std::flush;
+		cerr << text << flush;
 	else if (stream == EStream::STDOUT)
-		std::cout << text << std::flush;
+		cout << text << flush;
 	else
-		std::cerr << "Unknown stream specified.\n";
+		cerr << "Unknown stream specified.\n";
 }

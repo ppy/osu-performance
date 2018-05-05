@@ -21,6 +21,7 @@ osu!/Constants/General_Version.cs
 # Build artifacts
 /[Bb]uild
 /Bin/osu-performance*
+/Bin/*.dll
 
 # MSVC auxiliary build files
 /Win32
@@ -57,3 +58,4 @@ osu!.userprefs
 packages/*
 !packages/repositories.config
 .vs/*
+/.vscode
