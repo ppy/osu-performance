@@ -78,6 +78,7 @@ set(HEADERS
 	${SHARED}/Core/Exception.h
 	${SHARED}/Core/Logger.h
 	${SHARED}/Core/SharedQueue.h
+	${SHARED}/Core/StringUtils.h
 	${SHARED}/Core/Threading.h
 	${SHARED}/Core/Types.h
 

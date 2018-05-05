@@ -215,7 +215,11 @@ void Processor::ProcessAllUsers(bool reProcess, u32 numThreads)
 		storeCount(*_pDB, lastUserIdKey(), begin);
 	}
 
-	Log(Success, StrFormat("Processed all {0} users.", numUsers));
+	Log(Success, StrFormat(
+		"Processed all {0} users for {1}.",
+		numUsers,
+		durationToString(std::chrono::steady_clock::now() - startTime)
+	));
 }
 
 void Processor::ProcessUsers(const std::vector<std::string>& userNames)
@@ -276,7 +280,11 @@ void Processor::ProcessUsers(const std::vector<s64>& userIds)
 		return a.Id() > b.Id();
 	});
 
-	Log(Success, StrFormat("Processed all {0} users.", users.size()));
+	Log(Success, StrFormat(
+		"Processed {0} users for {1}.",
+		users.size(),
+		durationToString(std::chrono::steady_clock::now() - startTime)
+	));
 
 	Log(Info, "=============================================");
 	Log(Info, "======= USER SUMMARY ========================");
@@ -355,7 +363,11 @@ void Processor::queryAllBeatmapDifficulties()
 		_lastBeatmapSetPollTime = steady_clock::now();
 	}
 
-	Log(Success, StrFormat("Loaded difficulties for a total of {0} beatmaps.", _beatmaps.size()));
+	Log(Success, StrFormat(
+		"Loaded difficulties for a total of {0} beatmaps for {1}.",
+		_beatmaps.size(),
+		durationToString(std::chrono::steady_clock::now() - startTime)
+	));
 }
 
 bool Processor::queryBeatmapDifficulty(s32 startId, s32 endId)

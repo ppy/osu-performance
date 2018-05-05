@@ -84,8 +84,8 @@ public:
 		// Time display. Looks like so:
 		//     3s/17m03s
 		auto projectedDuration = duration * (1 / fraction);
-		auto projectedDurationStr = toString(projectedDuration);
-		string timeStr = StrFormat("{0}/{1}", toString(duration), projectedDurationStr);
+		auto projectedDurationStr = durationToString(projectedDuration);
+		string timeStr = StrFormat("{0}/{1}", durationToString(duration), projectedDurationStr);
 		string timeFmt = string{"{2w"} + to_string(projectedDurationStr.size() * 2 + 1) + "ar}";
 
 		// Put the label together. Looks like so:
@@ -132,31 +132,6 @@ private:
 	static std::unique_ptr<Logger> createLogger();
 
 	static s32 consoleWidth();
-
-	template <typename T>
-	static std::string toString(T dur)
-	{
-		using namespace std::chrono;
-		using day_t = duration<long long, std::ratio<3600 * 24>>;
-
-		auto d = duration_cast<day_t>(dur);
-		auto h = duration_cast<hours>(dur -= d);
-		auto m = duration_cast<minutes>(dur -= h);
-		auto s = duration_cast<seconds>(dur -= m);
-
-		std::string result = StrFormat("{0w2arf0}s", s.count());
-		if (m.count() > 0)
-			result = StrFormat("{0w2arf0}m", m.count()) + result;
-		if (h.count() > 0)
-			result = StrFormat("{0w2arf0}h", h.count()) + result;
-		if (d.count() > 0)
-			result = StrFormat("{0}d", d.count()) + result;
-
-		if (result[0] == '0')
-			result.erase(result.begin());
-
-		return result;
-	}
 
 	bool enableControlCharacters();
 
