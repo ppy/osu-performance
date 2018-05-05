@@ -23,10 +23,10 @@ Open the command line and navigate to the root folder of this repository.
 ```sh
 osu-performance> mkdir Build
 osu-performance> cd Build
-osu-performance\Build> cmake ..
+osu-performance\Build> cmake -G "Visual Studio 15 2017 Win64" ..
 ```
 
-Now the _Build_ folder should contain a [Visual Studio](https://www.visualstudio.com/) project for building the program.
+Now the _Build_ folder should contain a [Visual Studio 2017](https://www.visualstudio.com/) 64-bit project for building the program. Older versions of Visual Studio may work, however it is important to configure a 64-bit build.
 
 ### macOS / Linux
 
