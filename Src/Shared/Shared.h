@@ -121,7 +121,6 @@ typedef unsigned int uint;
 #include <StrFormat.h>
 
 #include "Core/Exception.h"
-#include "Core/StringUtil.h"
 
 #include "Math/Math.h"
 

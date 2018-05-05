@@ -7,7 +7,9 @@
 
 using namespace std::chrono;
 
-EGamemode stringToGamemode(const std::string& modeString)
+PP_NAMESPACE_BEGIN
+
+EGamemode StringToGamemode(const std::string& modeString)
 {
 	EGamemode mode;
 	if (modeString == "osu")
@@ -19,7 +21,7 @@ EGamemode stringToGamemode(const std::string& modeString)
 	else if (modeString == "mania")
 		mode = Mania;
 	else
-		throw CLoggedException(SRC_POS, StrFormat("Invalid mode '{0}'", modeString));
+		throw LoggedException(SRC_POS, StrFormat("Invalid mode '{0}'", modeString));
 
 	return mode;
 }
@@ -36,7 +38,7 @@ int main(s32 argc, char* argv[])
 		WSADATA wsaData;
 		if (WSAStartup(wVersionRequested, &wsaData) != 0)
 		{
-			Log(CLog::CriticalError, "Couldn't startup winsock.");
+			Log(Critical, "Couldn't startup winsock.");
 		}
 #endif
 
@@ -74,7 +76,7 @@ int main(s32 argc, char* argv[])
 		args::Command newCommand(commands, "new", "Continually poll for new scores and compute pp of these", [&](args::Subparser& parser)
 		{
 			parser.Parse();
-			CProcessor processor{stringToGamemode(args::get(modePositional)), args::get(configFlag)};
+			Processor processor{StringToGamemode(args::get(modePositional)), args::get(configFlag)};
 			processor.MonitorNewScores();
 		});
 
@@ -101,7 +103,7 @@ int main(s32 argc, char* argv[])
 
 			u32 numThreads = args::get(threadsFlag);
 
-			CProcessor processor{stringToGamemode(args::get(modePositional)), args::get(configFlag)};
+			Processor processor{StringToGamemode(args::get(modePositional)), args::get(configFlag)};
 			processor.ProcessAllUsers(!continueFlag, numThreads);
 		});
 
@@ -116,7 +118,7 @@ int main(s32 argc, char* argv[])
 			parser.Parse();
 
 			std::vector<std::string> userNames = args::get(usersPositional);
-			CProcessor processor{stringToGamemode(args::get(modePositional)), args::get(configFlag)};
+			Processor processor{StringToGamemode(args::get(modePositional)), args::get(configFlag)};
 			processor.ProcessUsers(args::get(usersPositional));
 		});
 
@@ -159,12 +161,12 @@ int main(s32 argc, char* argv[])
 		auto modeString = arguments[1];
 		auto targetString = arguments[2];
 	}
-	catch (CLoggedException& e)
+	catch (const LoggedException& e)
 	{
 		e.Log();
 		return 1;
 	}
-	catch (CException& e)
+	catch (const Exception& e)
 	{
 		e.Print();
 		return 1;
@@ -174,4 +176,13 @@ int main(s32 argc, char* argv[])
 		std::cerr << "Uncaught exception: " << e.what() << std::endl;
 		return 1;
 	}
+
+	return 0;
+}
+
+PP_NAMESPACE_END
+
+int main(s32 argc, char* argv[])
+{
+	return pp::main(argc, argv);
 }

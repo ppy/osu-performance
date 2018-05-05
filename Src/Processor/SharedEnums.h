@@ -1,8 +1,10 @@
 #pragma once
 
+PP_NAMESPACE_BEGIN
+
 enum EMods : u32
 {
-	None = 0,
+	Nomod = 0,
 	NoFail = 1 << 0,
 	Easy = 1 << 1,
 	TouchDevice = 1 << 2,
@@ -48,3 +50,5 @@ enum EGamemode : u32
 
 	NumGamemodes,
 };
+
+PP_NAMESPACE_END

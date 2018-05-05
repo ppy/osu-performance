@@ -2,28 +2,25 @@
 
 #include "Score.h"
 
-class CDatabaseConnection;
-class CInsertionBatch;
+PP_NAMESPACE_BEGIN
 
-class CUser
+class User
 {
 public:
-	CUser(s64 id) : _id{id}
+	User(s64 id) : _id{id}
 	{
 	}
 
-	struct SPPRecord
+	struct PPRecord
 	{
 		f64 Value = 0;
 		f64 Accuracy = 0;
 	};
 
-	void AddScorePPRecord(CScore::SPPRecord score)
+	void AddScorePPRecord(Score::PPRecord score)
 	{
 		_scores.push_back(score);
 	}
-
-	void AppendToBatch(u32 sizeThreshold, CInsertionBatch& batch);
 
 	s64 Id() const { return _id; }
 
@@ -31,12 +28,14 @@ public:
 
 	void ComputePPRecord();
 
-	const SPPRecord& PPRecord() const { return _rating; }
+	const PPRecord& GetPPRecord() const { return _rating; }
 
-	CScore::SPPRecord XthBestScorePPRecord(unsigned int i);
+	Score::PPRecord XthBestScorePPRecord(unsigned int i);
 
 private:
 	s64 _id;
-	SPPRecord _rating;
-	std::vector<CScore::SPPRecord> _scores;
+	PPRecord _rating;
+	std::vector<Score::PPRecord> _scores;
 };
+
+PP_NAMESPACE_END

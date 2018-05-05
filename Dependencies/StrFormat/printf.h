@@ -60,7 +60,7 @@ namespace ts_printf
 
 		template<typename CharType, template<class, class> class CParser>
 		class CFormatter
-			: 
+			:
 			protected _details::SBaseFormatter,
 			public CParser<CFormatter<CharType, CParser>, CharType>,
 			protected _details::CStringRenderer<CharType>,
@@ -85,7 +85,7 @@ namespace ts_printf
 			std::unique_ptr<SFormatDesc[]> m_FormatParts;	// contains parsed format string
 			size_t m_NumFormatParts;
 
-		
+
 
 
 
@@ -93,23 +93,23 @@ namespace ts_printf
 			{
 			}
 
-			
 
-			
+
+
 			template<u32 ParamIndex, class CAdaptor, typename A>
 			void render_parameter(const SFormatDesc& fd, CAdaptor &adaptor, CCharBuffer& buffer, A&& Arg) const
 			{
 				if(ParamIndex == fd.ParamIndex)
-				{ 
+				{
 					irender_parameter(fd, std::forward<A>(Arg), buffer);
 				}
-					
+
 				// We are at the end of the "recursion" through the argument list. Finish up by calling the common rendering method.
 				// NOTE: This isn't actual recursion, since the methods called in sequence are of DIFFERENT templates and thus not the same memory location
 				//       The compiler most likely unrolls it into a simple sequence of statements.
 				common_render_parameter(buffer, fd, adaptor);
 			}
-			
+
 			template<u32 ParamIndex, class CAdaptor, typename A, typename... B>
 			void render_parameter(const SFormatDesc& fd,CAdaptor &adaptor, CCharBuffer& buffer, A&& Arg, B&&... ArgTail) const
 			{
@@ -117,11 +117,11 @@ namespace ts_printf
 				{
 					irender_parameter(fd, std::forward<A>(Arg), buffer);
 				}
-					
+
 				render_parameter<ParamIndex+1>(fd, adaptor, buffer, std::forward<B>(ArgTail)...);
 			}
 
-			
+
 
 			template<class CAdaptor>
 			void common_render_parameter(CCharBuffer& buffer, const SFormatDesc& fd, CAdaptor& adaptor) const
@@ -180,7 +180,7 @@ namespace ts_printf
 							return;
 						}
 					}
-					else 
+					else
 					{
 						switch (fd.Alignment)
 						{
@@ -203,7 +203,7 @@ namespace ts_printf
 				adaptor.Write(result, length);
 			}
 
-			
+
 
 		public:
 
@@ -294,15 +294,11 @@ namespace ts_printf
 					}
 				}
 			}
-
 		};
-
-
 
 		// Default dispatcher is directly for string objects
 		template<template<class, class> class CParser, typename Enable = void>
 		struct FormatDispatcher;
-
 
 		// Default dispatcher is directly for string objects
 		template<template<class, class> class CParser, typename CharType>
@@ -310,11 +306,9 @@ namespace ts_printf
 		{
 			CFormatter<CharType, CParser> operator ()(std::basic_string<CharType> && FormatString) const
 			{
-
 				return CFormatter<CharType, CParser>(FormatString.c_str(), FormatString.c_str() + FormatString.length());
 			}
 		};
-
 
 		// Format dispatcher for char pointer
 		template<template<class, class> class CParser, typename CharType>
@@ -322,11 +316,9 @@ namespace ts_printf
 		{
 			CFormatter<CharType, CParser> operator ()(const CharType* r) const
 			{
-
 				return CFormatter<CharType, CParser>(r, r + std::char_traits<CharType>::length(r));
 			}
 		};
-
 
 		// Format dispatcher for char array
 		template<template<class, class> class CParser, typename CharType, size_t N>
@@ -334,8 +326,7 @@ namespace ts_printf
 		{
 			CFormatter<CharType, CParser> operator ()(const CharType(&p)[N]) const
 			{
-
-				return CFormatter<CharType, CParser>(p, p + N - 1);
+				return CFormatter<CharType, CParser>(p, p + std::char_traits<CharType>::length(p));
 			}
 		};
 	}
@@ -347,7 +338,5 @@ namespace ts_printf
 	{
 		return _details::FormatDispatcher<_details::CExtendedFormat, StringType>()(std::forward<StringType>(FormatString));
 	}
-
-
 };
 

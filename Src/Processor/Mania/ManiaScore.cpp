@@ -3,7 +3,9 @@
 #include "ManiaScore.h"
 #include "SharedEnums.h"
 
-CManiaScore::CManiaScore(
+PP_NAMESPACE_BEGIN
+
+ManiaScore::ManiaScore(
 	s64 scoreId,
 	EGamemode mode,
 	s32 userId,
@@ -17,21 +19,21 @@ CManiaScore::CManiaScore(
 	s32 numGeki,
 	s32 numKatu,
 	EMods mods,
-	const CBeatmap& beatmap
-) : CScore{scoreId, mode, userId, beatmapId, score, maxCombo, num300, num100, num50, numMiss, numGeki, numKatu, mods}
+	const Beatmap& beatmap
+) : Score{scoreId, mode, userId, beatmapId, score, maxCombo, num300, num100, num50, numMiss, numGeki, numKatu, mods}
 {
-	ComputeStrainValue(beatmap);
-	ComputeAccValue(beatmap);
+	computeStrainValue(beatmap);
+	computeAccValue(beatmap);
 
-	ComputeTotalValue();
+	computeTotalValue();
 }
 
-f32 CManiaScore::TotalValue() const
+f32 ManiaScore::TotalValue() const
 {
 	return _totalValue;
 }
 
-void CManiaScore::ComputeTotalValue()
+void ManiaScore::computeTotalValue()
 {
 	// Don't count scores made with supposedly unranked mods
 	if ((_mods & EMods::Relax) > 0 ||
@@ -61,10 +63,10 @@ void CManiaScore::ComputeTotalValue()
 		) * multiplier;
 }
 
-void CManiaScore::ComputeStrainValue(const CBeatmap& beatmap)
+void ManiaScore::computeStrainValue(const Beatmap& beatmap)
 {
 	// Scale score up, so it's comparable to other keymods
-	f32 scoreMultiplier = beatmap.DifficultyAttribute(_mods, CBeatmap::ScoreMultiplier);
+	f32 scoreMultiplier = beatmap.DifficultyAttribute(_mods, Beatmap::ScoreMultiplier);
 
 	if (scoreMultiplier <= 0)
 	{
@@ -75,7 +77,7 @@ void CManiaScore::ComputeStrainValue(const CBeatmap& beatmap)
 	_score *= static_cast<s32>(1.0f / scoreMultiplier); // We don't really mind rounding errors with such small magnitude.
 
 	// Obtain strain difficulty
-	_strainValue = pow(5.0f * std::max(1.0f, beatmap.DifficultyAttribute(_mods, CBeatmap::Strain) / 0.0825f) - 4.0f, 3.0f) / 110000.0f;
+	_strainValue = pow(5.0f * std::max(1.0f, beatmap.DifficultyAttribute(_mods, Beatmap::Strain) / 0.0825f) - 4.0f, 3.0f) / 110000.0f;
 
 	// Longer maps are worth more
 	_strainValue *= 1 + 0.1f * std::min(1.0f, static_cast<f32>(TotalHits()) / 1500.0f);
@@ -95,9 +97,9 @@ void CManiaScore::ComputeStrainValue(const CBeatmap& beatmap)
 		_strainValue *= 0.95f + static_cast<f32>(_score - 900000) / 100000.0f * 0.05f;
 }
 
-void CManiaScore::ComputeAccValue(const CBeatmap& beatmap)
+void ManiaScore::computeAccValue(const Beatmap& beatmap)
 {
-	f32 hitWindow300 = beatmap.DifficultyAttribute(_mods, CBeatmap::HitWindow300);
+	f32 hitWindow300 = beatmap.DifficultyAttribute(_mods, Beatmap::HitWindow300);
 	if (hitWindow300 <= 0)
 	{
 		_accValue = 0;
@@ -112,22 +114,24 @@ void CManiaScore::ComputeAccValue(const CBeatmap& beatmap)
 	_accValue *= std::min<f32>(1.15f, pow(static_cast<f32>(TotalHits()) / 1500.0f, 0.3f));
 }
 
-f32 CManiaScore::Accuracy() const
+f32 ManiaScore::Accuracy() const
 {
 	if (TotalHits() == 0)
 		return 0;
 
 	return
-		clamp(static_cast<f32>(_num50 * 50 + _num100 * 100 + _numKatu * 200 + (_num300 + _numGeki) * 300)
+		Clamp(static_cast<f32>(_num50 * 50 + _num100 * 100 + _numKatu * 200 + (_num300 + _numGeki) * 300)
 		/ (TotalHits() * 300), 0.0f, 1.0f);
 }
 
-s32 CManiaScore::TotalHits() const
+s32 ManiaScore::TotalHits() const
 {
 	return _num50 + _num100 + _num300 + _numMiss + _numGeki + _numKatu;
 }
 
-s32 CManiaScore::TotalSuccessfulHits() const
+s32 ManiaScore::TotalSuccessfulHits() const
 {
 	return _num50 + _num100 + _num300 + _numGeki + _numKatu;
 }
+
+PP_NAMESPACE_END

@@ -1,6 +1,6 @@
 #pragma once
 
-class CPriorityMutex
+class PriorityMutex
 {
 public:
 	void LockLowPrio();
@@ -15,25 +15,25 @@ private:
 	std::mutex L;
 };
 
-class CPriorityLock
+class PriorityLock
 {
 public:
-	CPriorityLock(CPriorityMutex* pPriorityMutex, bool isHighPriority);
-	~CPriorityLock();
+	PriorityLock(PriorityMutex* pPriorityMutex, bool isHighPriority);
+	~PriorityLock();
 
 	void Lock();
 	void Unlock();
 
 private:
-	CPriorityMutex* _pPriorityMutex;
+	PriorityMutex* _pPriorityMutex;
 	bool _isHighPriority;
 	bool _isLocked;
 };
 
-class CRWMutex
+class RWMutex
 {
 public:
-	CRWMutex()
+	RWMutex()
 	{
 		readers = writers = read_waiters = write_waiters = 0;
 	}
@@ -96,27 +96,27 @@ private:
 	unsigned readers, writers, read_waiters, write_waiters;
 };
 
-class CRWLock
+class RWLock
 {
 public:
-	CRWLock(CRWMutex* pRWMutex, bool isWriter);
-	~CRWLock();
+	RWLock(RWMutex* pRWMutex, bool isWriter);
+	~RWLock();
 
 	void Lock();
 	void Unlock();
 
 private:
-	CRWMutex* _pRWMutex;
+	RWMutex* _pRWMutex;
 	bool _isWriter;
 	bool _isLocked;
 };
 
-class CThreadPool
+class ThreadPool
 {
 public:
-	CThreadPool();
-	CThreadPool(const u32 numThreads);
-	~CThreadPool();
+	ThreadPool();
+	ThreadPool(const u32 numThreads);
+	~ThreadPool();
 
 	template<class F, class... Args>
 	std::future<typename std::result_of<F(Args...)>::type> EnqueueTask(F && f, Args && ... args)

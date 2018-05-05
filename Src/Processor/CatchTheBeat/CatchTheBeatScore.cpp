@@ -3,7 +3,9 @@
 #include "CatchTheBeatScore.h"
 #include "SharedEnums.h"
 
-CCatchTheBeatScore::CCatchTheBeatScore(
+PP_NAMESPACE_BEGIN
+
+CatchTheBeatScore::CatchTheBeatScore(
 	s64 scoreId,
 	EGamemode mode,
 	s32 userId,
@@ -17,8 +19,8 @@ CCatchTheBeatScore::CCatchTheBeatScore(
 	s32 numGeki,
 	s32 numKatu,
 	EMods mods,
-	const CBeatmap& beatmap
-) : CScore{scoreId, mode, userId, beatmapId, score, maxCombo, num300, num100, num50, numMiss, numGeki, numKatu, mods}
+	const Beatmap& beatmap
+) : Score{scoreId, mode, userId, beatmapId, score, maxCombo, num300, num100, num50, numMiss, numGeki, numKatu, mods}
 {
 	// Don't count scores made with supposedly unranked mods
 	if ((_mods & EMods::Relax) > 0 ||
@@ -30,10 +32,10 @@ CCatchTheBeatScore::CCatchTheBeatScore(
 	}
 
 	// We are heavily relying on aim in catch the beat
-	_value = pow(5.0f * std::max(1.0f, beatmap.DifficultyAttribute(_mods, CBeatmap::Aim) / 0.0049f) - 4.0f, 2.0f) / 100000.0f;
+	_value = pow(5.0f * std::max(1.0f, beatmap.DifficultyAttribute(_mods, Beatmap::Aim) / 0.0049f) - 4.0f, 2.0f) / 100000.0f;
 
 	// Longer maps are worth more. "Longer" means how many hits there are which can contribute to combo
-	int numTotalHits = TotalComboHits();
+	int numTotalHits = totalComboHits();
 
 	// Longer maps are worth more
 	f32 lengthBonus =
@@ -47,11 +49,11 @@ CCatchTheBeatScore::CCatchTheBeatScore(
 	_value *= pow(0.97f, _numMiss);
 
 	// Combo scaling
-	float beatmapMaxCombo = beatmap.DifficultyAttribute(_mods, CBeatmap::MaxCombo);
+	float beatmapMaxCombo = beatmap.DifficultyAttribute(_mods, Beatmap::MaxCombo);
 	if (beatmapMaxCombo > 0)
 		_value *= std::min<f32>(pow(static_cast<f32>(_maxCombo), 0.8f) / pow(beatmapMaxCombo, 0.8f), 1.0f);
 
-	f32 approachRate = beatmap.DifficultyAttribute(_mods, CBeatmap::AR);
+	f32 approachRate = beatmap.DifficultyAttribute(_mods, Beatmap::AR);
 	f32 approachRateFactor = 1.0f;
 	if (approachRate > 9.0f)
 		approachRateFactor += 0.1f * (approachRate - 9.0f); // 10% for each AR above 9
@@ -79,30 +81,32 @@ CCatchTheBeatScore::CCatchTheBeatScore(
 		_value *= 0.95f;
 }
 
-f32 CCatchTheBeatScore::TotalValue() const
+f32 CatchTheBeatScore::TotalValue() const
 {
 	return _value;
 }
 
-f32 CCatchTheBeatScore::Accuracy() const
+f32 CatchTheBeatScore::Accuracy() const
 {
 	if (TotalHits() == 0)
 		return 0;
 
-	return clamp(static_cast<f32>(TotalSuccessfulHits()) / TotalHits(), 0.0f, 1.0f);
+	return Clamp(static_cast<f32>(TotalSuccessfulHits()) / TotalHits(), 0.0f, 1.0f);
 }
 
-s32 CCatchTheBeatScore::TotalHits() const
+s32 CatchTheBeatScore::TotalHits() const
 {
 	return _num50 + _num100 + _num300 + _numMiss + _numKatu;
 }
 
-s32 CCatchTheBeatScore::TotalSuccessfulHits() const
+s32 CatchTheBeatScore::TotalSuccessfulHits() const
 {
 	return _num50 + _num100 + _num300;
 }
 
-s32 CCatchTheBeatScore::TotalComboHits() const
+s32 CatchTheBeatScore::totalComboHits() const
 {
 	return _num300 + _num100 + _numMiss;
 }
+
+PP_NAMESPACE_END

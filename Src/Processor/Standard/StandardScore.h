@@ -2,11 +2,13 @@
 
 #include "Score.h"
 
-class CStandardScore : public CScore
+PP_NAMESPACE_BEGIN
+
+class StandardScore : public Score
 {
 public:
 
-	CStandardScore(
+	StandardScore(
 		s64 scoreId,
 		EGamemode mode,
 		s32 userId,
@@ -20,7 +22,7 @@ public:
 		s32 numGeki,
 		s32 numKatu,
 		EMods mods,
-		const CBeatmap& beatmap
+		const Beatmap& beatmap
 	);
 
 	f32 TotalValue() const override;
@@ -33,10 +35,12 @@ private:
 	f32 _speedValue;
 	f32 _accValue;
 
-	void ComputeTotalValue();
+	void computeTotalValue();
 	f32 _totalValue;
 
-	void ComputeAimValue(const CBeatmap& beatmap);
-	void ComputeSpeedValue(const CBeatmap& beatmap);
-	void ComputeAccValue(const CBeatmap& beatmap);
+	void computeAimValue(const Beatmap& beatmap);
+	void computeSpeedValue(const Beatmap& beatmap);
+	void computeAccValue(const Beatmap& beatmap);
 };
+
+PP_NAMESPACE_END

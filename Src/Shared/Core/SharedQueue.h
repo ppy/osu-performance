@@ -5,7 +5,7 @@
 #include <condition_variable>
 
 template <typename T>
-class CSharedQueue
+class SharedQueue
 {
 public:
 	bool Empty() const

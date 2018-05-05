@@ -1,8 +1,8 @@
 # osu!performance [![Travis Build Status](https://travis-ci.org/ppy/osu-performance.svg?branch=master)](https://travis-ci.org/ppy/osu-performance) [![Appveyor Build status](https://ci.appveyor.com/api/projects/status/4xvd8p8ulci07d82?svg=true)](https://ci.appveyor.com/project/Tom94/osu-performance) [![dev chat](https://discordapp.com/api/guilds/188630481301012481/widget.png?style=shield)](https://discord.gg/ppy)
 
-This is the program computing "performance points" (pp), which are used as the official [player ranking metric](https://osu.ppy.sh/p/pp) in osu!.
+This is the program computing "performance points" (__pp__), which are used as the official [player ranking metric](https://osu.ppy.sh/p/pp) in osu!.
 
-## Building
+# Compiling
 
 All that is required for building osu!performance is a C++11-compatible compiler. Begin by cloning this repository and all its submodules using the following command:
 ```sh
@@ -26,7 +26,7 @@ osu-performance> cd Build
 osu-performance\Build> cmake ..
 ```
 
-Now the _Build_ folder should contain a [Visual Studio](https://www.visualstudio.com/) project for building the program.
+Now the _Build_ folder should contain a [Visual Studio](https://www.visualstudio.com/) project for building the program. Visual Studio 2017 and a 64-bit build are recommended (`cmake -G "Visual Studio 15 2017 Win64" ..`).
 
 ### macOS / Linux
 
@@ -39,9 +39,19 @@ osu-performance/Build$ cmake ..
 osu-performance/Build$ make -j
 ```
 
-## Usage
+# Sample Data
 
-After compilation, an executable named `osu-performance` is placed in the _Bin_ folder. It is used via the command line as follows:
+Database dumps with sample data can be found at https://data.ppy.sh. This data includes the top 10,000 users along with a random 10,000 user sample across all users, along with all required auxiliary tables to test this system. Please note that this data is released for development purposes only (full licence details [availble here](https://data.ppy.sh/LICENCE.txt)).
+
+You can import these dumps to mysql (after first extracting them) by running `cat *.sql | mysql`. Note that all existing data in tables will be dropped and replaced. Make sure to import the latest available data dumps as older snapshots may be incompatible with the latest version of osu!performance.
+
+Note that this data is covered by a [separate licence](https://data.ppy.sh/LICENCE.txt) from osu!performance.
+
+# Usage
+
+First, [set up a MySQL server](https://dev.mysql.com/doc/mysql-getting-started/en/) and import the provided data from above which is most relevant to your use case. Next, edit _Bin/Config.cfg_ with your favourite text editor and configure `MySQL_db` and `MySQL_db_slave` to point to your MySQL server.
+
+After compilation, an executable named `osu-performance` is placed in the _Bin_ folder. You can use it via the command line as follows:
 
 ```sh
 ./osu-performance COMMAND {OPTIONS}
@@ -67,14 +77,9 @@ and further options specific to the chosen command can be queried via
 ./osu-performance COMMAND -h
 ```
 
-Configuration options beyond these parameters, such as the MySQL server configuration, can be adjusted in _Bin/Data/Config.cfg_.
+Configuration options beyond these parameters, such as various API hooks, can be adjusted in _Bin/Data/Config.cfg_.
 
-## Sample Data
+# Licence
+osu!performance is licensed under AGPL version 3 or later. Please see [the licence file](LICENCE) for more information. [tl;dr](https://tldrlegal.com/license/gnu-affero-general-public-license-v3-(agpl-3.0)) if you want to use any code, design or artwork from this project, attribute it and make your project open source under the same licence.
 
-Database dumps with sample data can be found at https://data.ppy.sh. This data includes the top 10,000 users along with a random 10,000 user sample across all users, along with all required auxiliary tables to test this system. Please note that this data is released for development purposes only (full licence details [availble here](https://data.ppy.sh/LICENCE.txt)).
-
-You can import these dumps to mysql (after first extracting them) by running `cat *.sql | mysql`. Note that all existing data in tables will be dropped and replaced.
-
-## Licence
-
-osu-performance is licensed under AGPL version 3 or later. Please see [the licence file](LICENCE) for more information. [tl;dr](https://tldrlegal.com/license/gnu-affero-general-public-license-v3-(agpl-3.0)) if you want to use any code, design or artwork from this project, attribute it and make your project open source under the same licence.
+Note that the sample data is covered by a [separate licence](https://data.ppy.sh/LICENCE.txt).
