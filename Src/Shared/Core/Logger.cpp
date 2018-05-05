@@ -10,16 +10,6 @@
 
 using namespace std;
 
-void Log(ELogType flags, const string& text)
-{
-	Logger::Instance()->Log(flags, move(text));
-}
-
-void LogProgress(u64 current, u64 total, chrono::milliseconds elapsedMs)
-{
-	Logger::Instance()->LogProgress(current, total, elapsedMs);
-}
-
 Logger::~Logger()
 {
 	Log(None, CONSOLE_RESET CONSOLE_SHOW_CURSOR);
@@ -34,38 +24,6 @@ unique_ptr<Logger>& Logger::Instance()
 void Logger::Log(ELogType flags, const string& text)
 {
 	_pActive->Send([this, flags, text]() { logText(flags, text); });
-}
-
-void Logger::LogProgress(u64 current, u64 total, chrono::milliseconds elapsedMs)
-{
-	f64 fraction = (f64)current / total;
-
-	auto projectedMs = elapsedMs * (1 / fraction);
-	string timeStr = StrFormat("{0}/{1}", toString(elapsedMs), toString(projectedMs));
-
-	string totalStr = StrFormat("{0}", total);
-	string unitsFmt = string{"{0w"} + to_string(totalStr.size() * 2 + 8) + "}";
-
-	string units = StrFormat("{2w3ar}% ({0}/{1}) ", current, total, (s32)std::round(fraction * 100), timeStr);
-	// Give units some space in case they're short enough
-	units = StrFormat(unitsFmt, units);
-
-	s32 usableWidth = max(0, consoleWidth() - 4 - (s32)units.size() - (s32)timeStr.size() - CONSOLE_PREFIX_LEN);
-
-	s32 numFilledChars = (s32)round(usableWidth * fraction);
-
-	string body(usableWidth, ' ');
-	if (numFilledChars > 0) {
-		for (s32 i = 0; i < numFilledChars; ++i)
-			body[i] = '=';
-		if (numFilledChars < usableWidth) {
-			body[numFilledChars] = '>';
-		}
-	}
-
-	string message = StrFormat("[{0}] {1} {2}", body, units, timeStr);
-
-	Log(Progress, message);
 }
 
 Logger::Logger()

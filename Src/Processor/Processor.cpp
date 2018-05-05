@@ -191,8 +191,7 @@ void Processor::ProcessAllUsers(bool reProcess, u32 numThreads)
 		begin += userIdStep;
 		numUsersProcessed += res.NumRows();
 
-		auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - startTime);
-		LogProgress(numUsersProcessed, numUsers, elapsed);
+		LogProgress(numUsersProcessed, numUsers, std::chrono::steady_clock::now() - startTime);
 
 		u32 numPendingQueries = 0;
 
@@ -265,8 +264,7 @@ void Processor::ProcessUsers(const std::vector<s64>& userIds)
 			userId
 		));
 
-		auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - startTime);
-		LogProgress(users.size(), userIds.size(), elapsed);
+		LogProgress(users.size(), userIds.size(), std::chrono::steady_clock::now() - startTime);
 	}
 
 	Log(Info, StrFormat("Sorting {0} users.", users.size()));
@@ -351,8 +349,7 @@ void Processor::queryAllBeatmapDifficulties()
 	{
 		queryBeatmapDifficulty(begin, std::min(begin + step, maxBeatmapId+1));
 
-		auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - startTime);
-		LogProgress(_beatmaps.size(), numBeatmaps, elapsed);
+		LogProgress(_beatmaps.size(), numBeatmaps, std::chrono::steady_clock::now() - startTime);
 
 		// This prevents stall checks to kill us during difficulty load
 		_lastBeatmapSetPollTime = steady_clock::now();

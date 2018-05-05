@@ -63,7 +63,62 @@ public:
 
 	void Log(ELogType flags, const std::string& text);
 
-	void LogProgress(u64 current, u64 total, std::chrono::milliseconds elapsedMs);
+	template <typename T>
+	void LogProgress(u64 current, u64 total, T duration)
+	{
+		using namespace std;
+
+		f64 fraction = (f64)current / total;
+
+		// Percentage display. Looks like so:
+		//  69%
+		s32 percentage = (s32)std::round(fraction * 100);
+		string percentageFmt = "{0w3ar}%";
+
+		// Fraction display. Looks like so:
+		// ( 123/1337)
+		string totalStr = StrFormat("{0}", total);
+		string fractionStr = StrFormat("{0}/{1}", current, total);
+		string fractionFmt = string{"{1w"} + to_string(totalStr.size() * 2 + 1) + "ar}";
+
+		// Time display. Looks like so:
+		//     3s/17m03s
+		auto projectedDuration = duration * (1 / fraction);
+		auto projectedDurationStr = toString(projectedDuration);
+		string timeStr = StrFormat("{0}/{1}", toString(duration), projectedDurationStr);
+		string timeFmt = string{"{2w"} + to_string(projectedDurationStr.size() * 2 + 1) + "ar}";
+
+		// Put the label together. Looks like so:
+		//  69% ( 123/1337)     3s/17m03s
+		string fmt = StrFormat("{0} ({1}) {2}", percentageFmt, fractionFmt, timeFmt);
+		string label = StrFormat(fmt, percentage, fractionStr, timeStr);
+
+		// Build the progress bar itself. Looks like so:
+		// [=================>                         ]
+		s32 usableWidth = max(0, consoleWidth()
+			- 2 // The surrounding [ and ]
+			- 1 // Space between progress bar and label
+			- (s32)label.size() // Label itself
+			- CONSOLE_PREFIX_LEN // Prefix
+		);
+
+		s32 numFilledChars = (s32)round(usableWidth * fraction);
+
+		string body(usableWidth, ' ');
+		if (numFilledChars > 0) {
+			for (s32 i = 0; i < numFilledChars; ++i)
+				body[i] = '=';
+			if (numFilledChars < usableWidth) {
+				body[numFilledChars] = '>';
+			}
+		}
+
+		// Put everything together. Looks like so:
+		// [=================>                         ]  69% ( 123/1337)     3s/17m03s
+		string message = StrFormat("[{0}] {1} {2}", body, label);
+
+		Log(Progress, message);
+	}
 
 	enum class EStream : byte
 	{
@@ -114,5 +169,13 @@ private:
 	bool canHandleControlCharacters;
 };
 
-void Log(ELogType flags, const std::string& text);
-void LogProgress(u64 current, u64 total, std::chrono::milliseconds elapsedMs);
+inline void Log(ELogType flags, const std::string& text)
+{
+	Logger::Instance()->Log(flags, std::move(text));
+}
+
+template <typename T>
+void LogProgress(u64 current, u64 total, T duration)
+{
+	Logger::Instance()->LogProgress(current, total, duration);
+}
