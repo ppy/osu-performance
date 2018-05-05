@@ -26,7 +26,7 @@ osu-performance> cd Build
 osu-performance\Build> cmake ..
 ```
 
-Now the _Build_ folder should contain a [Visual Studio](https://www.visualstudio.com/) project for building the program.
+Now the _Build_ folder should contain a [Visual Studio](https://www.visualstudio.com/) project for building the program. Visual Studio 2017 and a 64-bit build are recommended (`cmake -G "Visual Studio 15 2017 Win64" ..`).
 
 ### macOS / Linux
 
