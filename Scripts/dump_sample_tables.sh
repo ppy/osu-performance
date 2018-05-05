@@ -1,8 +1,8 @@
 #!/bin/bash
 # Select relevant sample users and dump to a file.
 
-TOP_USER_COUNT=1000
-RANDOM_USER_COUNT=1000
+TOP_USER_COUNT=10000
+RANDOM_USER_COUNT=10000
 
 DATABASE_HOST=db_delayed
 DATABASE_USER=pp-export
