@@ -41,11 +41,9 @@ osu-performance/Build$ make -j
 
 # Sample Data
 
-Database dumps with sample data can be found at https://data.ppy.sh. This data includes the top 10,000 users along with a random 10,000 user sample across all users, along with all required auxiliary tables to test this system. Please note that this data is released for development purposes only (full licence details [availble here](https://data.ppy.sh/LICENCE.txt)).
+Database dumps with sample data can be found at https://data.ppy.sh. This data includes the top 10,000 users along with a random 10,000 user sample across all users, along with all required auxiliary tables to test this system. Please note that this data is released for development purposes only (full licence details [available here](https://data.ppy.sh/LICENCE.txt)).
 
 You can import these dumps to mysql (after first extracting them) by running `cat *.sql | mysql`. Note that all existing data in tables will be dropped and replaced. Make sure to import the latest available data dumps as older snapshots may be incompatible with the latest version of osu!performance.
-
-Note that this data is covered by a [separate licence](https://data.ppy.sh/LICENCE.txt) from osu!performance.
 
 # Usage
 
