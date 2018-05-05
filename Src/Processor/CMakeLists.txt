@@ -104,21 +104,45 @@ link_directories(${EXTERNAL}/curl/lib)
 link_directories(${EXTERNAL}/MySQL/lib)
 
 if (WIN32)
-	set(LIBRARIES
-		${LIBRARIES}
-		ws2_32
-		libmariadb
-		libcurl
-	)
+	set(LIBRARIES ${LIBRARIES} ws2_32)
+
+	# Link against different pre-built binaries if 64-bit
+	if (CMAKE_SIZEOF_VOID_P EQUAL 8)
+		set(LIBRARIES ${LIBRARIES} libmariadb libcurl)
+	else()
+		set(LIBRARIES ${LIBRARIES} libmariadb32 libcurl32)
+	endif()
 elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES "GNU")
 	find_package(Threads REQUIRED)
-	set(LIBRARIES
-		${LIBRARIES}
-		${CMAKE_THREAD_LIBS_INIT}
-		mysqlclient
-		curl
-	)
+	set(LIBRARIES ${LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} mysqlclient curl)
 endif()
 
 COMMON_INCLUDE_DIRECTORIES()
 GENERATE_EXECUTABLE(osu-performance)
+
+# Copy DLLs
+if (CMAKE_SIZEOF_VOID_P EQUAL 8)
+	add_custom_command(TARGET osu-performance POST_BUILD
+		COMMAND ${CMAKE_COMMAND} -E copy_if_different
+			"${EXTERNAL}/curl/dll/64bit/libcurl.dll"
+			$<TARGET_FILE_DIR:osu-performance>
+	)
+
+	add_custom_command(TARGET osu-performance POST_BUILD
+		COMMAND ${CMAKE_COMMAND} -E copy_if_different
+			"${EXTERNAL}/MySQL/dll/64bit/libmariadb.dll"
+			$<TARGET_FILE_DIR:osu-performance>
+	)
+else()
+	add_custom_command(TARGET osu-performance POST_BUILD
+		COMMAND ${CMAKE_COMMAND} -E copy_if_different
+			"${EXTERNAL}/curl/dll/32bit/libcurl.dll"
+			$<TARGET_FILE_DIR:osu-performance>
+	)
+
+	add_custom_command(TARGET osu-performance POST_BUILD
+		COMMAND ${CMAKE_COMMAND} -E copy_if_different
+			"${EXTERNAL}/MySQL/dll/32bit/libmariadb.dll"
+			$<TARGET_FILE_DIR:osu-performance>
+	)
+endif()
