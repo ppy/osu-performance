@@ -351,7 +351,10 @@ void Processor::queryAllBeatmapDifficulties(u32 numThreads)
 
 	auto startTime = steady_clock::now();
 
-	auto res = _pDBSlave->Query("SELECT MAX(`beatmap_id`),COUNT(DISTINCT `beatmap_id`) FROM `osu_beatmap_difficulty_attribs` WHERE 1");
+	auto res = _pDBSlave->Query(StrFormat(
+		"SELECT MAX(`beatmap_id`),COUNT(*) FROM `osu_beatmaps` WHERE `approved` BETWEEN {0} AND {1} AND (`playmode`=0 OR `playmode`={2})",
+		s_minRankedStatus, s_maxRankedStatus, _gamemode
+	));
 
 	if (!res.NextRow())
 		throw ProcessorException(SRC_POS, "Could not find beatmap ID stats.");
@@ -399,7 +402,7 @@ bool Processor::queryBeatmapDifficulty(DatabaseConnection& dbSlave, s32 startId,
 		"SELECT `osu_beatmaps`.`beatmap_id`,`countNormal`,`mods`,`attrib_id`,`value`,`approved`,`score_version` "
 		"FROM `osu_beatmaps` "
 		"JOIN `osu_beatmap_difficulty_attribs` ON `osu_beatmaps`.`beatmap_id` = `osu_beatmap_difficulty_attribs`.`beatmap_id` "
-		"WHERE `osu_beatmap_difficulty_attribs`.`mode`={0} AND `approved` BETWEEN {1} AND {2}",
+		"WHERE (`osu_beatmaps`.`playmode`=0 OR `osu_beatmaps`.`playmode`={0}) AND `osu_beatmap_difficulty_attribs`.`mode`={0} AND `approved` BETWEEN {1} AND {2}",
 		_gamemode, s_minRankedStatus, s_maxRankedStatus
 	);
 
