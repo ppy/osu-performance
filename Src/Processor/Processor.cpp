@@ -51,7 +51,7 @@ Processor::Processor(EGamemode gamemode, const std::string& configFile)
 
 	queryBeatmapBlacklist();
 	queryBeatmapDifficultyAttributes();
-	queryAllBeatmapDifficulties();
+	queryAllBeatmapDifficulties(16);
 }
 
 Processor::~Processor()
@@ -77,10 +77,11 @@ void Processor::MonitorNewScores()
 
 	std::thread beatmapPollThread{[this]()
 	{
+		auto pDbSlave = newDBConnectionSlave();
 		while (!_shallShutdown)
 		{
 			if (steady_clock::now() - _lastBeatmapSetPollTime > milliseconds{_config.DifficultyUpdateInterval})
-				pollAndProcessNewBeatmapSets();
+				pollAndProcessNewBeatmapSets(*pDbSlave);
 			else
 				std::this_thread::sleep_for(milliseconds(100));
 		}
@@ -104,16 +105,18 @@ void Processor::MonitorNewScores()
 void Processor::ProcessAllUsers(bool reProcess, u32 numThreads)
 {
 	ThreadPool threadPool{numThreads};
-	std::vector<std::shared_ptr<DatabaseConnection>> databaseConnections;
+	std::vector<std::shared_ptr<DatabaseConnection>> dbConnections;
+	std::vector<std::shared_ptr<DatabaseConnection>> dbSlaveConnections;
 	std::vector<UpdateBatch> newUsersBatches;
 	std::vector<UpdateBatch> newScoresBatches;
 
 	for (u32 i = 0; i < numThreads; ++i)
 	{
-		databaseConnections.push_back(newDBConnectionMaster());
+		dbConnections.push_back(newDBConnectionMaster());
+		dbSlaveConnections.push_back(newDBConnectionSlave());
 
-		newUsersBatches.emplace_back(databaseConnections[i], 10000);
-		newScoresBatches.emplace_back(databaseConnections[i], 10000);
+		newUsersBatches.emplace_back(dbConnections[i], 10000);
+		newScoresBatches.emplace_back(dbConnections[i], 10000);
 	}
 
 	static const s32 userIdStep = 10000;
@@ -169,11 +172,12 @@ void Processor::ProcessAllUsers(bool reProcess, u32 numThreads)
 			s64 userId = res.S64(0);
 
 			threadPool.EnqueueTask(
-				[this, userId, currentConnection, &databaseConnections, &newUsersBatches, &newScoresBatches]()
+				[&, userId, currentConnection]()
 				{
 					processSingleUser(
 						0, // We want to update _all_ scores
-						*databaseConnections[currentConnection],
+						*dbConnections[currentConnection],
+						*dbSlaveConnections[currentConnection],
 						newUsersBatches[currentConnection],
 						newScoresBatches[currentConnection],
 						userId
@@ -198,7 +202,7 @@ void Processor::ProcessAllUsers(bool reProcess, u32 numThreads)
 		do
 		{
 			numPendingQueries = 0;
-			for (auto& pDBConn : databaseConnections)
+			for (auto& pDBConn : dbConnections)
 				numPendingQueries += (u32)pDBConn->NumPendingQueries();
 
 			_dataDog.Gauge("osu.pp.db.pending_queries", numPendingQueries,
@@ -262,6 +266,7 @@ void Processor::ProcessUsers(const std::vector<s64>& userIds)
 	{
 		users.emplace_back(processSingleUser(
 			0, // We want to update _all_ scores
+			*_pDB,
 			*_pDBSlave,
 			newUsers,
 			newScores,
@@ -338,7 +343,7 @@ std::shared_ptr<DatabaseConnection> Processor::newDBConnectionSlave()
 	);
 }
 
-void Processor::queryAllBeatmapDifficulties()
+void Processor::queryAllBeatmapDifficulties(u32 numThreads)
 {
 	static const s32 step = 10000;
 
@@ -353,14 +358,32 @@ void Processor::queryAllBeatmapDifficulties()
 
 	const s32 maxBeatmapId = res.S32(0);
 	const s32 numBeatmaps = res.S32(1);
+
+	std::vector<std::shared_ptr<DatabaseConnection>> dbSlaveConnections;
+	for (u32 i = 0; i < numThreads; ++i)
+		dbSlaveConnections.emplace_back(newDBConnectionSlave());
+
+	ThreadPool threadPool{numThreads};
+	s32 threadIdx = 0;
+
 	for (s32 begin = 0; begin < maxBeatmapId; begin += step)
 	{
-		queryBeatmapDifficulty(begin, std::min(begin + step, maxBeatmapId+1));
+		auto& dbSlave = *dbSlaveConnections[threadIdx];
+		threadIdx = (threadIdx + 1) % numThreads;
 
-		LogProgress(_beatmaps.size(), numBeatmaps, steady_clock::now() - startTime);
+		threadPool.EnqueueTask([&, begin]() {
+			queryBeatmapDifficulty(dbSlave, begin, std::min(begin + step, maxBeatmapId + 1));
 
-		// This prevents stall checks to kill us during difficulty load
-		_lastBeatmapSetPollTime = steady_clock::now();
+			LogProgress(_beatmaps.size(), numBeatmaps, steady_clock::now() - startTime);
+
+			// This prevents stall checks to kill us during difficulty load
+			_lastBeatmapSetPollTime = steady_clock::now();
+		});
+	}
+
+	while (threadPool.GetNumTasksInSystem() > 0)
+	{
+		std::this_thread::sleep_for(milliseconds{ 10 });
 	}
 
 	Log(Success, StrFormat(
@@ -370,10 +393,8 @@ void Processor::queryAllBeatmapDifficulties()
 	));
 }
 
-bool Processor::queryBeatmapDifficulty(s32 startId, s32 endId)
+bool Processor::queryBeatmapDifficulty(DatabaseConnection& dbSlave, s32 startId, s32 endId)
 {
-	static thread_local auto pDBSlave = newDBConnectionSlave();
-
 	std::string query = StrFormat(
 		"SELECT `osu_beatmaps`.`beatmap_id`,`countNormal`,`mods`,`attrib_id`,`value`,`approved`,`score_version` "
 		"FROM `osu_beatmaps` "
@@ -387,7 +408,7 @@ bool Processor::queryBeatmapDifficulty(s32 startId, s32 endId)
 	else
 		query += StrFormat(" AND `osu_beatmaps`.`beatmap_id`>={0} AND `osu_beatmaps`.`beatmap_id`<{1}", startId, endId);
 
-	auto res = pDBSlave->Query(query);
+	auto res = dbSlave.Query(query);
 
 	bool success = res.NumRows() != 0;
 
@@ -479,6 +500,7 @@ void Processor::pollAndProcessNewScores()
 		processSingleUser(
 			ScoreId, // Only update the new score, old ones are caught by the background processor anyways
 			*_pDB,
+			*_pDBSlave,
 			newUsers,
 			newScores,
 			UserId
@@ -499,15 +521,13 @@ void Processor::pollAndProcessNewScores()
 	}
 }
 
-void Processor::pollAndProcessNewBeatmapSets()
+void Processor::pollAndProcessNewBeatmapSets(DatabaseConnection& dbSlave)
 {
-	static thread_local auto pDBSlave = newDBConnectionSlave();
-
 	_lastBeatmapSetPollTime = steady_clock::now();
 
 	Log(Info, "Retrieving new beatmap sets.");
 
-	auto res = pDBSlave->Query(StrFormat(
+	auto res = dbSlave.Query(StrFormat(
 		"SELECT `beatmap_id`, `approved_date` "
 		"FROM `osu_beatmapsets` JOIN `osu_beatmaps` ON `osu_beatmapsets`.`beatmapset_id` = `osu_beatmaps`.`beatmapset_id` "
 		"WHERE `approved_date` > '{0}' "
@@ -520,7 +540,7 @@ void Processor::pollAndProcessNewBeatmapSets()
 	while (res.NextRow())
 	{
 		_lastApprovedDate = res.String(1);
-		queryBeatmapDifficulty(res.S32(0));
+		queryBeatmapDifficulty(dbSlave, res.S32(0));
 
 		_dataDog.Increment("osu.pp.difficulty.required_retrieval", 1, { StrFormat("mode:{0}", GamemodeTag(_gamemode)) });
 	}
@@ -565,6 +585,7 @@ void Processor::queryBeatmapDifficultyAttributes()
 User Processor::processSingleUser(
 	s64 selectedScoreId,
 	DatabaseConnection& db,
+	DatabaseConnection& dbSlave,
 	UpdateBatch& newUsers,
 	UpdateBatch& newScores,
 	s64 userId
@@ -573,16 +594,16 @@ User Processor::processSingleUser(
 	switch (_gamemode)
 	{
 	case EGamemode::Standard:
-		return processSingleUserGeneric<StandardScore>(selectedScoreId, db, newUsers, newScores, userId);
+		return processSingleUserGeneric<StandardScore>(selectedScoreId, db, dbSlave, newUsers, newScores, userId);
 
 	case EGamemode::Taiko:
-		return processSingleUserGeneric<TaikoScore>(selectedScoreId, db, newUsers, newScores, userId);
+		return processSingleUserGeneric<TaikoScore>(selectedScoreId, db, dbSlave, newUsers, newScores, userId);
 
 	case EGamemode::CatchTheBeat:
-		return processSingleUserGeneric<CatchTheBeatScore>(selectedScoreId, db, newUsers, newScores, userId);
+		return processSingleUserGeneric<CatchTheBeatScore>(selectedScoreId, db, dbSlave, newUsers, newScores, userId);
 
 	case EGamemode::Mania:
-		return processSingleUserGeneric<ManiaScore>(selectedScoreId, db, newUsers, newScores, userId);
+		return processSingleUserGeneric<ManiaScore>(selectedScoreId, db, dbSlave, newUsers, newScores, userId);
 
 	default:
 		throw ProcessorException(SRC_POS, StrFormat("Unknown gamemode requested. ({0})", _gamemode));
@@ -593,15 +614,12 @@ template <class TScore>
 User Processor::processSingleUserGeneric(
 	s64 selectedScoreId,
 	DatabaseConnection& db,
+	DatabaseConnection& dbSlave,
 	UpdateBatch& newUsers,
 	UpdateBatch& newScores,
 	s64 userId
 )
 {
-	static thread_local std::shared_ptr<DatabaseConnection> pDBSlave = newDBConnectionSlave();
-
-	DatabaseConnection& dbSlave = *pDBSlave;
-
 	static const f32 s_notableEventRatingThreshold = 1.0f / 21.5f;
 	static const f32 s_notableEventRatingDifferenceMinimum = 5.0f;
 
@@ -648,7 +666,7 @@ User Processor::processSingleUserGeneric(
 				lock.Unlock();
 
 				//Log(Warning, StrFormat("No difficulty information of beatmap {0} available. Ignoring for calculation.", BeatmapId));
-				queryBeatmapDifficulty(beatmapId);
+				queryBeatmapDifficulty(dbSlave, beatmapId);
 
 				lock.Lock();
 
