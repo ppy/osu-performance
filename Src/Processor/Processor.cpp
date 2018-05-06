@@ -37,6 +37,9 @@ const std::array<const std::string, NumGamemodes> Processor::s_gamemodeTags =
 	"osu_mania",
 };
 
+const Beatmap::ERankedStatus Processor::s_minRankedStatus = Beatmap::Ranked;
+const Beatmap::ERankedStatus Processor::s_maxRankedStatus = Beatmap::Approved;
+
 Processor::Processor(EGamemode gamemode, const std::string& configFile)
 : _gamemode{gamemode}, _config{configFile}, _dataDog{"127.0.0.1", 8125}
 {
@@ -681,7 +684,7 @@ User Processor::processSingleUserGeneric(
 					lock.Lock();
 					beatmapIt = _beatmaps.find(beatmapId);
 
-					// If after querying we still didn't find anything, then we can just leave it. 
+					// If after querying we still didn't find anything, then we can just leave it.
 					if (beatmapIt == std::end(_beatmaps))
 						continue;
 				}

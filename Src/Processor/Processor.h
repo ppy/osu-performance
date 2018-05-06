@@ -44,8 +44,8 @@ private:
 	static const std::array<const std::string, NumGamemodes> s_gamemodeNames;
 	static const std::array<const std::string, NumGamemodes> s_gamemodeTags;
 
-	static const Beatmap::ERankedStatus s_minRankedStatus = Beatmap::ERankedStatus::Ranked;
-	static const Beatmap::ERankedStatus s_maxRankedStatus = Beatmap::ERankedStatus::Approved;
+	static const Beatmap::ERankedStatus s_minRankedStatus;
+	static const Beatmap::ERankedStatus s_maxRankedStatus;
 
 	std::string lastScoreIdKey()
 	{
