@@ -27,9 +27,6 @@ DatabaseConnection::DatabaseConnection(DatabaseConnection&& other)
 
 DatabaseConnection& DatabaseConnection::operator=(DatabaseConnection&& other)
 {
-	std::lock_guard<std::recursive_mutex> otherLock{other._dbMutex};
-	std::lock_guard<std::recursive_mutex> lock{_dbMutex};
-
 	if (!other._pActive || other._pActive->IsBusy())
 	{
 		// Deconstruct the previous connection's active object
