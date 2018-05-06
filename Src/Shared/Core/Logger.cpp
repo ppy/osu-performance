@@ -21,16 +21,19 @@ std::unique_ptr<Logger>& Logger::Instance()
 
 void Logger::Log(ELogType flags, const std::string& text)
 {
-#ifdef NDEBUG
-	if (flags & (Threads | Debug))
+	if (flags & hiddenTypes)
 		return;
-#endif
 
 	_pActive->Send([this, flags, text]() { logText(flags, text); });
 }
 
 Logger::Logger()
 {
+#ifdef NDEBUG
+	hideType(Debug);
+	hideType(Threads);
+#endif
+
 	canHandleControlCharacters = enableControlCharacters();
 	_pActive = Active::Create();
 }
