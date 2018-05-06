@@ -44,8 +44,8 @@ private:
 	static const std::array<const std::string, NumGamemodes> s_gamemodeNames;
 	static const std::array<const std::string, NumGamemodes> s_gamemodeTags;
 
-	static const Beatmap::ERankedStatus s_minRankedStatus = Beatmap::ERankedStatus::Ranked;
-	static const Beatmap::ERankedStatus s_maxRankedStatus = Beatmap::ERankedStatus::Approved;
+	static const Beatmap::ERankedStatus s_minRankedStatus;
+	static const Beatmap::ERankedStatus s_maxRankedStatus;
 
 	std::string lastScoreIdKey()
 	{
@@ -68,8 +68,8 @@ private:
 	std::unordered_map<s32, Beatmap> _beatmaps;
 	std::string _lastApprovedDate;
 
-	void queryAllBeatmapDifficulties();
-	bool queryBeatmapDifficulty(s32 startId, s32 endId = 0);
+	void queryAllBeatmapDifficulties(u32 numThreads);
+	bool queryBeatmapDifficulty(DatabaseConnection& dbSlave, s32 startId, s32 endId = 0);
 
 	std::shared_ptr<DatabaseConnection> _pDB;
 	std::shared_ptr<DatabaseConnection> _pDBSlave;
@@ -80,7 +80,7 @@ private:
 	s64 _currentScoreId;
 	s64 _numScoresProcessedSinceLastStore = 0;
 	void pollAndProcessNewScores();
-	void pollAndProcessNewBeatmapSets();
+	void pollAndProcessNewBeatmapSets(DatabaseConnection& dbSlave);
 
 	std::unordered_set<s32> _blacklistedBeatmapIds;
 	void queryBeatmapBlacklist();
@@ -92,6 +92,7 @@ private:
 	User processSingleUser(
 		s64 selectedScoreId, // If this is not 0, then the score is looked at in isolation, triggering a notable event if it's good enough
 		DatabaseConnection& db,
+		DatabaseConnection& dbSlave,
 		UpdateBatch& newUsers,
 		UpdateBatch& newScores,
 		s64 userId
@@ -101,6 +102,7 @@ private:
 	User processSingleUserGeneric(
 		s64 selectedScoreId, // If this is not 0, then the score is looked at in isolation, triggering a notable event if it's good enough
 		DatabaseConnection& db,
+		DatabaseConnection& dbSlave,
 		UpdateBatch& newUsers,
 		UpdateBatch& newScores,
 		s64 userId

@@ -133,6 +133,9 @@ private:
 
 	static s32 consoleWidth();
 
+	void hideType(ELogType type) { hiddenTypes = static_cast<ELogType>(hiddenTypes | type); }
+	void showType(ELogType type) { hiddenTypes = static_cast<ELogType>(hiddenTypes & ~type); }
+
 	bool enableControlCharacters();
 
 	void logText(ELogType flags, const std::string& text);
@@ -142,6 +145,7 @@ private:
 	std::unique_ptr<Active> _pActive;
 
 	bool canHandleControlCharacters;
+	ELogType hiddenTypes = None;
 };
 
 inline void Log(ELogType flags, const std::string& text)
