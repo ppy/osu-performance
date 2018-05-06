@@ -313,7 +313,7 @@ void Processor::ProcessUsers(const std::vector<s64>& userIds)
 			"{0w16ar}  {1w8ar}  {2w5ar}pp  {3w6arp2} %",
 			name,
 			user.Id(),
-			(s32)user.GetPPRecord().Value,
+			(s32)std::round(user.GetPPRecord().Value),
 			user.GetPPRecord().Accuracy
 		));
 	}
