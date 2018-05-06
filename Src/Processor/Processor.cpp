@@ -665,7 +665,13 @@ User Processor::processSingleUserGeneric(
 			// We don't want to look at scores on beatmaps we have no information about
 			if (beatmapIt == std::end(_beatmaps))
 			{
-				if (selectedScoreId != 0)
+				// If we couldn't find the beatmap of the _selected score_
+				// we should probably re-check in the DB whether the beatmap recently appeared.
+				// Specific scores are usually selected when new scores of players need to have
+				// their pp computed, and those can in theory be on newly ranked maps.
+				// While the pp processor queries newly ranked maps periodically, let's still
+				// make absolutely sure here.
+				if (selectedScoreId == scoreId)
 				{
 					lock.Unlock();
 					queryBeatmapDifficulty(dbSlave, beatmapId);
@@ -675,10 +681,6 @@ User Processor::processSingleUserGeneric(
 					// If after querying we still didn't find anything, then we can just leave it. 
 					if (beatmapIt == std::end(_beatmaps))
 						continue;
-				}
-				else
-				{
-					Log(Warning, StrFormat("No difficulty information of beatmap {0} available. Ignoring for calculation.", beatmapId));
 				}
 
 				continue;
