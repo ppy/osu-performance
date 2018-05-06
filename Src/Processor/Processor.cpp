@@ -399,8 +399,8 @@ bool Processor::queryBeatmapDifficulty(DatabaseConnection& dbSlave, s32 startId,
 		"SELECT `osu_beatmaps`.`beatmap_id`,`countNormal`,`mods`,`attrib_id`,`value`,`approved`,`score_version` "
 		"FROM `osu_beatmaps` "
 		"JOIN `osu_beatmap_difficulty_attribs` ON `osu_beatmaps`.`beatmap_id` = `osu_beatmap_difficulty_attribs`.`beatmap_id` "
-		"WHERE `osu_beatmap_difficulty_attribs`.`mode`={0} AND `approved` >= 1",
-		_gamemode
+		"WHERE `osu_beatmap_difficulty_attribs`.`mode`={0} AND `approved` BETWEEN {1} AND {2}",
+		_gamemode, s_minRankedStatus, s_maxRankedStatus
 	);
 
 	if (endId == 0)
@@ -660,22 +660,33 @@ User Processor::processSingleUserGeneric(
 			if (_blacklistedBeatmapIds.count(beatmapId) > 0)
 				continue;
 
+			auto beatmapIt = _beatmaps.find(beatmapId);
+
 			// We don't want to look at scores on beatmaps we have no information about
-			if (_beatmaps.count(beatmapId) == 0)
+			if (beatmapIt == std::end(_beatmaps))
 			{
-				lock.Unlock();
+				if (selectedScoreId != 0)
+				{
+					lock.Unlock();
+					queryBeatmapDifficulty(dbSlave, beatmapId);
+					lock.Lock();
+					beatmapIt = _beatmaps.find(beatmapId);
 
-				//Log(Warning, StrFormat("No difficulty information of beatmap {0} available. Ignoring for calculation.", BeatmapId));
-				queryBeatmapDifficulty(dbSlave, beatmapId);
+					// If after querying we still didn't find anything, then we can just leave it. 
+					if (beatmapIt == std::end(_beatmaps))
+						continue;
+				}
+				else
+				{
+					Log(Warning, StrFormat("No difficulty information of beatmap {0} available. Ignoring for calculation.", beatmapId));
+				}
 
-				lock.Lock();
-
-				// If after querying we still didn't find anything, then we can just leave it.
-				if (_beatmaps.count(beatmapId) == 0)
-					continue;
+				continue;
 			}
 
-			s32 rankedStatus = _beatmaps.at(beatmapId).RankedStatus();
+			const auto& beatmap = beatmapIt->second;
+
+			s32 rankedStatus = beatmap.RankedStatus();
 			if (rankedStatus < s_minRankedStatus || rankedStatus > s_maxRankedStatus)
 				continue;
 
@@ -693,7 +704,7 @@ User Processor::processSingleUserGeneric(
 				res.S32(9), // NumGeki
 				res.S32(10), // NumKatu
 				mods,
-				_beatmaps.at(beatmapId),
+				beatmap,
 			};
 
 			user.AddScorePPRecord(score.CreatePPRecord());
