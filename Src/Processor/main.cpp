@@ -5,8 +5,6 @@
 
 #include <args.hxx>
 
-using namespace std::chrono;
-
 PP_NAMESPACE_BEGIN
 
 EGamemode StringToGamemode(const std::string& modeString)

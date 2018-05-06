@@ -8,20 +8,18 @@
 	#include <sys/ioctl.h>
 #endif
 
-using namespace std;
-
 Logger::~Logger()
 {
 	Log(None, CONSOLE_RESET CONSOLE_SHOW_CURSOR);
 }
 
-unique_ptr<Logger>& Logger::Instance()
+std::unique_ptr<Logger>& Logger::Instance()
 {
 	static auto pLog = createLogger();
 	return pLog;
 }
 
-void Logger::Log(ELogType flags, const string& text)
+void Logger::Log(ELogType flags, const std::string& text)
 {
 	_pActive->Send([this, flags, text]() { logText(flags, text); });
 }
@@ -32,9 +30,9 @@ Logger::Logger()
 	_pActive = Active::Create();
 }
 
-unique_ptr<Logger> Logger::createLogger()
+std::unique_ptr<Logger> Logger::createLogger()
 {
-	auto pLogger = unique_ptr<Logger>(new Logger());
+	auto pLogger = std::unique_ptr<Logger>(new Logger());
 
 	// Reset initially (also blank line)
 	pLogger->Log(None, CONSOLE_RESET);
@@ -77,7 +75,7 @@ bool Logger::enableControlCharacters()
 	return true;
 }
 
-void Logger::logText(ELogType flags, const string& text)
+void Logger::logText(ELogType flags, const std::string& text)
 {
 	EStream stream;
 	if (flags & Error || flags & Critical || flags & SQL || flags & Except)
@@ -85,16 +83,18 @@ void Logger::logText(ELogType flags, const string& text)
 	else
 		stream = EStream::STDOUT;
 
-	string textOut;
+	std::string textOut;
 
 	if (!(flags & None))
 	{
+		using namespace std::chrono;
+
 		// Display time format
-		const auto currentTime = chrono::system_clock::to_time_t(chrono::system_clock::now());
+		const auto currentTime = system_clock::to_time_t(system_clock::now());
 
 #ifdef __WIN32
-#define STREAMTOSTRING(x) dynamic_cast<ostringstream &>((ostringstream{} << dec << x)).str()
-		textOut += STREAMTOSTRING(put_time(localtime(&currentTime), CONSOLE_TIMESTAMP));
+#define STREAMTOSTRING(x) dynamic_cast<std::ostringstream &>((std::ostringstream{} << std::dec << x)).str()
+		textOut += STREAMTOSTRING(std::put_time(localtime(&currentTime), CONSOLE_TIMESTAMP));
 #undef STREAMTOSTRING
 #else
 		char timeBuf[128];
@@ -150,12 +150,12 @@ void Logger::logText(ELogType flags, const string& text)
 	write(textOut, stream);
 }
 
-void Logger::write(const string& text, EStream stream)
+void Logger::write(const std::string& text, EStream stream)
 {
 	if (stream == EStream::STDERR)
-		cerr << text << flush;
+		std::cerr << text << std::flush;
 	else if (stream == EStream::STDOUT)
-		cout << text << flush;
+		std::cout << text << std::flush;
 	else
-		cerr << "Unknown stream specified.\n";
+		std::cerr << "Unknown stream specified.\n";
 }
