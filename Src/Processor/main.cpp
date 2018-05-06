@@ -82,14 +82,14 @@ int main(s32 argc, char* argv[])
 		{
 			args::Flag continueFlag{
 				parser,
-				"continue",
+				"CONTINUE",
 				"Continue where a previously aborted 'all' run left off.",
 				{'c', "continue"},
 			};
 
 			args::ValueFlag<u32> threadsFlag{
 				parser,
-				"threads",
+				"THREADS",
 				"Number of threads to use. Can be useful even if the processor itself has no "
 				"parallelism due to additional connections to the database.\n"
 				"Default: 1",
