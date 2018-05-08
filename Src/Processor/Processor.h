@@ -9,6 +9,10 @@
 #include "../Shared/Config.h"
 #include "../Shared/Network/DatabaseConnection.h"
 
+#include <nlohmann/json.hpp>
+
+using json = nlohmann::json;
+
 PP_NAMESPACE_BEGIN
 
 DEFINE_LOGGED_EXCEPTION(ProcessorException);

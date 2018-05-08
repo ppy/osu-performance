@@ -97,6 +97,7 @@ include_directories(${SHARED})
 # Add external include directories
 include_directories(${EXTERNAL}/args)
 include_directories(${EXTERNAL}/curl/include)
+include_directories(${EXTERNAL}/json/include)
 include_directories(${EXTERNAL}/MySQL/include)
 include_directories(${EXTERNAL}/StrFormat)
 
