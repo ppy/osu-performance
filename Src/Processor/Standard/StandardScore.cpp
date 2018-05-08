@@ -124,7 +124,7 @@ void StandardScore::computeAimValue(const Beatmap& beatmap)
 	_aimValue *= approachRateFactor;
 
 	if ((_mods & EMods::Hidden) > 0)
-		_aimValue *= 1.18f;
+		_aimValue *= 1.03f;
 
 	if ((_mods & EMods::Flashlight) > 0)
 		// Apply length bonus again if flashlight is on simply because it becomes a lot harder on longer maps.
@@ -154,6 +154,9 @@ void StandardScore::computeSpeedValue(const Beatmap& beatmap)
 	float maxCombo = beatmap.DifficultyAttribute(_mods, Beatmap::MaxCombo);
 	if (maxCombo > 0)
 		_speedValue *= std::min(static_cast<f32>(pow(_maxCombo, 0.8f) / pow(maxCombo, 0.8f)), 1.0f);
+	
+	if ((_mods & EMods::Hidden) > 0)
+		_speedValue *= 1.18f;
 
 	// Scale the speed value with accuracy _slightly_
 	_speedValue *= 0.5f + Accuracy() / 2.0f;
