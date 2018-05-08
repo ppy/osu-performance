@@ -6,7 +6,6 @@
 #include "User.h"
 #include "SharedEnums.h"
 
-#include "../Shared/Config.h"
 #include "../Shared/Network/DatabaseConnection.h"
 
 #include <nlohmann/json.hpp>
@@ -61,7 +60,40 @@ private:
 		return StrFormat("pp_last_user_id{0}", GamemodeSuffix(_gamemode));
 	}
 
-	Config _config;
+	struct
+	{
+		std::string mySqlMasterHost = "localhost";
+		s16 mySqlMasterPort = 3306;
+		std::string mySqlMasterUsername = "root";
+		std::string mySqlMasterPassword = "";
+		std::string mySqlMasterDatabase = "osu";
+
+		// By default, use the same database as master and slave.
+		std::string mySqlSlaveHost = mySqlMasterHost;
+		s16 mySqlSlavePort = mySqlMasterPort;
+		std::string mySqlSlaveUsername = mySqlMasterUsername;
+		std::string mySqlSlavePassword = mySqlMasterPassword;
+		std::string mySqlSlaveDatabase = mySqlMasterDatabase;
+
+		s32 DifficultyUpdateInterval = 10000;
+		s32 ScoreUpdateInterval = 50;
+
+		s32 StallTimeThreshold = 600000;
+
+		std::string UserPPColumnName = "rank_score";
+		std::string UserMetadataTableName = "sample_users";
+
+		std::string SlackHookDomain = "";
+		std::string SlackHookKey = "";
+		std::string SlackHookChannel = "";
+		std::string SlackHookUsername = "";
+		std::string SlackHookIconURL = "";
+
+		std::string SentryDomain = "";
+		s32 SentryProjectID = 0;
+		std::string SentryPublicKey = "";
+		std::string SentryPrivateKey = "";
+	} _config;
 
 	std::shared_ptr<DatabaseConnection> newDBConnectionMaster();
 	std::shared_ptr<DatabaseConnection> newDBConnectionSlave();

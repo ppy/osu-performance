@@ -41,7 +41,7 @@ const Beatmap::ERankedStatus Processor::s_minRankedStatus = Beatmap::Ranked;
 const Beatmap::ERankedStatus Processor::s_maxRankedStatus = Beatmap::Approved;
 
 Processor::Processor(EGamemode gamemode, const std::string& configFile)
-: _gamemode{gamemode}, _config{configFile}, _dataDog{"127.0.0.1", 8125}
+: _gamemode{gamemode}, _dataDog{"127.0.0.1", 8125}
 {
 	Log(None,           "---------------------------------------------------");
 	Log(None, StrFormat("---- pp processor for gamemode {0}", GamemodeName(gamemode)));
@@ -327,22 +327,22 @@ void Processor::ProcessUsers(const std::vector<s64>& userIds)
 std::shared_ptr<DatabaseConnection> Processor::newDBConnectionMaster()
 {
 	return std::make_shared<DatabaseConnection>(
-		_config.MySQL_db_host,
-		_config.MySQL_db_port,
-		_config.MySQL_db_username,
-		_config.MySQL_db_password,
-		_config.MySQL_db_database
+		_config.mySqlMasterHost,
+		_config.mySqlMasterPort,
+		_config.mySqlMasterUsername,
+		_config.mySqlMasterPassword,
+		_config.mySqlMasterDatabase
 	);
 }
 
 std::shared_ptr<DatabaseConnection> Processor::newDBConnectionSlave()
 {
 	return std::make_shared<DatabaseConnection>(
-		_config.MySQL_db_slave_host,
-		_config.MySQL_db_slave_port,
-		_config.MySQL_db_slave_username,
-		_config.MySQL_db_slave_password,
-		_config.MySQL_db_slave_database
+		_config.mySqlSlaveHost,
+		_config.mySqlSlavePort,
+		_config.mySqlSlaveUsername,
+		_config.mySqlSlavePassword,
+		_config.mySqlSlaveDatabase
 	);
 }
 
