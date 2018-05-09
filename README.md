@@ -47,7 +47,7 @@ You can import these dumps to mysql (after first extracting them) by running `ca
 
 # Usage
 
-First, [set up a MySQL server](https://dev.mysql.com/doc/mysql-getting-started/en/) and import the provided data from above which is most relevant to your use case. Next, edit _Bin/Config.cfg_ with your favourite text editor and configure `MySQL_db` and `MySQL_db_slave` to point to your MySQL server.
+First, [set up a MySQL server](https://dev.mysql.com/doc/mysql-getting-started/en/) and import the provided data from above which is most relevant to your use case. Next, edit _Bin/Config.json_ with your favourite text editor and configure `mysql.master` to point to your MySQL server.
 
 After compilation, an executable named `osu-performance` is placed in the _Bin_ folder. You can use it via the command line as follows:
 
@@ -75,7 +75,7 @@ and further options specific to the chosen command can be queried via
 ./osu-performance COMMAND -h
 ```
 
-Configuration options beyond these parameters, such as various API hooks, can be adjusted in _Bin/Data/Config.cfg_.
+Configuration options beyond these parameters, such as various API hooks, can be adjusted in _Bin/Data/Config.json_.
 
 # Licence
 osu!performance is licensed under AGPL version 3 or later. Please see [the licence file](LICENCE) for more information. [tl;dr](https://tldrlegal.com/license/gnu-affero-general-public-license-v3-(agpl-3.0)) if you want to use any code, design or artwork from this project, attribute it and make your project open source under the same licence.
