@@ -8,10 +8,6 @@
 
 #include "../Shared/Network/DatabaseConnection.h"
 
-#include <nlohmann/json.hpp>
-
-using json = nlohmann::json;
-
 PP_NAMESPACE_BEGIN
 
 DEFINE_LOGGED_EXCEPTION(ProcessorException);
@@ -62,18 +58,18 @@ private:
 
 	struct
 	{
-		std::string mySqlMasterHost = "localhost";
-		s16 mySqlMasterPort = 3306;
-		std::string mySqlMasterUsername = "root";
-		std::string mySqlMasterPassword = "";
-		std::string mySqlMasterDatabase = "osu";
+		std::string MySqlMasterHost = "localhost";
+		s16 MySqlMasterPort = 3306;
+		std::string MySqlMasterUsername = "root";
+		std::string MySqlMasterPassword = "";
+		std::string MySqlMasterDatabase = "osu";
 
 		// By default, use the same database as master and slave.
-		std::string mySqlSlaveHost = mySqlMasterHost;
-		s16 mySqlSlavePort = mySqlMasterPort;
-		std::string mySqlSlaveUsername = mySqlMasterUsername;
-		std::string mySqlSlavePassword = mySqlMasterPassword;
-		std::string mySqlSlaveDatabase = mySqlMasterDatabase;
+		std::string MySqlSlaveHost = MySqlMasterHost;
+		s16 MySqlSlavePort = MySqlMasterPort;
+		std::string MySqlSlaveUsername = MySqlMasterUsername;
+		std::string MySqlSlavePassword = MySqlMasterPassword;
+		std::string MySqlSlaveDatabase = MySqlMasterDatabase;
 
 		s32 DifficultyUpdateInterval = 10000;
 		s32 ScoreUpdateInterval = 50;
@@ -94,6 +90,8 @@ private:
 		std::string SentryPublicKey = "";
 		std::string SentryPrivateKey = "";
 	} _config;
+
+	void readConfig(const std::string& filename);
 
 	std::shared_ptr<DatabaseConnection> newDBConnectionMaster();
 	std::shared_ptr<DatabaseConnection> newDBConnectionSlave();
@@ -153,7 +151,7 @@ private:
 	bool _shallShutdown = false;
 
 	CURL _curl;
-	DDog _dataDog;
+	std::unique_ptr<DDog> _pDataDog;
 };
 
 PP_NAMESPACE_END

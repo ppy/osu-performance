@@ -9,6 +9,8 @@
 
 #include "../Shared/Network/UpdateBatch.h"
 
+#include <nlohmann/json.hpp>
+
 using namespace std::chrono;
 
 PP_NAMESPACE_BEGIN
@@ -41,13 +43,16 @@ const Beatmap::ERankedStatus Processor::s_minRankedStatus = Beatmap::Ranked;
 const Beatmap::ERankedStatus Processor::s_maxRankedStatus = Beatmap::Approved;
 
 Processor::Processor(EGamemode gamemode, const std::string& configFile)
-: _gamemode{gamemode}, _dataDog{"127.0.0.1", 8125}
+: _gamemode{gamemode}
 {
 	Log(None,           "---------------------------------------------------");
 	Log(None, StrFormat("---- pp processor for gamemode {0}", GamemodeName(gamemode)));
 	Log(None,           "---------------------------------------------------");
 
-	_dataDog.Increment("osu.pp.startups", 1, {StrFormat("mode:{0}", GamemodeTag(_gamemode))});
+	readConfig(configFile);
+
+	_pDataDog = std::make_unique<DDog>("127.0.0.1", 8125);
+	_pDataDog->Increment("osu.pp.startups", 1, {StrFormat("mode:{0}", GamemodeTag(_gamemode))});
 
 	_pDB = newDBConnectionMaster();
 	_pDBSlave = newDBConnectionSlave();
@@ -208,7 +213,7 @@ void Processor::ProcessAllUsers(bool reProcess, u32 numThreads)
 			for (auto& pDBConn : dbConnections)
 				numPendingQueries += (u32)pDBConn->NumPendingQueries();
 
-			_dataDog.Gauge("osu.pp.db.pending_queries", numPendingQueries,
+			_pDataDog->Gauge("osu.pp.db.pending_queries", numPendingQueries,
 			{
 				StrFormat("mode:{0}", GamemodeTag(_gamemode)),
 				"connection:background",
@@ -324,25 +329,32 @@ void Processor::ProcessUsers(const std::vector<s64>& userIds)
 	Log(Info, "=============================================");
 }
 
+void Processor::readConfig(const std::string& filename)
+{
+	using json = nlohmann::json;
+
+
+}
+
 std::shared_ptr<DatabaseConnection> Processor::newDBConnectionMaster()
 {
 	return std::make_shared<DatabaseConnection>(
-		_config.mySqlMasterHost,
-		_config.mySqlMasterPort,
-		_config.mySqlMasterUsername,
-		_config.mySqlMasterPassword,
-		_config.mySqlMasterDatabase
+		_config.MySqlMasterHost,
+		_config.MySqlMasterPort,
+		_config.MySqlMasterUsername,
+		_config.MySqlMasterPassword,
+		_config.MySqlMasterDatabase
 	);
 }
 
 std::shared_ptr<DatabaseConnection> Processor::newDBConnectionSlave()
 {
 	return std::make_shared<DatabaseConnection>(
-		_config.mySqlSlaveHost,
-		_config.mySqlSlavePort,
-		_config.mySqlSlaveUsername,
-		_config.mySqlSlavePassword,
-		_config.mySqlSlaveDatabase
+		_config.MySqlSlaveHost,
+		_config.MySqlSlavePort,
+		_config.MySqlSlaveUsername,
+		_config.MySqlSlavePassword,
+		_config.MySqlSlaveDatabase
 	);
 }
 
@@ -448,7 +460,7 @@ bool Processor::queryBeatmapDifficulty(DatabaseConnection& dbSlave, s32 startId,
 		std::string message = StrFormat("Couldn't find beatmap /b/{0}.", startId);
 
 		Log(Warning, message.c_str());
-		_dataDog.Increment("osu.pp.difficulty.retrieval_not_found", 1, {StrFormat("mode:{0}", GamemodeTag(_gamemode))});
+		_pDataDog->Increment("osu.pp.difficulty.retrieval_not_found", 1, {StrFormat("mode:{0}", GamemodeTag(_gamemode))});
 
 		/*ProcessorException e{SRC_POS, message};
 		m_CURL.SendToSentry(
@@ -465,7 +477,7 @@ bool Processor::queryBeatmapDifficulty(DatabaseConnection& dbSlave, s32 startId,
 	else
 	{
 		Log(Success, StrFormat("Obtained beatmap difficulty of /b/{0}.", startId));
-		_dataDog.Increment("osu.pp.difficulty.retrieval_success", 1, { StrFormat("mode:{0}", GamemodeTag(_gamemode)) });
+		_pDataDog->Increment("osu.pp.difficulty.retrieval_success", 1, { StrFormat("mode:{0}", GamemodeTag(_gamemode)) });
 	}
 
 	return success;
@@ -488,7 +500,7 @@ void Processor::pollAndProcessNewScores()
 	if (res.NumRows() == 0)
 		_lastScorePollTime = steady_clock::now();
 
-	_dataDog.Gauge("osu.pp.score.amount_behind_newest", res.NumRows(), {StrFormat("mode:{0}", GamemodeTag(_gamemode))});
+	_pDataDog->Gauge("osu.pp.score.amount_behind_newest", res.NumRows(), {StrFormat("mode:{0}", GamemodeTag(_gamemode))});
 
 	while (res.NextRow())
 	{
@@ -519,8 +531,8 @@ void Processor::pollAndProcessNewScores()
 			_numScoresProcessedSinceLastStore = 0;
 		}
 
-		_dataDog.Increment("osu.pp.score.processed_new", 1, {StrFormat("mode:{0}", GamemodeTag(_gamemode))});
-		_dataDog.Gauge("osu.pp.db.pending_queries", _pDB->NumPendingQueries(), {
+		_pDataDog->Increment("osu.pp.score.processed_new", 1, {StrFormat("mode:{0}", GamemodeTag(_gamemode))});
+		_pDataDog->Gauge("osu.pp.db.pending_queries", _pDB->NumPendingQueries(), {
 			StrFormat("mode:{0}", GamemodeTag(_gamemode)),
 			"connection:main",
 		});
@@ -548,7 +560,7 @@ void Processor::pollAndProcessNewBeatmapSets(DatabaseConnection& dbSlave)
 		_lastApprovedDate = res.String(1);
 		queryBeatmapDifficulty(dbSlave, res.S32(0));
 
-		_dataDog.Increment("osu.pp.difficulty.required_retrieval", 1, { StrFormat("mode:{0}", GamemodeTag(_gamemode)) });
+		_pDataDog->Increment("osu.pp.difficulty.required_retrieval", 1, { StrFormat("mode:{0}", GamemodeTag(_gamemode)) });
 	}
 }
 
@@ -734,7 +746,7 @@ User Processor::processSingleUserGeneric(
 			score.AppendToUpdateBatch(newScores);
 	}
 
-	_dataDog.Increment("osu.pp.score.updated", scoresThatNeedDBUpdate.size(), {StrFormat("mode:{0}", GamemodeTag(_gamemode))}, 0.01f);
+	_pDataDog->Increment("osu.pp.score.updated", scoresThatNeedDBUpdate.size(), {StrFormat("mode:{0}", GamemodeTag(_gamemode))}, 0.01f);
 
 	user.ComputePPRecord();
 	auto userPPRecord = user.GetPPRecord();
@@ -744,7 +756,7 @@ User Processor::processSingleUserGeneric(
 		!scoresThatNeedDBUpdate.empty() && // Did the score actually get found (this _should_ never be false, but better make sure)
 		scoresThatNeedDBUpdate.front().TotalValue() > userPPRecord.Value * s_notableEventRatingThreshold)
 	{
-		_dataDog.Increment("osu.pp.score.notable_events", 1, {StrFormat("mode:{0}", GamemodeTag(_gamemode))});
+		_pDataDog->Increment("osu.pp.score.notable_events", 1, {StrFormat("mode:{0}", GamemodeTag(_gamemode))});
 
 		const auto& score = scoresThatNeedDBUpdate.front();
 
@@ -798,7 +810,7 @@ User Processor::processSingleUserGeneric(
 		_config.UserMetadataTableName
 	));
 
-	_dataDog.Increment("osu.pp.user.amount_processed", 1, {StrFormat("mode:{0}", GamemodeTag(_gamemode))}, 0.01f);
+	_pDataDog->Increment("osu.pp.user.amount_processed", 1, {StrFormat("mode:{0}", GamemodeTag(_gamemode))}, 0.01f);
 
 	return user;
 }
