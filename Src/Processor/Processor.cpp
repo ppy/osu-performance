@@ -51,7 +51,7 @@ Processor::Processor(EGamemode gamemode, const std::string& configFile)
 
 	readConfig(configFile);
 
-	_pDataDog = std::make_unique<DDog>("127.0.0.1", 8125);
+	_pDataDog = std::make_unique<DDog>(_config.DataDogHost, _config.DataDogPort);
 	_pDataDog->Increment("osu.pp.startups", 1, {StrFormat("mode:{0}", GamemodeTag(_gamemode))});
 
 	_pDB = newDBConnectionMaster();
@@ -333,7 +333,52 @@ void Processor::readConfig(const std::string& filename)
 {
 	using json = nlohmann::json;
 
+	try
+	{
+		json j;
 
+		{
+			std::ifstream file{filename};
+			file >> j;
+		}
+
+		_config.MySqlMasterHost =     j.value("mysql.master.host",     "localhost");
+		_config.MySqlMasterPort =     j.value("mysql.master.port",     3306);
+		_config.MySqlMasterUsername = j.value("mysql.master.username", "root");
+		_config.MySqlMasterPassword = j.value("mysql.master.password", "");
+		_config.MySqlMasterDatabase = j.value("mysql.master.database", "osu");
+
+		// By default, use the same database as master and slave.
+		_config.MySqlSlaveHost =     j.value("mysql.slave.host",     _config.MySqlMasterHost);
+		_config.MySqlSlavePort =     j.value("mysql.slave.port",     _config.MySqlMasterPort);
+		_config.MySqlSlaveUsername = j.value("mysql.slave.username", _config.MySqlMasterUsername);
+		_config.MySqlSlavePassword = j.value("mysql.slave.password", _config.MySqlMasterPassword);
+		_config.MySqlSlaveDatabase = j.value("mysql.slave.database", _config.MySqlMasterDatabase);
+
+		_config.UserPPColumnName =      j.value("mysql.user-pp-column-name",      "rank_score");
+		_config.UserMetadataTableName = j.value("mysql.user-metadata-table-name", "sample_users");
+
+		_config.DifficultyUpdateInterval = j.value("poll.interval.difficulties", 10000);
+		_config.ScoreUpdateInterval =      j.value("poll.interval.scores",       50);
+
+		_config.SlackHookHost =     j.value("slack-hook.host",     "");
+		_config.SlackHookKey =      j.value("slack-hook.key",      "");
+		_config.SlackHookChannel =  j.value("slack-hook.channel",  "");
+		_config.SlackHookUsername = j.value("slack-hook.username", "");
+		_config.SlackHookIconURL =  j.value("slack-hook.icon-url", "");
+
+		_config.SentryHost =       j.value("sentry.host",        "");
+		_config.SentryProjectID =  j.value("sentry.project-id",  0);
+		_config.SentryPublicKey =  j.value("sentry.public-key",  "");
+		_config.SentryPrivateKey = j.value("sentry.private-key", "");
+
+		_config.DataDogHost = j.value("data-dog.host", "127.0.0.1");
+		_config.DataDogPort = j.value("data-dog.port", 8125);
+	}
+	catch (json::exception& e)
+	{
+		throw ProcessorException{SRC_POS, StrFormat("Failed to read config file '{0}': {1}", filename, e.what())};
+	}
 }
 
 std::shared_ptr<DatabaseConnection> Processor::newDBConnectionMaster()
@@ -461,7 +506,7 @@ bool Processor::queryBeatmapDifficulty(DatabaseConnection& dbSlave, s32 startId,
 
 		/*ProcessorException e{SRC_POS, message};
 		m_CURL.SendToSentry(
-			m_Config.SentryDomain,
+			m_Config.SentryHost,
 			m_Config.SentryProjectID,
 			m_Config.SentryPublicKey,
 			m_Config.SentryPrivateKey,

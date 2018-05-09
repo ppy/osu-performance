@@ -58,9 +58,9 @@ int main(s32 argc, char* argv[])
 		args::ValueFlag<std::string> configFlag{
 			argumentsGroup,
 			"CONFIG",
-			"The configuration file to use.\nDefault: 'Config.cfg'",
+			"The configuration file to use.\nDefault: 'Config.json'",
 			{"config"},
-			"Config.cfg",
+			"Config.json",
 		};
 
 		args::HelpFlag helpFlag{

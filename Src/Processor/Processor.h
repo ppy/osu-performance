@@ -58,37 +58,38 @@ private:
 
 	struct
 	{
-		std::string MySqlMasterHost = "localhost";
-		s16 MySqlMasterPort = 3306;
-		std::string MySqlMasterUsername = "root";
-		std::string MySqlMasterPassword = "";
-		std::string MySqlMasterDatabase = "osu";
+		std::string MySqlMasterHost;
+		s16 MySqlMasterPort;
+		std::string MySqlMasterUsername;
+		std::string MySqlMasterPassword;
+		std::string MySqlMasterDatabase;
 
 		// By default, use the same database as master and slave.
-		std::string MySqlSlaveHost = MySqlMasterHost;
-		s16 MySqlSlavePort = MySqlMasterPort;
-		std::string MySqlSlaveUsername = MySqlMasterUsername;
-		std::string MySqlSlavePassword = MySqlMasterPassword;
-		std::string MySqlSlaveDatabase = MySqlMasterDatabase;
+		std::string MySqlSlaveHost;
+		s16 MySqlSlavePort;
+		std::string MySqlSlaveUsername;
+		std::string MySqlSlavePassword;
+		std::string MySqlSlaveDatabase;
 
-		s32 DifficultyUpdateInterval = 10000;
-		s32 ScoreUpdateInterval = 50;
+		s32 DifficultyUpdateInterval;
+		s32 ScoreUpdateInterval;
 
-		s32 StallTimeThreshold = 600000;
+		std::string UserPPColumnName;
+		std::string UserMetadataTableName;
 
-		std::string UserPPColumnName = "rank_score";
-		std::string UserMetadataTableName = "sample_users";
+		std::string SlackHookHost;
+		std::string SlackHookKey;
+		std::string SlackHookChannel;
+		std::string SlackHookUsername;
+		std::string SlackHookIconURL;
 
-		std::string SlackHookDomain = "";
-		std::string SlackHookKey = "";
-		std::string SlackHookChannel = "";
-		std::string SlackHookUsername = "";
-		std::string SlackHookIconURL = "";
+		std::string SentryHost;
+		s32 SentryProjectID;
+		std::string SentryPublicKey;
+		std::string SentryPrivateKey;
 
-		std::string SentryDomain = "";
-		s32 SentryProjectID = 0;
-		std::string SentryPublicKey = "";
-		std::string SentryPrivateKey = "";
+		std::string DataDogHost;
+		s16 DataDogPort;
 	} _config;
 
 	void readConfig(const std::string& filename);
