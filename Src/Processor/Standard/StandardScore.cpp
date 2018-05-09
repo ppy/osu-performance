@@ -95,10 +95,10 @@ void StandardScore::computeAimValue(const Beatmap& beatmap)
 	int numTotalHits = TotalHits();
 
 	// Longer maps are worth more
-	f32 LengthBonus = 0.55f + 0.4f * std::min(1.0f, static_cast<f32>(amountTotalHits) / 250.0f) +
-        	(amountTotalHits > 250 ? 0.1f * std::min(1.0f, static_cast<f32>(amountTotalHits - 250) / 250.0f) +
-        	(amountTotalHits > 500 ? 0.3f * std::min(1.0f, static_cast<f32>(amountTotalHits - 500) / 1500.0f) +
-        	(amountTotalHits > 2000 ? log10(static_cast<f32>(amountTotalHits) / 2000.0f) * 0.5f : 0.0f)
+	f32 LengthBonus = 0.55f + 0.4f * std::min(1.0f, static_cast<f32>(numTotalHits) / 250.0f) +
+        	(numTotalHits > 250 ? 0.1f * std::min(1.0f, static_cast<f32>(numTotalHits - 250) / 250.0f) +
+        	(numTotalHits > 500 ? 0.3f * std::min(1.0f, static_cast<f32>(numTotalHits - 500) / 1500.0f) +
+        	(numTotalHits > 2000 ? log10(static_cast<f32>(numTotalHits) / 2000.0f) * 0.5f : 0.0f)
 		 : 0.0f) : 0.0f);
 
 	_aimValue *= LengthBonus;
@@ -146,10 +146,10 @@ void StandardScore::computeSpeedValue(const Beatmap& beatmap)
 	int numTotalHits = TotalHits();
 
 	// Longer maps are worth more
-	_speedValue *= 0.55f + 0.4f * std::min(1.0f, static_cast<f32>(amountTotalHits) / 250.0f) +
-        	(amountTotalHits > 250 ? 0.1f * std::min(1.0f, static_cast<f32>(amountTotalHits - 250) / 250.0f) +
-        	(amountTotalHits > 500 ? 0.3f * std::min(1.0f, static_cast<f32>(amountTotalHits - 500) / 1500.0f) +
-        	(amountTotalHits > 2000 ? log10(static_cast<f32>(amountTotalHits) / 2000.0f) * 0.5f : 0.0f)
+	_speedValue *= 0.55f + 0.4f * std::min(1.0f, static_cast<f32>(numTotalHits) / 250.0f) +
+        	(numTotalHits > 250 ? 0.1f * std::min(1.0f, static_cast<f32>(numTotalHits - 250) / 250.0f) +
+        	(numTotalHits > 500 ? 0.3f * std::min(1.0f, static_cast<f32>(numTotalHits - 500) / 1500.0f) +
+        	(numTotalHits > 2000 ? log10(static_cast<f32>(numTotalHits) / 2000.0f) * 0.5f : 0.0f)
 		 : 0.0f) : 0.0f);
 
 	// Penalize misses exponentially. This mainly fixes tag4 maps and the likes until a per-hitobject solution is available
