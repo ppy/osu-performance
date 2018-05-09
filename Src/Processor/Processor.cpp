@@ -393,9 +393,6 @@ void Processor::queryAllBeatmapDifficulties(u32 numThreads)
 			queryBeatmapDifficulty(dbSlave, begin, std::min(begin + step, maxBeatmapId + 1));
 
 			LogProgress(_beatmaps.size(), numBeatmaps, steady_clock::now() - startTime);
-
-			// This prevents stall checks to kill us during difficulty load
-			_lastBeatmapSetPollTime = steady_clock::now();
 		});
 	}
 
