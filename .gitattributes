@@ -1,24 +1,20 @@
-# This won't normalise line endings, but it will ensure that merge drivers use CRLF
-* -text eol=crlf
+# Autodetect text files and ensure that we normalise their
+# line endings to lf internally. When checked out they may
+# use different line endings.
+* text=auto
 
-# Exceptions for generated LF files
-osu!.sln.DotSettings                   eol=lf
-osu!/osu!.res                          eol=lf
-osu!/Properties/Resources.Designer.cs  eol=lf
-
-# Currently in-use binary file extensions
-*.blend  binary
-*.bmp    binary
-*.dll    binary
-*.exe    binary
-*.icns   binary
-*.ico    binary
-*.jpg    binary
-*.osz2   binary
-*.pdn    binary
-*.psd    binary
-*.PSD    binary
-*.tga    binary
-*.ttf    binary
-*.wav    binary
-*.xnb    binary
+# Check out with lf (UNIX) line endings
+*.c text diff=cpp eol=lf
+*.cpp text diff=cpp eol=lf
+*.h text diff=cpp eol=lf
+*.hpp text diff=cpp eol=lf
+*.cmake text eol=lf
+*.cfg text eol=lf
+*.txt text eol=lf
+*.sh text eol=lf
+*.md text eol=lf
+.gitignore text eol=lf
+.gitattributes text eol=lf
+.travis.yml text eol=lf
+.appveyor.yml text eol=lf
+.editorconfig text eol=lf

@@ -1,4 +1,4 @@
-﻿osu!.tmproj
+osu!.tmproj
 *.pfx
 *.user
 *DS_Store*
@@ -17,6 +17,15 @@ osu!-iPhone/skins/
 osu!common/Properties/Strings.*.txt
 osu!/Properties/Strings.*.txt
 osu!/Constants/General_Version.cs
+
+# Build artifacts
+/[Bb]uild
+/Bin/osu-performance*
+/Bin/*.dll
+
+# MSVC auxiliary build files
+/Win32
+/x64
 
 *.docstates
 
@@ -49,3 +58,4 @@ osu!.userprefs
 packages/*
 !packages/repositories.config
 .vs/*
+/.vscode

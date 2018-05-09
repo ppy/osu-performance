@@ -2,76 +2,62 @@
 
 #include <Shared.h>
 
-
-inline int xtoi(const char *_str)
+inline int xtoi(const char *str)
 {
-	return ::atoi(_str);
+	return ::atoi(str);
 }
 
-inline u32 xtou(const char *_str)
+inline u32 xtou(const char *str)
 {
-	return ::strtoul(_str, 0, 0);
+	return ::strtoul(str, 0, 0);
 }
 
-inline s64 xtoi64(const char *_str)
+inline s64 xtoi64(const char *str)
 {
-	return ::strtoull(_str, 0, 0);
+	return ::strtoull(str, 0, 0);
 }
 
-inline u64 xtou64(const char *_str)
+inline u64 xtou64(const char *str)
 {
-	return ::strtoull(_str, 0, 0);
+	return ::strtoull(str, 0, 0);
 }
 
-inline float xtof(const char *_str)
+inline float xtof(const char *str)
 {
-	return static_cast<float>(::atof(_str));
+	return static_cast<float>(::atof(str));
 }
 
-inline double xtod(const char *_str)
+inline double xtod(const char *str)
 {
-	return ::atof(_str);
+	return ::atof(str);
 }
 
-
-class CQueryResult
+class QueryResult
 {
 public:
-
-	CQueryResult(CQueryResult&& other);
-	CQueryResult(CQueryResult& other) = delete;
-
-	CQueryResult& operator=(CQueryResult&& other);
-	CQueryResult& operator=(CQueryResult& other) = delete;
-
-	~CQueryResult();
-
 	bool NextRow();
 
-	inline s32 AmountRows() { return (s32)mysql_num_rows(_pRes); }
+	inline s32 NumRows() { return (s32)mysql_num_rows(_pRes.get()); }
 
 	// Entire current row - array of zero terminated strings
-	inline char** CurrentRow() { return _Row; }
+	inline char** CurrentRow() { return _row; }
 
 	// Column entries of the current row
-	inline bool          IsNull(u32 Field) { return _Row[Field] == nullptr; }
-	inline char*         String(u32 dwField) const { return (char*)_Row[dwField]; }
-	inline unsigned long Ip(u32 dwField) const { return inet_addr(_Row[dwField]); }
-	inline bool          Bool(u32 dwField) const { return (xtoi(_Row[dwField]) != 0); }
-	inline int           S32(u32 dwField) const { return xtoi(_Row[dwField]); }
-	inline u32           U32(u32 dwField) const { return u32(xtou(_Row[dwField])); }
-	inline s64           S64(u32 dwField) const { return xtoi64(_Row[dwField]); }
-	inline u64           U64(u32 dwField) const { return xtou64(_Row[dwField]); }
-	inline float         F32(u32 dwField) const { return xtof(_Row[dwField]); }
-	inline double        F64(u32 dwField) const { return xtod(_Row[dwField]); }
-
+	inline bool IsNull(u32 i) const { return _row[i] == nullptr; }
+	inline char* String(u32 i) const { return (char*)_row[i]; }
+	inline bool Bool(u32 i) const { return (xtoi(_row[i]) != 0); }
+	inline s32 S32(u32 i) const { return xtoi(_row[i]); }
+	inline u32 U32(u32 i) const { return u32(xtou(_row[i])); }
+	inline s64 S64(u32 i) const { return xtoi64(_row[i]); }
+	inline u64 U64(u32 i) const { return xtou64(_row[i]); }
+	inline f32 F32(u32 i) const { return xtof(_row[i]); }
+	inline f64 F64(u32 i) const { return xtod(_row[i]); }
 
 private:
+	QueryResult(MYSQL_RES* pRes);
 
-	CQueryResult(MYSQL_RES* pRes);
+	std::unique_ptr<MYSQL_RES, decltype(&mysql_free_result)> _pRes;
+	MYSQL_ROW  _row;
 
-	MYSQL_RES* _pRes;
-	MYSQL_ROW  _Row;
-
-	friend class CDatabaseConnection;
+	friend class DatabaseConnection;
 };

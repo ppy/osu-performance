@@ -1,118 +1,186 @@
 ﻿#include <PrecompiledHeader.h>
 
-
 #include "Processor.h"
 #include "SharedEnums.h"
 
+#include <args.hxx>
 
-using namespace std::chrono;
-using namespace SharedEnums;
+PP_NAMESPACE_BEGIN
 
-
-void WrapperProcess(std::string executableName, EGamemode gamemode, bool ReProcess)
+EGamemode StringToGamemode(const std::string& modeString)
 {
-#ifdef __WIN32
-	auto ExecutionCommand = StrFormat("{0} -f -m {1}", executableName, gamemode);
-#else
-	auto ExecutionCommand = StrFormat("./{0} -f -m {1}", executableName, gamemode);
-#endif
+	EGamemode mode;
+	if (modeString == "osu")
+		mode = Standard;
+	else if (modeString == "taiko")
+		mode = Taiko;
+	else if (modeString == "catch")
+		mode = CatchTheBeat;
+	else if (modeString == "mania")
+		mode = Mania;
+	else
+		throw LoggedException(SRC_POS, StrFormat("Invalid mode '{0}'", modeString));
 
-	if(ReProcess)
-	{
-		ExecutionCommand += " -r";
-	}
-
-	while(true)
-	{
-		system(ExecutionCommand.c_str());
-		std::this_thread::sleep_for(milliseconds{5000});
-	}
+	return mode;
 }
-
-
 
 int main(s32 argc, char* argv[])
 {
-	srand(static_cast<unsigned int>(time(NULL)));
-	curl_global_init(CURL_GLOBAL_ALL);
-
-#ifdef __WIN32
-	WORD wVersionRequested = MAKEWORD(2, 2);
-	WSADATA wsaData;
-	if(WSAStartup(wVersionRequested, &wsaData) != 0)
-	{
-		Log(CLog::CriticalError, "Couldn't startup winsock.");
-	}
-#endif
-
-	bool Force = false;
-	bool ReProcess = false;
-	EGamemode Gamemode = EGamemode::Standard;
-	
-
-	// Process arguments. Can ignore first one which is the executable name
-	for(s32 i = 1; i < argc; ++i)
-	{
-		if(std::string{"-f"} == argv[i])
-		{
-			Force = true;
-		}
-
-		if(std::string{"-r"} == argv[i])
-		{
-			ReProcess = true;
-		}
-
-		if(std::string{"-m"} == argv[i])
-		{
-			++i;
-
-			// An errornous input... better report
-			if(i >= argc)
-			{
-				Log(CLog::Error, "Missing mode specifier after \"-m\".");
-				return 0;
-			}
-
-			Gamemode = static_cast<EGamemode>(std::atoi(argv[i]));
-		}
-	}
-
-	// If there is no force parameter, then we are a wrapper process, ensuring, that there will always be an actual process running
-	// This is no excuse for poor exception handling - but a worst-case measure to prevent downtime.
-	// TODO: Proper logging of crashes, including core dumps
-	if(!Force)
-	{
-		WrapperProcess(argv[0], Gamemode, ReProcess);
-		return 0;
-	}
-	
-
-
 	try
 	{
-		// Create game object
-		CProcessor Processor{Gamemode, ReProcess};
+		srand(static_cast<unsigned int>(time(NULL)));
+		curl_global_init(CURL_GLOBAL_ALL);
+
+#ifdef __WIN32
+		WORD wVersionRequested = MAKEWORD(2, 2);
+		WSADATA wsaData;
+		if (WSAStartup(wVersionRequested, &wsaData) != 0)
+		{
+			Log(Critical, "Couldn't startup winsock.");
+		}
+#endif
+
+		args::ArgumentParser parser{
+			"Computes performance points (pp) for the rhythm game osu!",
+			"",
+		};
+
+		args::Group argumentsGroup{"OPTIONS"};
+
+		args::ValueFlag<std::string> modePositional{
+			argumentsGroup,
+			"GAMEMODE",
+			"The game mode to compute pp for.\nMust be one of 'osu', 'taiko', 'catch', and 'mania'.\nDefault: 'osu'",
+			{'m', "mode"},
+			"osu",
+		};
+
+		args::ValueFlag<std::string> configFlag{
+			argumentsGroup,
+			"CONFIG",
+			"The configuration file to use.\nDefault: 'Config.json'",
+			{"config"},
+			"Config.json",
+		};
+
+		args::HelpFlag helpFlag{
+			argumentsGroup,
+			"HELP",
+			"Display this help menu.",
+			{'h', "help"},
+		};
+
+		args::Group commands(parser, "COMMAND");
+		args::Command newCommand(commands, "new", "Continually poll for new scores and compute pp of these", [&](args::Subparser& parser)
+		{
+			parser.Parse();
+			Processor processor{StringToGamemode(args::get(modePositional)), args::get(configFlag)};
+			processor.MonitorNewScores();
+		});
+
+		args::Command allCommand(commands, "all", "Compute pp of all users", [&](args::Subparser& parser)
+		{
+			args::Flag continueFlag{
+				parser,
+				"CONTINUE",
+				"Continue where a previously aborted 'all' run left off.",
+				{'c', "continue"},
+			};
+
+			args::ValueFlag<u32> threadsFlag{
+				parser,
+				"THREADS",
+				"Number of threads to use. Can be useful even if the processor itself has no "
+				"parallelism due to additional connections to the database.\n"
+				"Default: 1",
+				{'t', "threads"},
+				1,
+			};
+
+			parser.Parse();
+
+			u32 numThreads = args::get(threadsFlag);
+
+			Processor processor{StringToGamemode(args::get(modePositional)), args::get(configFlag)};
+			processor.ProcessAllUsers(!continueFlag, numThreads);
+		});
+
+		args::Command usersCommand(commands, "users", "Compute pp of specific users", [&](args::Subparser& parser)
+		{
+			args::PositionalList<std::string> usersPositional{
+				parser,
+				"users",
+				"Users to recompute pp for.",
+			};
+
+			parser.Parse();
+
+			std::vector<std::string> userNames = args::get(usersPositional);
+			Processor processor{StringToGamemode(args::get(modePositional)), args::get(configFlag)};
+			processor.ProcessUsers(args::get(usersPositional));
+		});
+
+		args::GlobalOptions argumentsGlobal{parser, argumentsGroup};
+
+		std::vector<std::string> arguments;
+		for (int i = 0; i < argc; ++i)
+		{
+			std::string arg = argv[i];
+			// macOS sometimes (seemingly sporadically) passes the
+			// process serial number via a command line parameter.
+			// We would like to ignore this.
+			if (arg.find("-psn") != 0)
+				arguments.emplace_back(argv[i]);
+		}
+
+		// Parse command line arguments and react to parsing
+		// errors using exceptions.
+		try
+		{
+			parser.Prog(arguments[0]);
+			parser.ParseArgs(std::begin(arguments) + 1, std::end(arguments));
+		}
+		catch (args::Help)
+		{
+			std::cout << parser;
+			return 0;
+		}
+		catch (args::ParseError e)
+		{
+			std::cerr << e.what() << std::endl;
+			return -1;
+		}
+		catch (args::ValidationError e)
+		{
+			std::cerr << e.what() << std::endl;
+			return -2;
+		}
+
+		auto modeString = arguments[1];
+		auto targetString = arguments[2];
 	}
-	catch(CLoggedException& e)
+	catch (const LoggedException& e)
 	{
 		e.Log();
+		return 1;
 	}
-	catch(CException& e)
+	catch (const Exception& e)
 	{
 		e.Print();
+		return 1;
 	}
-	/*catch( ... )
+	catch (const std::exception& e)
 	{
-		Log(CLog::EType::CriticalError, "Unspecified exception occurred. Terminating.");
-	}*/
+		std::cerr << "Uncaught exception: " << e.what() << std::endl;
+		return 1;
+	}
 
-
-	// Only pause on windows... this is for ease of debugging.
-	// Since we execute this in an existing terminal on unix systems anyways,
-	// we don't have to fear for the console content to disappear.
-#ifdef __WIN32
-	system("PAUSE");
-#endif
+	return 0;
 }
 
+PP_NAMESPACE_END
+
+int main(s32 argc, char* argv[])
+{
+	return pp::main(argc, argv);
+}

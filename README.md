@@ -1,50 +1,83 @@
-# osu!performance
+# osu!performance [![Travis Build Status](https://travis-ci.org/ppy/osu-performance.svg?branch=master)](https://travis-ci.org/ppy/osu-performance) [![Appveyor Build status](https://ci.appveyor.com/api/projects/status/4xvd8p8ulci07d82?svg=true)](https://ci.appveyor.com/project/Tom94/osu-performance) [![dev chat](https://discordapp.com/api/guilds/188630481301012481/widget.png?style=shield)](https://discord.gg/ppy)
 
-This is the program computing "performance points" (pp), which are used as the official [player ranking metric](https://osu.ppy.sh/p/pp) in osu!.
+This is the program computing "performance points" (__pp__), which are used as the official [player ranking metric](https://osu.ppy.sh/p/pp) in osu!.
 
-## Compiling
+# Compiling
 
-osu!performance runs on Windows and Linux. It should also compile and run on Mac OS X, but this has not been tested. The build environment is set up using [CMake](https://cmake.org/) as follows.
+All that is required for building osu!performance is a C++11-compatible compiler. Begin by cloning this repository and all its submodules using the following command:
+```sh
+$ git clone --recursive https://github.com/ppy/osu-performance
+```
+
+If you accidentally omitted the `--recursive` flag when cloning this repository you can initialize the submodules like so:
+```sh
+$ git submodule update --init --recursive
+```
+
+osu!performance runs on Windows, macOS, and Linux. The build environment is set up using [CMake](https://cmake.org/) as follows.
 
 ### Windows
 
 Open the command line and navigate to the root folder of this repository.
 
-    c:\osu-performance> mkdir Build
-    c:\osu-performance> cd Build
-    c:\osu-performance\Build> cmake ..
-    
-Now the _Build_ folder should contain a [Visual Studio](https://www.visualstudio.com/) project for building the program.
+```sh
+osu-performance> mkdir Build
+osu-performance> cd Build
+osu-performance\Build> cmake ..
+```
 
-### Linux
+Now the _Build_ folder should contain a [Visual Studio](https://www.visualstudio.com/) project for building the program. Visual Studio 2017 and a 64-bit build are recommended (`cmake -G "Visual Studio 15 2017 Win64" ..`).
 
-On Linux you need to install the [MariaDB](https://mariadb.org/) MySQL connector, [cURL](https://curl.haxx.se/), and [clang](http://clang.llvm.org/) packages. Afterwards, run a terminal of your choice.
+### macOS / Linux
 
-    /osu-performance$ mkdir Build
-    /osu-performance$ cd Build
-    /osu-performance/Build$ cmake ..
-    /osu-performance/Build$ make
-    
-## Usage
+On macOS / Linux you need to install the [MariaDB](https://mariadb.org/) MySQL connector and [cURL](https://curl.haxx.se/) packages. Afterwards, in a terminal of your choice, do
 
-After compilation, an executable named *Client_OS* is placed in the _Bin_ folder. It accepts the following arguments:
-* `-m <id>`
-  
-  This option controls the gamemode for which pp is computed. __id__ can have the following values:
+```sh
+osu-performance$ mkdir Build
+osu-performance$ cd Build
+osu-performance/Build$ cmake ..
+osu-performance/Build$ make -j
+```
 
-  __Standard__ | __Taiko__ | __Catch the beat__ | __osu!mania__
-  --- | --- | --- | ---
-  0 | 1 | 2 | 3
-* `-r`
-  
-  If this option is present, then the pp values of all existing scores are re-computed. Otherwise, only new pp values are computed.
+# Sample Data
 
-* `-f`
-  
-  If this option is not present, then a child process is created, which starts this program a second time as a child process with the same options and -f enabled additionally. Whenever this child process terminates, after 5 seconds it is restarted. The purpose of this option is to ensure, that crashes and errors do not interrupt the computation of pp values.
+Database dumps with sample data can be found at https://data.ppy.sh. This data includes the top 10,000 users along with a random 10,000 user sample across all users, along with all required auxiliary tables to test this system. Please note that this data is released for development purposes only (full licence details [available here](https://data.ppy.sh/LICENCE.txt)).
 
-Configuration options beyond these parameters, such as the MySQL server configuration, can be adjusted in _Bin/Data/Config.cfg_.
+You can import these dumps to mysql (after first extracting them) by running `cat *.sql | mysql`. Note that all existing data in tables will be dropped and replaced. Make sure to import the latest available data dumps as older snapshots may be incompatible with the latest version of osu!performance.
 
-## Licence
+# Usage
 
-osu-performance is licensed under AGPL version 3 or later. Please see [the licence file](LICENCE) for more information. [tl;dr](https://tldrlegal.com/license/gnu-affero-general-public-license-v3-(agpl-3.0)) if you want to use any code, design or artwork from this project, attribute it and make your project open source under the same licence.
+First, [set up a MySQL server](https://dev.mysql.com/doc/mysql-getting-started/en/) and import the provided data from above which is most relevant to your use case. Next, edit _Bin/Config.json_ with your favourite text editor and configure `mysql.master` to point to your MySQL server.
+
+After compilation, an executable named `osu-performance` is placed in the _Bin_ folder. You can use it via the command line as follows:
+
+```sh
+./osu-performance COMMAND {OPTIONS}
+```
+
+where command controls which scores are the target of the computation.
+The following commands are valid:
+* `new`: Continually poll for new scores and compute pp of these
+* `all`: Compute pp of all users
+* `users`: Compute pp of specific users
+
+The gamemode to compute pp for can be selected via the `-m` option, which may take the value `osu`, `taiko`, `catch`, or `mania`.
+
+Information about further options can be queried via
+
+```sh
+./osu-performance -h
+```
+
+and further options specific to the chosen command can be queried via
+
+```sh
+./osu-performance COMMAND -h
+```
+
+Configuration options beyond these parameters, such as various API hooks, can be adjusted in _Bin/Data/Config.json_.
+
+# Licence
+osu!performance is licensed under AGPL version 3 or later. Please see [the licence file](LICENCE) for more information. [tl;dr](https://tldrlegal.com/license/gnu-affero-general-public-license-v3-(agpl-3.0)) if you want to use any code, design or artwork from this project, attribute it and make your project open source under the same licence.
+
+Note that the sample data is covered by a [separate licence](https://data.ppy.sh/LICENCE.txt).

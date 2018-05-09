@@ -1,7 +1,5 @@
 #pragma once
 
-
-
 using byte = uint8_t;
 
 using s16 = int16_t;
@@ -15,10 +13,6 @@ using u64 = uint64_t;
 
 using f32 = float;
 using f64 = double;
-
-
-
-
 
 // some c++14 things for unix
 #ifdef __UNIX
@@ -43,7 +37,7 @@ namespace std
 		make_unique(Args&&... args)
 	{
 		return unique_ptr<T>(new T(std::forward<Args>(args)...));
-		}
+	}
 
 	template<class T>
 	typename _Unique_if<T>::_Unknown_bound
@@ -51,13 +45,11 @@ namespace std
 	{
 		typedef typename remove_extent<T>::type U;
 		return unique_ptr<T>(new U[n]());
-		}
+	}
 
 	template<class T, class... Args>
 	typename _Unique_if<T>::_Known_bound
 		make_unique(Args&&...) = delete;
-
-
 
 	// Type aliases
 	template< class T >
@@ -109,7 +101,6 @@ namespace std
 
 	template< class T >
 	using remove_all_extents_t = typename remove_all_extents<T>::type;
-
 
 
 	template< class T >
