@@ -2,91 +2,77 @@
 
 #include "Active.h"
 
-CActive::~CActive()
+Active::~Active()
 {
-	if(!_isDone)
+	if (!_isDone)
 	{
-		Send(std::bind(&CActive::DoDone, this), false);
-
-		if(_thread.joinable())
-		{
+		send(std::bind(&Active::doDone, this), false);
+		if (_thread.joinable())
 			_thread.join();
-		}
 	}
 }
 
-void CActive::Send(std::function<void()> callback)
+void Active::Send(std::function<void()> callback)
 {
-	Send(callback, true);
+	send(callback, true);
 }
 
-std::unique_ptr<CActive> CActive::Create()
+std::unique_ptr<Active> Active::Create()
 {
-	auto pActive = std::unique_ptr<CActive>{ new CActive{} };
-	pActive->_thread = std::thread(&CActive::Run, pActive.get());
+	auto pActive = std::unique_ptr<Active>{ new Active{} };
+	pActive->_thread = std::thread(&Active::run, pActive.get());
 	return pActive;
 }
 
-size_t CActive::AmountPending() const
+size_t Active::NumPending() const
 {
-	CheckForAndThrowException();
+	checkForAndThrowException();
 	return _tasks.Size();
 }
 
-bool CActive::IsBusy() const
+bool Active::IsBusy() const
 {
-	return AmountPending() > 0;
+	return NumPending() > 0;
 }
 
-
-CActive::CActive()
+Active::Active()
 {
 	// This is required here, because atomic doesn't allow
 	// copy construction.
 	_isDone = false;
 }
 
-void CActive::Run()
+void Active::run()
 {
 	try
 	{
-		while(!_isDone)
-		{
+		while (!_isDone)
 			// Wait for a task, pop it and execute it. Hence the double ()()
 			_tasks.WaitAndPop()();
-		}
 	}
-	catch(...)
+	catch (...)
 	{
 		_activeException = std::current_exception();
 		_isDone = true;
 	}
-
-#ifdef __WIN32
-	// ExitThread is required to prevent a deadlock with joining in the case, that main is returning at the same time
-	// Remove when fixed in VC - not an issue in gcc / clang
-	ExitThread(nullptr);
-#endif
 }
 
-void CActive::Send(std::function<void()> callback, bool checkForException)
+void Active::send(std::function<void()> callback, bool checkForException)
 {
-	if(checkForException)
-	{
-		CheckForAndThrowException();
-	}
+	if (checkForException)
+		checkForAndThrowException();
 
 	_tasks.Push(callback);
 }
 
-void CActive::DoDone()
+void Active::doDone()
 {
 	_isDone = true;
 }
 
-void CActive::CheckForAndThrowException() const
+void Active::checkForAndThrowException() const
 {
-	if(_isDone)
+	if (_isDone)
 	{
 		if (std::exception_ptr exception = _activeException)
 		{
@@ -94,8 +80,6 @@ void CActive::CheckForAndThrowException() const
 			std::rethrow_exception(exception);
 		}
 		else
-		{
-			throw CActiveException{SRC_POS, "Active object is already done."};
-		}
+			throw ActiveException{SRC_POS, "Active object is already done."};
 	}
 }

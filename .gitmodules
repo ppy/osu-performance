@@ -1,0 +1,6 @@
+[submodule "Dependencies/args"]
+	path = Dependencies/args
+	url = https://github.com/Taywee/args
+[submodule "Dependencies/json"]
+	path = Dependencies/json
+	url = https://github.com/nlohmann/json

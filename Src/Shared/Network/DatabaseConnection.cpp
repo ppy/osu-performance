@@ -2,151 +2,134 @@
 
 #include "DatabaseConnection.h"
 
-
-CDatabaseConnection::CDatabaseConnection(
+DatabaseConnection::DatabaseConnection(
 	std::string host,
 	s16 port,
 	std::string username,
 	std::string password,
-	std::string database)
-	: _host{std::move(host)}, _port{port}, _username{std::move(username)}, _password{std::move(password)}, _database{std::move(database)}
+	std::string database
+) : _host{std::move(host)}, _port{port}, _username{std::move(username)}, _password{std::move(password)}, _database{std::move(database)}
 {
-	_pMySQL = new MYSQL;
+	if (!mysql_init(&_mySQL))
+		throw DatabaseException(SRC_POS, StrFormat("MySQL struct could not be initialized. ({0})", Error()));
 
-	if(!mysql_init(_pMySQL))
-	{
-		// Clean up in case of error
-		delete _pMySQL;
-
-		throw CDatabaseException(SRC_POS, StrFormat("MySQL struct could not be initialized. ({0})", Error()));
-	}
+	_isInitialized = true;
 
 	connect();
 
-	_pActive = CActive::Create();
+	_pActive = Active::Create();
 }
 
+DatabaseConnection::DatabaseConnection(DatabaseConnection&& other)
+{
+	*this = std::move(other);
+}
 
-CDatabaseConnection::~CDatabaseConnection()
+DatabaseConnection& DatabaseConnection::operator=(DatabaseConnection&& other)
+{
+	if (!other._pActive || other._pActive->IsBusy())
+	{
+		// Deconstruct the previous connection's active object
+		// to force background tasks to finish.
+		other._pActive = nullptr;
+		_pActive = Active::Create();
+	}
+	else
+		_pActive = std::move(other._pActive);
+
+	_host = std::move(other._host);
+	_port = other._port;
+	_username = std::move(other._username);
+	_password = std::move(other._password);
+	_database = std::move(other._database);
+
+	other._isInitialized = false;
+	_isInitialized = true;
+
+	_mySQL = other._mySQL;
+
+	return *this;
+}
+
+DatabaseConnection::~DatabaseConnection()
 {
 	// Destruct our active object before closing the mysql connection.
 	_pActive = nullptr;
-
-	mysql_close(_pMySQL);
-	delete _pMySQL;
+	if (_isInitialized)
+		mysql_close(&_mySQL);
 }
 
-
-void CDatabaseConnection::connect()
+void DatabaseConnection::connect()
 {
-	mysql_close(_pMySQL);
-	while(!mysql_real_connect(_pMySQL, _host.c_str(), _username.c_str(), _password.c_str(), _database.c_str(), _port, NULL, CLIENT_MULTI_STATEMENTS))
-	{
-		Log(CLog::Error, StrFormat("Could not connect. ({0})", Error()));
-	}
+	mysql_close(&_mySQL);
+	if (!mysql_real_connect(&_mySQL, _host.c_str(), _username.c_str(), _password.c_str(), _database.c_str(), _port, nullptr, CLIENT_MULTI_STATEMENTS))
+		throw DatabaseException(SRC_POS, StrFormat("Could not connect. ({0})", Error()));
 }
 
-
-void CDatabaseConnection::NonQueryBackground(const std::string& queryString)
+void DatabaseConnection::NonQueryBackground(const std::string& queryString)
 {
 	// We arbitrarily decide, that we don't want to have more than 1000 pending queries
-	while(AmountPendingQueries() > 1000)
-	{
+	while (NumPendingQueries() > 1000)
 		// Avoid to have the processor "spinning" at full power if there is no work to do in Update()
 		std::this_thread::sleep_for(std::chrono::milliseconds(1));
-	}
 
 	_pActive->Send([=]() { NonQuery(queryString); });
 }
 
-void CDatabaseConnection::NonQuery(const std::string& queryString)
+void DatabaseConnection::NonQuery(const std::string& queryString)
 {
 	// We don't want concurrent queries
-	std::lock_guard<std::mutex> lock{_dbMutex};
+	std::lock_guard<std::recursive_mutex> lock{_dbMutex};
 
-	while(mysql_query(_pMySQL, queryString.c_str()) != 0)
-	{
-		Log(CLog::Error, StrFormat("Error executing query {0}. ({1})", queryString, Error()));
-		connect();
-	}
+	if (mysql_query(&_mySQL, queryString.c_str()) != 0)
+		throw DatabaseException(SRC_POS, StrFormat("Error executing query {0}. ({1})", queryString, Error()));
 
 	s32 status;
 	do
 	{
 		/* did current statement return data? */
-		MYSQL_RES* pRes = mysql_store_result(_pMySQL);
-		if(pRes != NULL)
-		{
+		MYSQL_RES* pRes = mysql_store_result(&_mySQL);
+		if (pRes != nullptr)
 			mysql_free_result(pRes);
-		}
 		else          /* no result set or error */
 		{
-			if(mysql_field_count(_pMySQL) == 0)
-			{
-			}
-			else  /* some error occurred */
-			{
-				throw CDatabaseException(SRC_POS, StrFormat("Error getting result. ({0})", Error()));
-			}
+			if (mysql_field_count(&_mySQL) != 0)
+				throw DatabaseException(SRC_POS, StrFormat("Error getting result. ({0})", Error()));
 		}
 		/* more results? -1 = no, >0 = error, 0 = yes (keep looping) */
 
-		status = mysql_next_result(_pMySQL);
-		if(status > 0)
-		{
-			throw CDatabaseException(SRC_POS, StrFormat("Error executing query {0}. ({1})", queryString, Error()));
-		}
+		status = mysql_next_result(&_mySQL);
+		if (status > 0)
+			throw DatabaseException(SRC_POS, StrFormat("Error executing query {0}. ({1})", queryString, Error()));
 	}
 	while(status == 0);
 }
 
-
-CQueryResult CDatabaseConnection::Query(const std::string& queryString)
+QueryResult DatabaseConnection::Query(const std::string& queryString)
 {
 	// We don't want concurrent queries
-	std::lock_guard<std::mutex> lock{_dbMutex};
+	std::lock_guard<std::recursive_mutex> lock{_dbMutex};
 
-	while(mysql_query(_pMySQL, queryString.c_str()) != 0)
-	{
-		Log(CLog::Error, StrFormat("Error executing query {0}. ({1})", queryString, Error()));
-		connect();
-	}
+	if (mysql_query(&_mySQL, queryString.c_str()) != 0)
+		throw DatabaseException(SRC_POS, StrFormat("Error executing query {0}. ({1})", queryString, Error()));
 
-	MYSQL_RES* pRes = mysql_store_result(_pMySQL);
-	if(pRes == NULL)
-	{
-		throw CDatabaseException(SRC_POS, StrFormat("Error getting result. ({0})", Error()));
-	}
+	MYSQL_RES* pRes = mysql_store_result(&_mySQL);
+	if (pRes == nullptr)
+		throw DatabaseException(SRC_POS, StrFormat("Error getting result. ({0})", Error()));
 
-	return CQueryResult{pRes};
+	return QueryResult{pRes};
 }
 
-
-bool CDatabaseConnection::ping()
+const char *DatabaseConnection::Error()
 {
 	// We don't want concurrent queries
-	std::lock_guard<std::mutex> lock{_dbMutex};
-
-	while(mysql_ping(_pMySQL) != 0)
-	{
-		connect();
-	}
-
-	return true;
+	std::lock_guard<std::recursive_mutex> lock{_dbMutex};
+	return mysql_error(&_mySQL);
 }
 
-const char *CDatabaseConnection::Error()
+u32 DatabaseConnection::AffectedRows()
 {
 	// We don't want concurrent queries
-	std::lock_guard<std::mutex> lock{_dbMutex};
-
-	return mysql_error(_pMySQL);
-}
-
-u32 CDatabaseConnection::AffectedRows()
-{
-	// We don't want concurrent queries
-	std::lock_guard<std::mutex> lock{_dbMutex};
-
-	return u32(mysql_affected_rows(_pMySQL));
+	std::lock_guard<std::recursive_mutex> lock{_dbMutex};
+	return u32(mysql_affected_rows(&_mySQL));
 }

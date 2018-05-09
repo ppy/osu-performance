@@ -1,21 +1,15 @@
 #pragma once
 
-
-
 #include "SharedEnums.h"
 
+PP_NAMESPACE_BEGIN
 
-DEFINE_LOGGED_EXCEPTION(CBeatmapException);
+DEFINE_LOGGED_EXCEPTION(BeatmapException);
 
-
-class CInsertionBatch;
-
-
-class CBeatmap
+class Beatmap
 {
 public:
-
-	CBeatmap(s32 id);
+	Beatmap(s32 id);
 
 	enum EDifficultyAttributeType : byte
 	{
@@ -34,6 +28,7 @@ public:
 		Ranked = 1,
 		Approved = 2,
 		Qualified = 3,
+		Loved = 4,
 	};
 
 	enum EScoreVersion : s32
@@ -46,48 +41,50 @@ public:
 
 	ERankedStatus RankedStatus() const { return _rankedStatus; }
 	EScoreVersion ScoreVersion() const { return _scoreVersion; }
-	s32 AmountHitCircles() const { return _amountHitCircles; }
-	f32 DifficultyAttribute(SharedEnums::EMods mods, EDifficultyAttributeType type) const;
+	s32 NumHitCircles() const { return _numHitCircles; }
+	f32 DifficultyAttribute(EMods mods, EDifficultyAttributeType type) const;
 
 	void SetRankedStatus(ERankedStatus rankedStatus) { _rankedStatus = rankedStatus; }
 	void SetScoreVersion(EScoreVersion scoreVersion) { _scoreVersion = scoreVersion; }
-	void SetAmountHitCircles(s32 amountHitCircles) { _amountHitCircles = amountHitCircles; }
-	void SetDifficultyAttribute(SharedEnums::EMods mods, EDifficultyAttributeType type, f32 value);
+	void SetNumHitCircles(s32 numHitCircles) { _numHitCircles = numHitCircles; }
+	void SetDifficultyAttribute(EMods mods, EDifficultyAttributeType type, f32 value);
 
 	static EDifficultyAttributeType DifficultyAttributeFromName(const std::string& difficultyAttributeName)
 	{
 		return s_difficultyAttributes.at(difficultyAttributeName);
 	}
 
-
 private:
+	static const EMods s_relevantDifficultyMods = static_cast<EMods>(
+		DoubleTime | HalfTime | HardRock | Easy | keyMod
+	);
 
-	static const SharedEnums::EMods s_relevantDifficultyMods = static_cast<SharedEnums::EMods>(
-		SharedEnums::EMods::DoubleTime |
-		SharedEnums::EMods::HalfTime |
-		SharedEnums::EMods::HardRock |
-		SharedEnums::EMods::Easy |
-		SharedEnums::EMods::keyMod);
-
-	static SharedEnums::EMods MaskRelevantDifficultyMods(SharedEnums::EMods mods)
+	static EMods maskRelevantDifficultyMods(EMods mods)
 	{
-		return static_cast<SharedEnums::EMods>(mods & s_relevantDifficultyMods);
+		return static_cast<EMods>(mods & s_relevantDifficultyMods);
 	}
 
 	static const std::unordered_map<std::string, EDifficultyAttributeType> s_difficultyAttributes;
 
 	// General information
 	s32 _id;
-	SharedEnums::EGamemode _mode = SharedEnums::EGamemode::Standard;
+	EGamemode _mode = EGamemode::Standard;
 
 	// Calculated difficulty
-	using difficulty_t =
-		std::unordered_map<std::underlying_type_t<SharedEnums::EMods>, std::unordered_map<std::underlying_type_t<EDifficultyAttributeType>, f32>>;
+	using difficulty_t = std::unordered_map<
+		std::underlying_type_t<EMods>,
+		std::unordered_map<
+			std::underlying_type_t<EDifficultyAttributeType>,
+			f32
+		>
+	>;
 
 	difficulty_t _difficulty;
 
 	// Additional info required for processor
 	ERankedStatus _rankedStatus;
 	EScoreVersion _scoreVersion;
-	s32 _amountHitCircles = 0;
+	s32 _numHitCircles = 0;
 };
+
+PP_NAMESPACE_END

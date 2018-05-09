@@ -1,11 +1,8 @@
 #pragma once
 
-
-
-class CPriorityMutex
+class PriorityMutex
 {
 public:
-
 	void LockLowPrio();
 	void UnlockLowPrio();
 
@@ -13,35 +10,30 @@ public:
 	void UnlockHighPrio();
 
 private:
-
 	std::mutex M;
 	std::mutex N;
 	std::mutex L;
 };
 
-
-class CPriorityLock
+class PriorityLock
 {
 public:
-
-	CPriorityLock(CPriorityMutex* pPriorityMutex, bool isHighPriority);
-	~CPriorityLock();
+	PriorityLock(PriorityMutex* pPriorityMutex, bool isHighPriority);
+	~PriorityLock();
 
 	void Lock();
 	void Unlock();
 
 private:
-
-	CPriorityMutex* _pPriorityMutex;
+	PriorityMutex* _pPriorityMutex;
 	bool _isHighPriority;
 	bool _isLocked;
 };
 
-
-class CRWMutex
+class RWMutex
 {
 public:
-	CRWMutex()
+	RWMutex()
 	{
 		readers = writers = read_waiters = write_waiters = 0;
 	}
@@ -50,13 +42,13 @@ public:
 	{
 		std::unique_lock<std::mutex> lock(mutex);
 
-		if(writers || write_waiters)
+		if (writers || write_waiters)
 		{
 			read_waiters++;
 			do
 			{
 				read.wait(lock);
-			} while(writers || write_waiters);
+			} while (writers || write_waiters);
 			read_waiters--;
 		}
 		readers++;
@@ -67,7 +59,7 @@ public:
 		std::unique_lock<std::mutex> lock(mutex);
 
 		readers--;
-		if(write_waiters)
+		if (write_waiters)
 			write.notify_all();
 	}
 
@@ -75,7 +67,7 @@ public:
 	{
 		std::unique_lock<std::mutex> lock(mutex);
 
-		if(readers || writers)
+		if (readers || writers)
 		{
 			write_waiters++;
 			do
@@ -92,109 +84,86 @@ public:
 		std::unique_lock<std::mutex> lock(mutex);
 
 		writers = 0;
-		if(write_waiters)
+		if (write_waiters)
 			write.notify_all();
-		else if(read_waiters)
+		else if (read_waiters)
 			read.notify_all();
 	}
 
-
 private:
-
 	std::mutex mutex;
 	std::condition_variable read, write;
 	unsigned readers, writers, read_waiters, write_waiters;
 };
 
-
-
-class CRWLock
+class RWLock
 {
 public:
-
-	CRWLock(CRWMutex* pRWMutex, bool isWriter);
-	~CRWLock();
+	RWLock(RWMutex* pRWMutex, bool isWriter);
+	~RWLock();
 
 	void Lock();
 	void Unlock();
 
 private:
-
-	CRWMutex* _pRWMutex;
+	RWMutex* _pRWMutex;
 	bool _isWriter;
 	bool _isLocked;
 };
 
-
-
-class CThreadPool
+class ThreadPool
 {
 public:
-
-	CThreadPool();
-	CThreadPool(const u32 NumThreads);
-	~CThreadPool();
-
-
+	ThreadPool();
+	ThreadPool(const u32 numThreads);
+	~ThreadPool();
 
 	template<class F, class... Args>
 	std::future<typename std::result_of<F(Args...)>::type> EnqueueTask(F && f, Args && ... args)
 	{
 		typedef typename std::result_of<F(Args...)>::type return_type;
 
-		++m_NumTasksInSystem;
+		++_numTasksInSystem;
 
 		auto task = std::make_shared< std::packaged_task<return_type()> >(
 			std::bind(std::forward<F>(f), std::forward<Args>(args)...)
-			);
+		);
 
 		auto res = task->get_future();
 
 		{
-			std::lock_guard<std::mutex> lock{m_TaskQueueMutex};
+			std::lock_guard<std::mutex> lock{_taskQueueMutex};
 
 			// add the task
-			m_TaskQueue.emplace_back([task]() { (*task)(); });
+			_taskQueue.emplace_back([task]() { (*task)(); });
 		}
 
-		m_WorkerCondition.notify_one();
+		_workerCondition.notify_one();
 
 		return res;
 	}
 
-
-
-
-	void StartThreads(const u32 Amount);
-	void ShutdownThreads(const u32 Amount);
+	void StartThreads(const u32 num);
+	void ShutdownThreads(const u32 num);
 
 	u32 GetNumTasksInSystem() const
 	{
-		return m_NumTasksInSystem;
+		return _numTasksInSystem;
 	}
-
 
 	void WaitUntilFinished();
 	void WaitUntilFinishedFor(const std::chrono::microseconds Duration);
 	void FlushQueue();
 
-
 private:
+	u32 _numThreads = 0; // We don't have any threads running on startup
+	std::vector<std::thread> _threads;
 
+	std::deque< std::function<void()> > _taskQueue;
+	std::mutex _taskQueueMutex;
+	std::condition_variable _workerCondition;
 
-	u32 m_NumThreads = 0; // We don't have any threads running on startup
-	std::vector<std::thread> m_Threads;
-
-	std::deque< std::function<void()> > m_TaskQueue;
-	std::mutex m_TaskQueueMutex;
-	std::condition_variable m_WorkerCondition;
-
-	std::atomic<u32> m_NumTasksInSystem{0}; // We have no tasks in the system on startup
-	std::mutex m_SystemBusyMutex;
-	std::condition_variable m_SystemBusyCondition;
-
+	std::atomic<u32> _numTasksInSystem{0}; // We have no tasks in the system on startup
+	std::mutex _systemBusyMutex;
+	std::condition_variable _systemBusyCondition;
 };
-
-
-
-

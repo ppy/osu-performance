@@ -3,11 +3,9 @@
 #include "Beatmap.h"
 #include "SharedEnums.h"
 
+PP_NAMESPACE_BEGIN
 
-using namespace SharedEnums;
-
-
-const std::unordered_map<std::string, CBeatmap::EDifficultyAttributeType> CBeatmap::s_difficultyAttributes{
+const std::unordered_map<std::string, Beatmap::EDifficultyAttributeType> Beatmap::s_difficultyAttributes{
 	{"Aim",              Aim},
 	{"Speed",            Speed},
 	{"OD",               OD},
@@ -18,29 +16,25 @@ const std::unordered_map<std::string, CBeatmap::EDifficultyAttributeType> CBeatm
 	{"Score multiplier", ScoreMultiplier},
 };
 
-
-CBeatmap::CBeatmap(s32 id)
-	: _id{id}
+Beatmap::Beatmap(s32 id)
+: _id{id}
 {
 }
 
-
-f32 CBeatmap::DifficultyAttribute(SharedEnums::EMods mods, EDifficultyAttributeType type) const
+f32 Beatmap::DifficultyAttribute(EMods mods, EDifficultyAttributeType type) const
 {
-	mods = MaskRelevantDifficultyMods(mods);
+	mods = maskRelevantDifficultyMods(mods);
 
-	if(_difficulty.count(mods) == 0 || _difficulty.at(mods).count(type) == 0)
-	{
+	if (_difficulty.count(mods) == 0 || _difficulty.at(mods).count(type) == 0)
 		return 0.0f;
-	}
 	else
-	{
 		return _difficulty.at(mods).at(type);
-	}
 }
 
-void CBeatmap::SetDifficultyAttribute(SharedEnums::EMods mods, EDifficultyAttributeType type, f32 value)
+void Beatmap::SetDifficultyAttribute(EMods mods, EDifficultyAttributeType type, f32 value)
 {
-	mods = MaskRelevantDifficultyMods(mods);
+	mods = maskRelevantDifficultyMods(mods);
 	_difficulty[mods][type] = value;
 }
+
+PP_NAMESPACE_END

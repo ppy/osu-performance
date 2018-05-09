@@ -4,164 +4,166 @@
 #include <iomanip>
 #include <sstream>
 
+#ifndef __WIN32
+	#include <sys/ioctl.h>
+#endif
 
-void Log(CLog::EType Flags, std::string Text)
+Logger::~Logger()
 {
-	static auto pLog = CLog::CreateLogger();
-	pLog->Log(Flags, std::move(Text));
+	Log(None, CONSOLE_RESET CONSOLE_SHOW_CURSOR);
 }
 
-std::unique_ptr<CLog> CLog::CreateLogger()
+std::unique_ptr<Logger>& Logger::Instance()
 {
-	auto pLogger = std::make_unique<CLog>();
+	static auto pLog = createLogger();
+	return pLog;
+}
+
+void Logger::Log(ELogType flags, const std::string& text)
+{
+	if (flags & hiddenTypes)
+		return;
+
+	_pActive->Send([this, flags, text]() { logText(flags, text); });
+}
+
+Logger::Logger()
+{
+#ifdef NDEBUG
+	hideType(Debug);
+	hideType(Threads);
+#endif
+
+	canHandleControlCharacters = enableControlCharacters();
+	_pActive = Active::Create();
+}
+
+std::unique_ptr<Logger> Logger::createLogger()
+{
+	auto pLogger = std::unique_ptr<Logger>(new Logger());
 
 	// Reset initially (also blank line)
-	pLogger->Log(EType::None, CONSOLE_RESET "");
+	pLogger->Log(None, CONSOLE_RESET);
 
 #ifdef __DEBUG
-	pLogger->Log(EType::Info, "Program runs in debug mode.");
+	pLogger->Log(Info, "Program runs in debug mode.");
 #endif
 
 	return pLogger;
 }
 
-CLog::CLog()
+s32 Logger::consoleWidth()
 {
-	m_pActive = CActive::Create();
-}
-
-CLog::~CLog()
-{
-#ifndef __WIN32
-
-	// Reset
-	Log(EType::None, CONSOLE_RESET);
-
+#ifdef __WIN32
+	CONSOLE_SCREEN_BUFFER_INFO csbi;
+	GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
+	return csbi.srWindow.Right - csbi.srWindow.Left + 1;
+#else
+	winsize size;
+	ioctl(STDOUT_FILENO, TIOCGWINSZ, &size);
+	return size.ws_col;
 #endif
 }
 
-void CLog::Log(EType Flags, std::string Text)
+bool Logger::enableControlCharacters()
 {
-	m_pActive->Send([this, Flags, &Text]() { LogText(Flags, std::move(Text)); });
+#ifdef __WIN32
+	// Set output mode to handle virtual terminal sequences
+	HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+	if (hOut == INVALID_HANDLE_VALUE)
+		return false;
+	DWORD dwMode = 0;
+	if (!GetConsoleMode(hOut, &dwMode))
+		return false;
+	dwMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+	if (!SetConsoleMode(hOut, dwMode))
+		return false;
+#endif
+
+	return true;
 }
 
-void CLog::LogText(EType Flags, std::string Text)
+void Logger::logText(ELogType flags, const std::string& text)
 {
-	EStream Stream;
-	if(Flags & EType::Error ||
-	   Flags & EType::CriticalError ||
-	   Flags & EType::SQL ||
-	   Flags & EType::Exception)
-	{
-		Stream = EStream::STDERR;
-	}
+	EStream stream;
+	if (flags & Error || flags & Critical || flags & SQL || flags & Except)
+		stream = EStream::STDERR;
 	else
-	{
-		Stream = EStream::STDOUT;
-	}
+		stream = EStream::STDOUT;
 
-	std::string TextOut;
+	std::string textOut;
 
-	if(!(Flags & EType::None))
+	if (!(flags & None))
 	{
+		using namespace std::chrono;
+
 		// Display time format
-		const auto Time = std::chrono::system_clock::now();
-		const auto Now = std::chrono::system_clock::to_time_t(Time);
+		const auto currentTime = system_clock::to_time_t(system_clock::now());
 
 #ifdef __WIN32
-		TextOut += STREAMTOSTRING(std::put_time(std::localtime(&Now), CONSOLE_TIMESTAMP));
+#define STREAMTOSTRING(x) dynamic_cast<std::ostringstream &>((std::ostringstream{} << std::dec << x)).str()
+		textOut += STREAMTOSTRING(std::put_time(localtime(&currentTime), CONSOLE_TIMESTAMP));
+#undef STREAMTOSTRING
 #else
-		// gcc didn't implement put_time yet
-		char TimeBuf[128];
-		const auto tm_now = localtime(&Now);
-		strftime(TimeBuf, 127, CONSOLE_TIMESTAMP, tm_now);
+		char timeBuf[128];
+		const auto tmCurrentTime = localtime(&currentTime);
+		strftime(timeBuf, 127, CONSOLE_TIMESTAMP, tmCurrentTime);
 
-		TextOut += TimeBuf;
+		textOut += timeBuf;
 #endif
 	}
 
+	if (flags & Success)
+		textOut += CONSOLE_GREEN "SUCCESS" CONSOLE_RESET;
+	else if (flags & SQL)
+		textOut += CONSOLE_BOLD_BLUE "SQL" CONSOLE_RESET;
+	else if (flags & Threads)
+		textOut += CONSOLE_BOLD_MAGENTA "THREADS" CONSOLE_RESET;
+	else if (flags & Info)
+		textOut += CONSOLE_CYAN "INFO" CONSOLE_RESET;
+	else if (flags & Notice)
+		textOut += CONSOLE_BOLD_WHITE "NOTICE" CONSOLE_RESET;
+	else if (flags & Warning)
+		textOut += CONSOLE_BOLD_YELLOW "WARNING" CONSOLE_RESET;
+	else if (flags & Debug)
+		textOut += CONSOLE_BOLD_CYAN "DEBUG" CONSOLE_RESET;
+	else if (flags & Error)
+		textOut += CONSOLE_RED "ERROR" CONSOLE_RESET;
+	else if (flags & Critical)
+		textOut += CONSOLE_RED "CRITICAL" CONSOLE_RESET;
+	else if (flags & Except)
+		textOut += CONSOLE_BOLD_RED "EXCEPT" CONSOLE_RESET;
+	else if (flags & Graphics)
+		textOut += CONSOLE_BOLD_BLUE "GRAPHICS" CONSOLE_RESET;
+	else if (flags & Progress)
+		textOut += CONSOLE_CYAN "PROGRESS" CONSOLE_RESET;
 
-	if(Flags & EType::Success)
-	{
-		TextOut += CONSOLE_GREEN "SUCCESS" CONSOLE_RESET;
-	}
-	else if(Flags & EType::SQL)
-	{
-		TextOut += CONSOLE_BOLD_BLUE "SQL" CONSOLE_RESET;
-	}
-	else if(Flags & EType::Threads)
-	{
-		TextOut += CONSOLE_BOLD_MAGENTA "THREADS" CONSOLE_RESET;
-	}
-	else if(Flags & EType::Info)
-	{
-		TextOut += CONSOLE_CYAN "INFO" CONSOLE_RESET;
-	}
-	else if(Flags & EType::Notice)
-	{
-		TextOut += CONSOLE_BOLD_WHITE "NOTICE" CONSOLE_RESET;
-	}
-	else if(Flags & EType::Warning)
-	{
-		TextOut += CONSOLE_BOLD_YELLOW "WARNING" CONSOLE_RESET;
-	}
-	else if(Flags & EType::Debug)
-	{
-		TextOut += CONSOLE_BOLD_CYAN "DEBUG" CONSOLE_RESET;
-	}
-	else if(Flags & EType::Error)
-	{
-		TextOut += CONSOLE_RED "ERROR" CONSOLE_RESET;
-	}
-	else if(Flags & EType::CriticalError)
-	{
-		TextOut += CONSOLE_RED "CRITICAL" CONSOLE_RESET;
-	}
-	else if(Flags & EType::Exception)
-	{
-		TextOut += CONSOLE_BOLD_RED "EXCEPT" CONSOLE_RESET;
-	}
-	else if(Flags & EType::Graphics)
-	{
-		TextOut += CONSOLE_BOLD_BLUE "GRAPHICS" CONSOLE_RESET;
-	}
-
-	if(!(Flags & EType::None))
-	{
-#ifdef __WIN32
-		TextOut.resize(CONSOLE_PREFIX_LEN - 1, ' ');
-#else
-		TextOut += CONSOLE_FMT_BEGIN;
-#endif
-
-		// start with processing
-		Write(TextOut, Stream);
-	}
-
-	// Make sure there is a linebreak in the end. We don't want duplicates!
-	if(Text.empty() || Text.back() != '\n')
-	{
-		Text += '\n';
-	}
+	if (!(flags & None))
+		textOut.resize(CONSOLE_PREFIX_LEN + 13, ' ');
 
 	// Reset after each message
-	Text += CONSOLE_RESET "";
+	textOut += text + CONSOLE_ERASE_TO_END_OF_LINE CONSOLE_RESET;
 
-	Write(Text, Stream);
-}
+	// Make sure there is a linebreak in the end. We don't want duplicates!
+	if (!(flags & Progress))
+	{
+		if (textOut.empty() || textOut.back() != '\n')
+			textOut += '\n';
 
-void CLog::Write(const std::string& Text, EStream Stream)
-{
-	if(Stream == EStream::STDERR)
-	{
-		fwrite(Text.c_str(), sizeof(char), Text.length(), stderr);
-	}
-	else if(Stream == EStream::STDOUT)
-	{
-		fwrite(Text.c_str(), sizeof(char), Text.length(), stdout);
+		textOut += CONSOLE_SHOW_CURSOR;
 	}
 	else
-	{
+		textOut += CONSOLE_LINE_BEGIN CONSOLE_HIDE_CURSOR;
+
+	write(textOut, stream);
+}
+
+void Logger::write(const std::string& text, EStream stream)
+{
+	if (stream == EStream::STDERR)
+		std::cerr << text << std::flush;
+	else if (stream == EStream::STDOUT)
+		std::cout << text << std::flush;
+	else
 		std::cerr << "Unknown stream specified.\n";
-	}
 }

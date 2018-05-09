@@ -1,145 +1,158 @@
 #pragma once
 
-
 #include "Beatmap.h"
-#include "CCURL.h"
+#include "CURL.h"
 #include "DDog.h"
 #include "User.h"
 #include "SharedEnums.h"
 
-#include "../Shared/Config.h"
 #include "../Shared/Network/DatabaseConnection.h"
 
+PP_NAMESPACE_BEGIN
 
-DEFINE_LOGGED_EXCEPTION(CProcessorException);
+DEFINE_LOGGED_EXCEPTION(ProcessorException);
 
-
-// Specify user id to test
-//#define PLAYER_TESTING 124493
-
-
-struct SScore;
-
-class CProcessor
+class Processor
 {
 public:
+	Processor(EGamemode gamemode, const std::string& configFile);
+	~Processor();
 
-	CProcessor(SharedEnums::EGamemode gamemode, bool reProcess);
-	~CProcessor();
-
-
-	static const std::string& GamemodeSuffix(SharedEnums::EGamemode gamemode)
+	static const std::string& GamemodeSuffix(EGamemode gamemode)
 	{
 		return s_gamemodeSuffixes.at(gamemode);
 	}
 
-	static const std::string& GamemodeName(SharedEnums::EGamemode gamemode)
+	static const std::string& GamemodeName(EGamemode gamemode)
 	{
 		return s_gamemodeNames.at(gamemode);
 	}
 
-	static const std::string& GamemodeTag(SharedEnums::EGamemode gamemode)
+	static const std::string& GamemodeTag(EGamemode gamemode)
 	{
 		return s_gamemodeTags.at(gamemode);
 	}
 
+	void MonitorNewScores();
+	void ProcessAllUsers(bool reProcess, u32 numThreads);
+	void ProcessUsers(const std::vector<std::string>& userNames);
+	void ProcessUsers(const std::vector<s64>& userIds);
 
 private:
+	static const std::array<const std::string, NumGamemodes> s_gamemodeSuffixes;
+	static const std::array<const std::string, NumGamemodes> s_gamemodeNames;
+	static const std::array<const std::string, NumGamemodes> s_gamemodeTags;
 
+	static const Beatmap::ERankedStatus s_minRankedStatus;
+	static const Beatmap::ERankedStatus s_maxRankedStatus;
 
-	static const std::array<const std::string, SharedEnums::AmountGamemodes> s_gamemodeSuffixes;
-	static const std::array<const std::string, SharedEnums::AmountGamemodes> s_gamemodeNames;
-	static const std::array<const std::string, SharedEnums::AmountGamemodes> s_gamemodeTags;
-
-	static const CBeatmap::ERankedStatus s_minRankedStatus = CBeatmap::ERankedStatus::Ranked;
-	static const CBeatmap::ERankedStatus s_maxRankedStatus = CBeatmap::ERankedStatus::Approved;
-
-	std::string LastScoreIdKey()
+	std::string lastScoreIdKey()
 	{
 		return StrFormat("pp_last_score_id{0}", GamemodeSuffix(_gamemode));
 	}
 
-	std::string LastUserIdKey()
+	std::string lastUserIdKey()
 	{
 		return StrFormat("pp_last_user_id{0}", GamemodeSuffix(_gamemode));
 	}
 
+	struct
+	{
+		std::string MySqlMasterHost;
+		s16 MySqlMasterPort;
+		std::string MySqlMasterUsername;
+		std::string MySqlMasterPassword;
+		std::string MySqlMasterDatabase;
 
-	CConfig _config;
-	static const std::string s_configFile;
+		// By default, use the same database as master and slave.
+		std::string MySqlSlaveHost;
+		s16 MySqlSlavePort;
+		std::string MySqlSlaveUsername;
+		std::string MySqlSlavePassword;
+		std::string MySqlSlaveDatabase;
 
+		s32 DifficultyUpdateInterval;
+		s32 ScoreUpdateInterval;
 
-	std::shared_ptr<CDatabaseConnection> NewDBConnectionMaster();
-	std::shared_ptr<CDatabaseConnection> NewDBConnectionSlave();
+		std::string UserPPColumnName;
+		std::string UserMetadataTableName;
 
+		std::string SlackHookHost;
+		std::string SlackHookKey;
+		std::string SlackHookChannel;
+		std::string SlackHookUsername;
+		std::string SlackHookIconURL;
+
+		std::string SentryHost;
+		s32 SentryProjectID;
+		std::string SentryPublicKey;
+		std::string SentryPrivateKey;
+
+		std::string DataDogHost;
+		s16 DataDogPort;
+	} _config;
+
+	void readConfig(const std::string& filename);
+
+	std::shared_ptr<DatabaseConnection> newDBConnectionMaster();
+	std::shared_ptr<DatabaseConnection> newDBConnectionSlave();
 
 	// Difficulty data is held in RAM.
 	// A few hundred megabytes.
 	// Stored inside a hashmap with the beatmap ID as key
-	std::unordered_map<s32, CBeatmap> _beatmaps;
+	std::unordered_map<s32, Beatmap> _beatmaps;
 	std::string _lastApprovedDate;
 
-	void Run(bool reProcess);
+	void queryAllBeatmapDifficulties(u32 numThreads);
+	bool queryBeatmapDifficulty(DatabaseConnection& dbSlave, s32 startId, s32 endId = 0);
 
-	void QueryBeatmapDifficulty();
-	bool QueryBeatmapDifficulty(s32 startId, s32 endId = 0);
-
-	void ProcessAllScores(bool reProcess);
-
-
-	std::shared_ptr<CDatabaseConnection> _pDB;
-	std::shared_ptr<CDatabaseConnection> _pDBSlave;
+	std::shared_ptr<DatabaseConnection> _pDB;
+	std::shared_ptr<DatabaseConnection> _pDBSlave;
 
 	std::chrono::steady_clock::time_point _lastScorePollTime;
 	std::chrono::steady_clock::time_point _lastBeatmapSetPollTime;
 
 	s64 _currentScoreId;
-	s64 _amountScoresProcessedSinceLastStore = 0;
-	void PollAndProcessNewScores();
-	void PollAndProcessNewBeatmapSets();
-
-	std::unique_ptr<CScore> NewScore(s64 scoreId,
-									 SharedEnums::EGamemode mode,
-									 s32 userId,
-									 s32 beatmapId,
-									 s32 score,
-									 s32 maxCombo,
-									 s32 amount300,
-									 s32 amount100,
-									 s32 amount50,
-									 s32 amountMiss,
-									 s32 amountGeki,
-									 s32 amountKatu,
-									 SharedEnums::EMods mods);
+	s64 _numScoresProcessedSinceLastStore = 0;
+	void pollAndProcessNewScores();
+	void pollAndProcessNewBeatmapSets(DatabaseConnection& dbSlave);
 
 	std::unordered_set<s32> _blacklistedBeatmapIds;
-	void QueryBeatmapBlacklist();
+	void queryBeatmapBlacklist();
 
-	std::vector<CBeatmap::EDifficultyAttributeType> _difficultyAttributes;
-	void QueryBeatmapDifficultyAttributes();
+	std::vector<Beatmap::EDifficultyAttributeType> _difficultyAttributes;
+	void queryBeatmapDifficultyAttributes();
 
 	// Not thread safe with beatmap data!
-	void ProcessSingleUser(
+	User processSingleUser(
 		s64 selectedScoreId, // If this is not 0, then the score is looked at in isolation, triggering a notable event if it's good enough
-		std::shared_ptr<CDatabaseConnection> pDB,
-		std::shared_ptr<CUpdateBatch> newUsers,
-		std::shared_ptr<CUpdateBatch> newScores,
-		s64 userId);
+		DatabaseConnection& db,
+		DatabaseConnection& dbSlave,
+		UpdateBatch& newUsers,
+		UpdateBatch& newScores,
+		s64 userId
+	);
 
+	template <class TScore>
+	User processSingleUserGeneric(
+		s64 selectedScoreId, // If this is not 0, then the score is looked at in isolation, triggering a notable event if it's good enough
+		DatabaseConnection& db,
+		DatabaseConnection& dbSlave,
+		UpdateBatch& newUsers,
+		UpdateBatch& newScores,
+		s64 userId
+	);
 
-	void StoreCount(CDatabaseConnection& db, std::string key, s64 value);
-	s64 RetrieveCount(CDatabaseConnection& db, std::string key);
+	void storeCount(DatabaseConnection& db, std::string key, s64 value);
+	s64 retrieveCount(DatabaseConnection& db, std::string key);
 
+	EGamemode _gamemode;
 
-	void SuperviseStalls();
-
-	SharedEnums::EGamemode _gamemode;
-
-	CRWMutex _beatmapMutex;
-	std::thread _backgroundScoreProcessingThread;
-	std::thread _stallSupervisorThread;
+	RWMutex _beatmapMutex;
 	bool _shallShutdown = false;
 
-	CCURL _curl;
-	CDDog _dataDog;
+	CURL _curl;
+	std::unique_ptr<DDog> _pDataDog;
 };
+
+PP_NAMESPACE_END

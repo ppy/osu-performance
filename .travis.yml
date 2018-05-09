@@ -1,0 +1,29 @@
+language: cpp
+sudo: false
+dist: trusty
+branches:
+  only:
+    - master
+matrix:
+  include:
+    - os: linux
+      compiler: gcc-4.9
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - cmake
+            - g++-4.9
+      script:
+        - cmake --version
+        - cmake -DCMAKE_CXX_COMPILER=g++-4.9 -DCMAKE_C_COMPILER=gcc-4.9
+        - make -j 2
+    - os: osx
+      compiler: clang
+      before_install:
+        - brew install mysql-connector-c
+      script:
+        - cmake --version
+        - cmake .
+        - make -j 2
