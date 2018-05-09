@@ -7,17 +7,17 @@ branches:
 matrix:
   include:
     - os: linux
-      compiler: gcc-4.8
+      compiler: gcc-4.9
       addons:
         apt:
           sources:
             - ubuntu-toolchain-r-test
           packages:
             - cmake
-            - g++-4.8
+            - g++-4.9
       script:
         - cmake --version
-        - cmake -DCMAKE_CXX_COMPILER=g++-4.8 -DCMAKE_C_COMPILER=gcc-4.8
+        - cmake -DCMAKE_CXX_COMPILER=g++-4.9 -DCMAKE_C_COMPILER=gcc-4.9
         - make -j 2
     - os: osx
       compiler: clang

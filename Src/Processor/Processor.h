@@ -6,7 +6,6 @@
 #include "User.h"
 #include "SharedEnums.h"
 
-#include "../Shared/Config.h"
 #include "../Shared/Network/DatabaseConnection.h"
 
 PP_NAMESPACE_BEGIN
@@ -57,7 +56,43 @@ private:
 		return StrFormat("pp_last_user_id{0}", GamemodeSuffix(_gamemode));
 	}
 
-	Config _config;
+	struct
+	{
+		std::string MySqlMasterHost;
+		s16 MySqlMasterPort;
+		std::string MySqlMasterUsername;
+		std::string MySqlMasterPassword;
+		std::string MySqlMasterDatabase;
+
+		// By default, use the same database as master and slave.
+		std::string MySqlSlaveHost;
+		s16 MySqlSlavePort;
+		std::string MySqlSlaveUsername;
+		std::string MySqlSlavePassword;
+		std::string MySqlSlaveDatabase;
+
+		s32 DifficultyUpdateInterval;
+		s32 ScoreUpdateInterval;
+
+		std::string UserPPColumnName;
+		std::string UserMetadataTableName;
+
+		std::string SlackHookHost;
+		std::string SlackHookKey;
+		std::string SlackHookChannel;
+		std::string SlackHookUsername;
+		std::string SlackHookIconURL;
+
+		std::string SentryHost;
+		s32 SentryProjectID;
+		std::string SentryPublicKey;
+		std::string SentryPrivateKey;
+
+		std::string DataDogHost;
+		s16 DataDogPort;
+	} _config;
+
+	void readConfig(const std::string& filename);
 
 	std::shared_ptr<DatabaseConnection> newDBConnectionMaster();
 	std::shared_ptr<DatabaseConnection> newDBConnectionSlave();
@@ -117,7 +152,7 @@ private:
 	bool _shallShutdown = false;
 
 	CURL _curl;
-	DDog _dataDog;
+	std::unique_ptr<DDog> _pDataDog;
 };
 
 PP_NAMESPACE_END

@@ -30,8 +30,6 @@ set(SOURCES
 set(SHARED_SOURCES
 	${SHARED_SOURCES}
 
-	${SHARED}/Config.cpp
-
 	${SHARED}/Core/Active.cpp
 	${SHARED}/Core/Exception.cpp
 	${SHARED}/Core/Logger.cpp
@@ -70,8 +68,6 @@ set(HEADERS
 	${CMAKE_CURRENT_SOURCE_DIR}/Mania/ManiaScore.h
 
 	# shared stuff
-	${SHARED}/Config.h
-	${SHARED}/configVariables.h
 	${SHARED}/Shared.h
 
 	${SHARED}/Core/Active.h
@@ -97,6 +93,7 @@ include_directories(${SHARED})
 # Add external include directories
 include_directories(${EXTERNAL}/args)
 include_directories(${EXTERNAL}/curl/include)
+include_directories(${EXTERNAL}/json/include)
 include_directories(${EXTERNAL}/MySQL/include)
 include_directories(${EXTERNAL}/StrFormat)
 
