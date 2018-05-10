@@ -80,7 +80,7 @@ void ManiaScore::computeStrainValue(const Beatmap& beatmap)
 	_score *= static_cast<s32>(1.0f / scoreMultiplier); // We don't really mind rounding errors with such small magnitude.
 
 	// Obtain strain difficulty
-	_strainValue = pow(5.0f * std::max(1.0f, beatmap.DifficultyAttribute(_mods, CBeatmap::Strain) / 0.2f) - 4.0f, 2.2f) / 135.0f;
+	_strainValue = pow(5.0f * std::max(1.0f, beatmap.DifficultyAttribute(_mods, Beatmap::Strain) / 0.2f) - 4.0f, 2.2f) / 135.0f;
 
 	// Longer maps are worth more
 	_strainValue *= 1 + 0.1f * std::min(1.0f, static_cast<f32>(TotalHits()) / 1500.0f);
