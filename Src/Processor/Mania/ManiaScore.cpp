@@ -111,7 +111,7 @@ void ManiaScore::computeAccValue(const Beatmap& beatmap)
 
 	// Lots of arbitrary values from testing.
 	// Considering to use derivation from perfect accuracy in a probabilistic manner - assume normal distribution
-	_accValue = std::max(0.0f, 0.2f - ((hitWindow300 - 34) * 0.006667f))) * _strainValue
+	_accValue = std::max(0.0f, 0.2f - ((hitWindow300 - 34) * 0.006667f)) * _strainValue
 		* pow((std::max(0.0f, static_cast<f32>(_score - 960000)) / 40000.0f), 1.1f);
 
 	// Bonus for many hitcircles - it's harder to keep good accuracy up for longer
