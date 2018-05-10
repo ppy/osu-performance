@@ -48,7 +48,7 @@ void ManiaScore::computeTotalValue()
 	    Arbitrary initial value for scaling pp in order to standardize distributions across game modes.
 	    The specific number has no intrinsic meaning and can be adjusted as needed.
 	*/
-	f32 multiplier = 0.65f;
+	f32 multiplier = 0.8f;
 
 	if ((_mods & EMods::NoFail) > 0)
 		multiplier *= 0.90f;
