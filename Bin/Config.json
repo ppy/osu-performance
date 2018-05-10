@@ -1,0 +1,7 @@
+{
+	"mysql.master.host" : "127.0.0.1",
+	"mysql.master.port" : 3306,
+	"mysql.master.username" : "root",
+	"mysql.master.password" : "",
+	"mysql.master.database" : "osu"
+}

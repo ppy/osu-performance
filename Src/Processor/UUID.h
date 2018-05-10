@@ -1,14 +1,16 @@
 #pragma once
 
-class CUUID
+PP_NAMESPACE_BEGIN
+
+class UUID
 {
 public:
+	static UUID V4();
 
-	static CUUID V4();
-
-public:
-	
 	std::string ToString();
 
-	uint8_t bytes[16];
+private:
+	uint8_t _bytes[16];
 };
+
+PP_NAMESPACE_END

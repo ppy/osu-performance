@@ -1,29 +1,28 @@
 #pragma once
 
-
 #include "Score.h"
 
+PP_NAMESPACE_BEGIN
 
-class CManiaScore : public CScore
+class ManiaScore : public Score
 {
 public:
-
-	CManiaScore(
+	ManiaScore(
 		s64 scoreId,
-		SharedEnums::EGamemode mode,
+		EGamemode mode,
 		s32 userId,
 		s32 beatmapId,
 		s32 score,
 		s32 maxCombo,
-		s32 amount300,
-		s32 amount100,
-		s32 amount50,
-		s32 amountMiss,
-		s32 amountGeki,
-		s32 amountKatu,
-		SharedEnums::EMods mods,
-		const CBeatmap& beatmap);
-
+		s32 num300,
+		s32 num100,
+		s32 num50,
+		s32 numMiss,
+		s32 numGeki,
+		s32 numKatu,
+		EMods mods,
+		const Beatmap& beatmap
+	);
 
 	f32 TotalValue() const override;
 	f32 Accuracy() const override;
@@ -31,15 +30,14 @@ public:
 	s32 TotalSuccessfulHits() const override;
 
 private:
-
-	void ComputeTotalValue();
+	void computeTotalValue();
 	f32 _totalValue;
 
-	void ComputeStrainValue(const CBeatmap& beatmap);
-	void ComputeAccValue(const CBeatmap& beatmap);
+	void computeStrainValue(const Beatmap& beatmap);
+	void computeAccValue(const Beatmap& beatmap);
 
 	f32 _strainValue;
 	f32 _accValue;
-
 };
 
+PP_NAMESPACE_END

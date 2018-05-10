@@ -1,87 +1,74 @@
 #include <PrecompiledHeader.h>
 
-
 #include "ManiaScore.h"
 #include "SharedEnums.h"
 
+PP_NAMESPACE_BEGIN
 
-using namespace SharedEnums;
-
-
-CManiaScore::CManiaScore(
+ManiaScore::ManiaScore(
 	s64 scoreId,
 	EGamemode mode,
 	s32 userId,
 	s32 beatmapId,
 	s32 score,
 	s32 maxCombo,
-	s32 amount300,
-	s32 amount100,
-	s32 amount50,
-	s32 amountMiss,
-	s32 amountGeki,
-	s32 amountKatu,
+	s32 num300,
+	s32 num100,
+	s32 num50,
+	s32 numMiss,
+	s32 numGeki,
+	s32 numKatu,
 	EMods mods,
-	const CBeatmap& beatmap)
-	: CScore{scoreId, mode, userId, beatmapId, score, maxCombo, amount300, amount100, amount50, amountMiss, amountGeki, amountKatu, mods}
+	const Beatmap& beatmap
+) : Score{scoreId, mode, userId, beatmapId, score, maxCombo, num300, num100, num50, numMiss, numGeki, numKatu, mods}
 {
-	ComputeStrainValue(beatmap);
-	ComputeAccValue(beatmap);
+	computeStrainValue(beatmap);
+	computeAccValue(beatmap);
 
-	ComputeTotalValue();
+	computeTotalValue();
 }
 
-
-f32 CManiaScore::TotalValue() const
+f32 ManiaScore::TotalValue() const
 {
 	return _totalValue;
 }
 
-
-void CManiaScore::ComputeTotalValue()
+void ManiaScore::computeTotalValue()
 {
 	// Don't count scores made with supposedly unranked mods
-	if((_mods & EMods::Relax) > 0 ||
-	   (_mods & EMods::Relax2) > 0 ||
-	   (_mods & EMods::Autoplay) > 0)
+	if ((_mods & EMods::Relax) > 0 ||
+		(_mods & EMods::Relax2) > 0 ||
+		(_mods & EMods::Autoplay) > 0)
 	{
 		_totalValue = 0;
 		return;
 	}
 
-
 	// Custom multipliers for NoFail and SpunOut.
 	f32 multiplier = 1.1f; // This is being adjusted to keep the final pp value scaled around what it used to be when changing things
 
-	if((_mods & EMods::NoFail) > 0)
-	{
+	if ((_mods & EMods::NoFail) > 0)
 		multiplier *= 0.90f;
-	}
 
-	if((_mods & EMods::SpunOut) > 0)
-	{
+	if ((_mods & EMods::SpunOut) > 0)
 		multiplier *= 0.95f;
-	}
 
-	if((_mods & EMods::Easy) > 0)
-	{
+	if ((_mods & EMods::Easy) > 0)
 		multiplier *= 0.50f;
-	}
-	
 
 	_totalValue =
-		std::pow(
-		std::pow(_strainValue, 1.1f) +
-		std::pow(_accValue, 1.1f), 1.0f / 1.1f
+			std::pow(
+			std::pow(_strainValue, 1.1f) +
+			std::pow(_accValue, 1.1f), 1.0f / 1.1f
 		) * multiplier;
 }
 
-void CManiaScore::ComputeStrainValue(const CBeatmap& beatmap)
+void ManiaScore::computeStrainValue(const Beatmap& beatmap)
 {
 	// Scale score up, so it's comparable to other keymods
-	f32 scoreMultiplier = beatmap.DifficultyAttribute(_mods, CBeatmap::ScoreMultiplier);
+	f32 scoreMultiplier = beatmap.DifficultyAttribute(_mods, Beatmap::ScoreMultiplier);
 
-	if(scoreMultiplier <= 0)
+	if (scoreMultiplier <= 0)
 	{
 		_strainValue = 0;
 		return;
@@ -96,36 +83,24 @@ void CManiaScore::ComputeStrainValue(const CBeatmap& beatmap)
 	_strainValue *= 1 + 0.1f * std::min(1.0f, static_cast<f32>(TotalHits()) / 1500.0f);
 
 	// Counter mashing through maps
-	if(_score <= 500000)
-	{
+	if (_score <= 500000)
 		_strainValue = 0;
-	}
-	else if(_score <= 600000)
-	{
+	else if (_score <= 600000)
 		_strainValue *= static_cast<f32>(_score - 500000) / 100000.0f * 0.3f;
-	}
-	else if(_score <= 700000)
-	{
+	else if (_score <= 700000)
 		_strainValue *= 0.3f + static_cast<f32>(_score - 600000) / 100000.0f * 0.25f;
-	}
-	else if(_score <= 800000)
-	{
+	else if (_score <= 800000)
 		_strainValue *= 0.55f + static_cast<f32>(_score - 700000) / 100000.0f * 0.20f;
-	}
-	else if(_score <= 900000)
-	{
+	else if (_score <= 900000)
 		_strainValue *= 0.75f + static_cast<f32>(_score - 800000) / 100000.0f * 0.15f;
-	}
 	else
-	{
 		_strainValue *= 0.90f + static_cast<f32>(_score - 900000) / 100000.0f * 0.1f;
-	}
 }
 
-void CManiaScore::ComputeAccValue(const CBeatmap& beatmap)
+void ManiaScore::computeAccValue(const Beatmap& beatmap)
 {
-	f32 hitWindow300 = beatmap.DifficultyAttribute(_mods, CBeatmap::HitWindow300);
-	if(hitWindow300 <= 0)
+	f32 hitWindow300 = beatmap.DifficultyAttribute(_mods, Beatmap::HitWindow300);
+	if (hitWindow300 <= 0)
 	{
 		_accValue = 0;
 		return;
@@ -140,25 +115,24 @@ void CManiaScore::ComputeAccValue(const CBeatmap& beatmap)
 	//_accValue *= std::min<f32>(1.15f, pow(static_cast<f32>(TotalHits()) / 1500.0f, 0.3f));
 }
 
-f32 CManiaScore::Accuracy() const
+f32 ManiaScore::Accuracy() const
 {
-	if(TotalHits() == 0)
-	{
+	if (TotalHits() == 0)
 		return 0;
-	}
 
 	return
-		clamp(static_cast<f32>(_amount50 * 50 + _amount100 * 100 + _amountKatu * 200 + (_amount300 + _amountGeki) * 300)
+		Clamp(static_cast<f32>(_num50 * 50 + _num100 * 100 + _numKatu * 200 + (_num300 + _numGeki) * 300)
 		/ (TotalHits() * 300), 0.0f, 1.0f);
 }
 
-s32 CManiaScore::TotalHits() const
+s32 ManiaScore::TotalHits() const
 {
-	return _amount50 + _amount100 + _amount300 + _amountMiss + _amountGeki + _amountKatu;
+	return _num50 + _num100 + _num300 + _numMiss + _numGeki + _numKatu;
 }
 
-s32 CManiaScore::TotalSuccessfulHits() const
+s32 ManiaScore::TotalSuccessfulHits() const
 {
-	return _amount50 + _amount100 + _amount300 + _amountGeki + _amountKatu;
+	return _num50 + _num100 + _num300 + _numGeki + _numKatu;
 }
 
+PP_NAMESPACE_END
