@@ -44,8 +44,11 @@ void ManiaScore::computeTotalValue()
 		return;
 	}
 
-	// Custom multipliers for NoFail and SpunOut.
-	f32 multiplier = 1.1f; // This is being adjusted to keep the final pp value scaled around what it used to be when changing things
+	/* 
+	    Arbitrary initial value for scaling pp in order to standardize distributions across game modes.
+	    The specific number has no intrinsic meaning and can be adjusted as needed.
+	*/
+	f32 multiplier = 0.65f;
 
 	if ((_mods & EMods::NoFail) > 0)
 		multiplier *= 0.90f;
