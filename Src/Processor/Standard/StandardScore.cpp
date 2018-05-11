@@ -125,7 +125,7 @@ void StandardScore::computeAimValue(const Beatmap& beatmap)
 
 	// We want to give more reward for lower AR when it comes to aim and HD. This nerfs high AR and buffs lower AR.
 	if ((_mods & EMods::Hidden) > 0)
-		_aimValue *= (1.02f+(11.0f - approachRate)/50f); // Gives a 1.04 bonus for AR10, a 1.06 bonus for AR9, a 1.02 bonus for AR11.
+		_aimValue *= (1.02f+(11.0f - approachRate)/50.0f); // Gives a 1.04 bonus for AR10, a 1.06 bonus for AR9, a 1.02 bonus for AR11.
 
 	if ((_mods & EMods::Flashlight) > 0)
 		// Apply length bonus again if flashlight is on simply because it becomes a lot harder on longer maps.
