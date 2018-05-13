@@ -129,8 +129,8 @@ void StandardScore::computeAimValue(const Beatmap& beatmap)
 	if ((_mods & EMods::Flashlight) > 0)
 		// Apply object-based bonus for flashlight.
 		_aimValue *= 1.0f + 0.35f * std::min(1.0f, static_cast<f32>(amountTotalHits) / 250.0f) +
-+        	(amountTotalHits > 250 ? 0.3f * std::min(1.0f, static_cast<f32>(amountTotalHits - 250) / 250.0f) +
-+        	(amountTotalHits > 500 ? static_cast<f32>(amountTotalHits - 500) / 1200.0f : 0.0f) : 0.0f);
++        		(amountTotalHits > 250 ? 0.3f * std::min(1.0f, static_cast<f32>(amountTotalHits - 250) / 250.0f) +
++        		(amountTotalHits > 500 ? static_cast<f32>(amountTotalHits - 500) / 1200.0f : 0.0f) : 0.0f);
 
 	// Scale the aim value with accuracy _slightly_
 	_aimValue *= 0.5f + Accuracy() / 2.0f;
