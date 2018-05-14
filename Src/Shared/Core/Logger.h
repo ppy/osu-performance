@@ -145,7 +145,7 @@ private:
 	std::unique_ptr<Active> _pActive;
 
 	bool canHandleControlCharacters;
-	ELogType hiddenTypes = None;
+	ELogType hiddenTypes = static_cast<ELogType>(0);
 };
 
 inline void Log(ELogType flags, const std::string& text)
