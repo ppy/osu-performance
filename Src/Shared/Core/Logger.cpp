@@ -109,23 +109,20 @@ void Logger::logText(ELogType type, const std::string& text)
 
 	switch (type)
 	{
-		case None:                                                               break;
-		case Success:  textOut += CONSOLE_GREEN        "SUCCESS"  CONSOLE_RESET; break;
-		case SQL:      textOut += CONSOLE_BOLD_BLUE    "SQL"      CONSOLE_RESET; break;
-		case Threads:  textOut += CONSOLE_BOLD_MAGENTA "THREADS"  CONSOLE_RESET; break;
-		case Info:     textOut += CONSOLE_CYAN         "INFO"     CONSOLE_RESET; break;
-		case Notice:   textOut += CONSOLE_BOLD_WHITE   "NOTICE"   CONSOLE_RESET; break;
-		case Warning:  textOut += CONSOLE_BOLD_YELLOW  "WARNING"  CONSOLE_RESET; break;
-		case Debug:    textOut += CONSOLE_BOLD_CYAN    "DEBUG"    CONSOLE_RESET; break;
-		case Error:    textOut += CONSOLE_RED          "ERROR"    CONSOLE_RESET; break;
-		case Critical: textOut += CONSOLE_RED          "CRITICAL" CONSOLE_RESET; break;
-		case Except:   textOut += CONSOLE_BOLD_RED     "EXCEPT"   CONSOLE_RESET; break;
-		case Graphics: textOut += CONSOLE_BOLD_BLUE    "GRAPHICS" CONSOLE_RESET; break;
-		case Progress: textOut += CONSOLE_CYAN         "PROGRESS" CONSOLE_RESET; break;
+		case None:                                                                break;
+		case Success:  textOut += CONSOLE_GREEN        "SUCCESS  " CONSOLE_RESET; break;
+		case SQL:      textOut += CONSOLE_BOLD_BLUE    "SQL      " CONSOLE_RESET; break;
+		case Threads:  textOut += CONSOLE_BOLD_MAGENTA "THREADS  " CONSOLE_RESET; break;
+		case Info:     textOut += CONSOLE_CYAN         "INFO     " CONSOLE_RESET; break;
+		case Notice:   textOut += CONSOLE_BOLD_WHITE   "NOTICE   " CONSOLE_RESET; break;
+		case Warning:  textOut += CONSOLE_BOLD_YELLOW  "WARNING  " CONSOLE_RESET; break;
+		case Debug:    textOut += CONSOLE_BOLD_CYAN    "DEBUG    " CONSOLE_RESET; break;
+		case Error:    textOut += CONSOLE_RED          "ERROR    " CONSOLE_RESET; break;
+		case Critical: textOut += CONSOLE_RED          "CRITICAL " CONSOLE_RESET; break;
+		case Except:   textOut += CONSOLE_BOLD_RED     "EXCEPT   " CONSOLE_RESET; break;
+		case Graphics: textOut += CONSOLE_BOLD_BLUE    "GRAPHICS " CONSOLE_RESET; break;
+		case Progress: textOut += CONSOLE_CYAN         "PROGRESS " CONSOLE_RESET; break;
 	}
-
-	if (type != None)
-		textOut.resize(32, ' ');
 
 	// Reset after each message
 	textOut += text + CONSOLE_ERASE_TO_END_OF_LINE CONSOLE_RESET;
