@@ -100,10 +100,11 @@ void Logger::logText(ELogType type, const std::string& text)
 		// Display time format
 		const auto currentTime = system_clock::to_time_t(system_clock::now());
 
-		char timeBuf[128];
-		std::strftime(timeBuf, 127, "%H:%M:%S ", localtime(&currentTime));
+		char timeStr[10];
+		if (std::strftime(timeStr, 10, "%H:%M:%S ", localtime(&currentTime)) == 0)
+			throw LoggerException{SRC_POS, "Could not render local time."};
 
-		textOut += timeBuf;
+		textOut += timeStr;
 	}
 
 	switch (type)
