@@ -2,13 +2,9 @@
 
 #include "Active.h"
 
-#define CONSOLE_TIMESTAMP "%H:%M:%S "
-#define CONSOLE_PREFIX_LEN 19
-
 #define CONSOLE_FMT_ESCAPE "\033"
 
 #define CONSOLE_RESET       CONSOLE_FMT_ESCAPE"[0;37m"
-#define CONSOLE_FMT_BEGIN   CONSOLE_FMT_ESCAPE"[" TOSTRING(CONSOLE_PREFIX_LEN) "G"
 
 #define CONSOLE_LINE_BEGIN  CONSOLE_FMT_ESCAPE"[0G"
 
@@ -99,7 +95,7 @@ public:
 			- 2 // The surrounding [ and ]
 			- 1 // Space between progress bar and label
 			- (s32)label.size() // Label itself
-			- CONSOLE_PREFIX_LEN // Prefix
+			- 19 // Prefix
 		);
 
 		s32 numFilledChars = (s32)round(usableWidth * fraction);

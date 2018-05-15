@@ -100,17 +100,10 @@ void Logger::logText(ELogType type, const std::string& text)
 		// Display time format
 		const auto currentTime = system_clock::to_time_t(system_clock::now());
 
-#ifdef __WIN32
-#define STREAMTOSTRING(x) dynamic_cast<std::ostringstream &>((std::ostringstream{} << std::dec << x)).str()
-		textOut += STREAMTOSTRING(std::put_time(localtime(&currentTime), CONSOLE_TIMESTAMP));
-#undef STREAMTOSTRING
-#else
 		char timeBuf[128];
-		const auto tmCurrentTime = localtime(&currentTime);
-		strftime(timeBuf, 127, CONSOLE_TIMESTAMP, tmCurrentTime);
+		std::strftime(timeBuf, 127, "%H:%M:%S ", localtime(&currentTime));
 
 		textOut += timeBuf;
-#endif
 	}
 
 	switch (type)
@@ -131,7 +124,7 @@ void Logger::logText(ELogType type, const std::string& text)
 	}
 
 	if (type != None)
-		textOut.resize(CONSOLE_PREFIX_LEN + 13, ' ');
+		textOut.resize(32, ' ');
 
 	// Reset after each message
 	textOut += text + CONSOLE_ERASE_TO_END_OF_LINE CONSOLE_RESET;
