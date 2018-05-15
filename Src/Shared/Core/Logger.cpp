@@ -100,38 +100,29 @@ void Logger::logText(ELogType type, const std::string& text)
 		// Display time format
 		const auto currentTime = system_clock::to_time_t(system_clock::now());
 
-#ifdef __WIN32
-#define STREAMTOSTRING(x) dynamic_cast<std::ostringstream &>((std::ostringstream{} << std::dec << x)).str()
-		textOut += STREAMTOSTRING(std::put_time(localtime(&currentTime), CONSOLE_TIMESTAMP));
-#undef STREAMTOSTRING
-#else
-		char timeBuf[128];
-		const auto tmCurrentTime = localtime(&currentTime);
-		strftime(timeBuf, 127, CONSOLE_TIMESTAMP, tmCurrentTime);
+		char timeStr[10];
+		if (std::strftime(timeStr, 10, "%H:%M:%S ", localtime(&currentTime)) == 0)
+			throw LoggerException{SRC_POS, "Could not render local time."};
 
-		textOut += timeBuf;
-#endif
+		textOut += timeStr;
 	}
 
 	switch (type)
 	{
-		case None:                                                               break;
-		case Success:  textOut += CONSOLE_GREEN        "SUCCESS"  CONSOLE_RESET; break;
-		case SQL:      textOut += CONSOLE_BOLD_BLUE    "SQL"      CONSOLE_RESET; break;
-		case Threads:  textOut += CONSOLE_BOLD_MAGENTA "THREADS"  CONSOLE_RESET; break;
-		case Info:     textOut += CONSOLE_CYAN         "INFO"     CONSOLE_RESET; break;
-		case Notice:   textOut += CONSOLE_BOLD_WHITE   "NOTICE"   CONSOLE_RESET; break;
-		case Warning:  textOut += CONSOLE_BOLD_YELLOW  "WARNING"  CONSOLE_RESET; break;
-		case Debug:    textOut += CONSOLE_BOLD_CYAN    "DEBUG"    CONSOLE_RESET; break;
-		case Error:    textOut += CONSOLE_RED          "ERROR"    CONSOLE_RESET; break;
-		case Critical: textOut += CONSOLE_RED          "CRITICAL" CONSOLE_RESET; break;
-		case Except:   textOut += CONSOLE_BOLD_RED     "EXCEPT"   CONSOLE_RESET; break;
-		case Graphics: textOut += CONSOLE_BOLD_BLUE    "GRAPHICS" CONSOLE_RESET; break;
-		case Progress: textOut += CONSOLE_CYAN         "PROGRESS" CONSOLE_RESET; break;
+		case None:                                                                break;
+		case Success:  textOut += CONSOLE_GREEN        "SUCCESS  " CONSOLE_RESET; break;
+		case SQL:      textOut += CONSOLE_BOLD_BLUE    "SQL      " CONSOLE_RESET; break;
+		case Threads:  textOut += CONSOLE_BOLD_MAGENTA "THREADS  " CONSOLE_RESET; break;
+		case Info:     textOut += CONSOLE_CYAN         "INFO     " CONSOLE_RESET; break;
+		case Notice:   textOut += CONSOLE_BOLD_WHITE   "NOTICE   " CONSOLE_RESET; break;
+		case Warning:  textOut += CONSOLE_BOLD_YELLOW  "WARNING  " CONSOLE_RESET; break;
+		case Debug:    textOut += CONSOLE_BOLD_CYAN    "DEBUG    " CONSOLE_RESET; break;
+		case Error:    textOut += CONSOLE_RED          "ERROR    " CONSOLE_RESET; break;
+		case Critical: textOut += CONSOLE_RED          "CRITICAL " CONSOLE_RESET; break;
+		case Except:   textOut += CONSOLE_BOLD_RED     "EXCEPT   " CONSOLE_RESET; break;
+		case Graphics: textOut += CONSOLE_BOLD_BLUE    "GRAPHICS " CONSOLE_RESET; break;
+		case Progress: textOut += CONSOLE_CYAN         "PROGRESS " CONSOLE_RESET; break;
 	}
-
-	if (type != None)
-		textOut.resize(CONSOLE_PREFIX_LEN + 13, ' ');
 
 	// Reset after each message
 	textOut += text + CONSOLE_ERASE_TO_END_OF_LINE CONSOLE_RESET;
