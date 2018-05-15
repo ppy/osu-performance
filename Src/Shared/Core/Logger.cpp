@@ -19,12 +19,12 @@ std::unique_ptr<Logger>& Logger::Instance()
 	return pLog;
 }
 
-void Logger::Log(ELogType flags, const std::string& text)
+void Logger::Log(ELogType type, const std::string& text)
 {
-	if (flags & hiddenTypes)
+	if (hiddenTypes.count(type))
 		return;
 
-	_pActive->Send([this, flags, text]() { logText(flags, text); });
+	_pActive->Send([this, type, text]() { logText(type, text); });
 }
 
 Logger::Logger()
@@ -83,17 +83,17 @@ bool Logger::enableControlCharacters()
 	return true;
 }
 
-void Logger::logText(ELogType flags, const std::string& text)
+void Logger::logText(ELogType type, const std::string& text)
 {
 	EStream stream;
-	if (flags & Error || flags & Critical || flags & SQL || flags & Except)
+	if (type == Error || type == Critical || type == SQL || type == Except)
 		stream = EStream::STDERR;
 	else
 		stream = EStream::STDOUT;
 
 	std::string textOut;
 
-	if (!(flags & None))
+	if (type != None)
 	{
 		using namespace std::chrono;
 
@@ -113,47 +113,39 @@ void Logger::logText(ELogType flags, const std::string& text)
 #endif
 	}
 
-	if (flags & Success)
-		textOut += CONSOLE_GREEN "SUCCESS" CONSOLE_RESET;
-	else if (flags & SQL)
-		textOut += CONSOLE_BOLD_BLUE "SQL" CONSOLE_RESET;
-	else if (flags & Threads)
-		textOut += CONSOLE_BOLD_MAGENTA "THREADS" CONSOLE_RESET;
-	else if (flags & Info)
-		textOut += CONSOLE_CYAN "INFO" CONSOLE_RESET;
-	else if (flags & Notice)
-		textOut += CONSOLE_BOLD_WHITE "NOTICE" CONSOLE_RESET;
-	else if (flags & Warning)
-		textOut += CONSOLE_BOLD_YELLOW "WARNING" CONSOLE_RESET;
-	else if (flags & Debug)
-		textOut += CONSOLE_BOLD_CYAN "DEBUG" CONSOLE_RESET;
-	else if (flags & Error)
-		textOut += CONSOLE_RED "ERROR" CONSOLE_RESET;
-	else if (flags & Critical)
-		textOut += CONSOLE_RED "CRITICAL" CONSOLE_RESET;
-	else if (flags & Except)
-		textOut += CONSOLE_BOLD_RED "EXCEPT" CONSOLE_RESET;
-	else if (flags & Graphics)
-		textOut += CONSOLE_BOLD_BLUE "GRAPHICS" CONSOLE_RESET;
-	else if (flags & Progress)
-		textOut += CONSOLE_CYAN "PROGRESS" CONSOLE_RESET;
+	switch (type)
+	{
+		case None:                                                               break;
+		case Success:  textOut += CONSOLE_GREEN        "SUCCESS"  CONSOLE_RESET; break;
+		case SQL:      textOut += CONSOLE_BOLD_BLUE    "SQL"      CONSOLE_RESET; break;
+		case Threads:  textOut += CONSOLE_BOLD_MAGENTA "THREADS"  CONSOLE_RESET; break;
+		case Info:     textOut += CONSOLE_CYAN         "INFO"     CONSOLE_RESET; break;
+		case Notice:   textOut += CONSOLE_BOLD_WHITE   "NOTICE"   CONSOLE_RESET; break;
+		case Warning:  textOut += CONSOLE_BOLD_YELLOW  "WARNING"  CONSOLE_RESET; break;
+		case Debug:    textOut += CONSOLE_BOLD_CYAN    "DEBUG"    CONSOLE_RESET; break;
+		case Error:    textOut += CONSOLE_RED          "ERROR"    CONSOLE_RESET; break;
+		case Critical: textOut += CONSOLE_RED          "CRITICAL" CONSOLE_RESET; break;
+		case Except:   textOut += CONSOLE_BOLD_RED     "EXCEPT"   CONSOLE_RESET; break;
+		case Graphics: textOut += CONSOLE_BOLD_BLUE    "GRAPHICS" CONSOLE_RESET; break;
+		case Progress: textOut += CONSOLE_CYAN         "PROGRESS" CONSOLE_RESET; break;
+	}
 
-	if (!(flags & None))
+	if (type != None)
 		textOut.resize(CONSOLE_PREFIX_LEN + 13, ' ');
 
 	// Reset after each message
 	textOut += text + CONSOLE_ERASE_TO_END_OF_LINE CONSOLE_RESET;
 
 	// Make sure there is a linebreak in the end. We don't want duplicates!
-	if (!(flags & Progress))
+	if (type == Progress)
+		textOut += CONSOLE_LINE_BEGIN CONSOLE_HIDE_CURSOR;
+	else
 	{
 		if (textOut.empty() || textOut.back() != '\n')
 			textOut += '\n';
 
 		textOut += CONSOLE_SHOW_CURSOR;
 	}
-	else
-		textOut += CONSOLE_LINE_BEGIN CONSOLE_HIDE_CURSOR;
 
 	write(textOut, stream);
 }

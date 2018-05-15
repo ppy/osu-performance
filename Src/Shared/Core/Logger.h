@@ -39,19 +39,19 @@ DEFINE_EXCEPTION(LoggerException);
 
 enum ELogType : u32
 {
-	None          = 0x00000001,
-	Success       = 0x00000002,
-	SQL           = 0x00000004,
-	Threads       = 0x00000008,
-	Info          = 0x00000010,
-	Notice        = 0x00000020,
-	Warning       = 0x00000040,
-	Debug         = 0x00000080,
-	Error         = 0x00000100,
-	Critical      = 0x00000200,
-	Except        = 0x00000400,
-	Graphics      = 0x00000800,
-	Progress      = 0x00001000,
+	None = 0,
+	Success,
+	SQL,
+	Threads,
+	Info,
+	Notice,
+	Warning,
+	Debug,
+	Error,
+	Critical,
+	Except,
+	Graphics,
+	Progress,
 };
 
 class Logger
@@ -61,7 +61,7 @@ public:
 
 	static std::unique_ptr<Logger>& Instance();
 
-	void Log(ELogType flags, const std::string& text);
+	void Log(ELogType type, const std::string& text);
 
 	template <typename T>
 	void LogProgress(u64 current, u64 total, T duration)
@@ -133,24 +133,24 @@ private:
 
 	static s32 consoleWidth();
 
-	void hideType(ELogType type) { hiddenTypes = static_cast<ELogType>(hiddenTypes | type); }
-	void showType(ELogType type) { hiddenTypes = static_cast<ELogType>(hiddenTypes & ~type); }
+	void hideType(ELogType type) { hiddenTypes.insert(type); }
+	void showType(ELogType type) { hiddenTypes.erase(type); }
 
 	bool enableControlCharacters();
 
-	void logText(ELogType flags, const std::string& text);
+	void logText(ELogType type, const std::string& text);
 
 	void write(const std::string& text, EStream Stream);
 
 	std::unique_ptr<Active> _pActive;
 
 	bool canHandleControlCharacters;
-	ELogType hiddenTypes = static_cast<ELogType>(0);
+	std::unordered_set<std::underlying_type_t<ELogType>> hiddenTypes;
 };
 
-inline void Log(ELogType flags, const std::string& text)
+inline void Log(ELogType type, const std::string& text)
 {
-	Logger::Instance()->Log(flags, std::move(text));
+	Logger::Instance()->Log(type, std::move(text));
 }
 
 template <typename T>
