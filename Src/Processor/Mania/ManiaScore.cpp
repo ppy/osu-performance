@@ -44,8 +44,11 @@ void ManiaScore::computeTotalValue()
 		return;
 	}
 
-	// Custom multipliers for NoFail and SpunOut.
-	f32 multiplier = 1.1f; // This is being adjusted to keep the final pp value scaled around what it used to be when changing things
+	/* 
+	    Arbitrary initial value for scaling pp in order to standardize distributions across game modes.
+	    The specific number has no intrinsic meaning and can be adjusted as needed.
+	*/
+	f32 multiplier = 0.8f;
 
 	if ((_mods & EMods::NoFail) > 0)
 		multiplier *= 0.90f;
@@ -77,7 +80,7 @@ void ManiaScore::computeStrainValue(const Beatmap& beatmap)
 	_score *= static_cast<s32>(1.0f / scoreMultiplier); // We don't really mind rounding errors with such small magnitude.
 
 	// Obtain strain difficulty
-	_strainValue = pow(5.0f * std::max(1.0f, beatmap.DifficultyAttribute(_mods, Beatmap::Strain) / 0.0825f) - 4.0f, 3.0f) / 110000.0f;
+	_strainValue = pow(5.0f * std::max(1.0f, beatmap.DifficultyAttribute(_mods, Beatmap::Strain) / 0.2f) - 4.0f, 2.2f) / 135.0f;
 
 	// Longer maps are worth more
 	_strainValue *= 1 + 0.1f * std::min(1.0f, static_cast<f32>(TotalHits()) / 1500.0f);
@@ -88,13 +91,13 @@ void ManiaScore::computeStrainValue(const Beatmap& beatmap)
 	else if (_score <= 600000)
 		_strainValue *= static_cast<f32>(_score - 500000) / 100000.0f * 0.3f;
 	else if (_score <= 700000)
-		_strainValue *= 0.3f + static_cast<f32>(_score - 600000) / 100000.0f * 0.35f;
+		_strainValue *= 0.3f + static_cast<f32>(_score - 600000) / 100000.0f * 0.25f;
 	else if (_score <= 800000)
-		_strainValue *= 0.65f + static_cast<f32>(_score - 700000) / 100000.0f * 0.20f;
+		_strainValue *= 0.55f + static_cast<f32>(_score - 700000) / 100000.0f * 0.20f;
 	else if (_score <= 900000)
-		_strainValue *= 0.85f + static_cast<f32>(_score - 800000) / 100000.0f * 0.1f;
+		_strainValue *= 0.75f + static_cast<f32>(_score - 800000) / 100000.0f * 0.15f;
 	else
-		_strainValue *= 0.95f + static_cast<f32>(_score - 900000) / 100000.0f * 0.05f;
+		_strainValue *= 0.90f + static_cast<f32>(_score - 900000) / 100000.0f * 0.1f;
 }
 
 void ManiaScore::computeAccValue(const Beatmap& beatmap)
@@ -108,10 +111,11 @@ void ManiaScore::computeAccValue(const Beatmap& beatmap)
 
 	// Lots of arbitrary values from testing.
 	// Considering to use derivation from perfect accuracy in a probabilistic manner - assume normal distribution
-	_accValue = pow((150.0f / hitWindow300) * pow(Accuracy(), 16), 1.8f) * 2.5f;
+	_accValue = std::max(0.0f, 0.2f - ((hitWindow300 - 34) * 0.006667f)) * _strainValue
+		* pow((std::max(0.0f, static_cast<f32>(_score - 960000)) / 40000.0f), 1.1f);
 
 	// Bonus for many hitcircles - it's harder to keep good accuracy up for longer
-	_accValue *= std::min<f32>(1.15f, pow(static_cast<f32>(TotalHits()) / 1500.0f, 0.3f));
+	//_accValue *= std::min<f32>(1.15f, pow(static_cast<f32>(TotalHits()) / 1500.0f, 0.3f));
 }
 
 f32 ManiaScore::Accuracy() const
