@@ -117,13 +117,11 @@ void Logger::Log(ELogType type, const std::string& text)
 
 	// Make sure there is a linebreak in the end. We don't want duplicates!
 	if (type == Progress)
-		textOut += CONSOLE_LINE_BEGIN CONSOLE_HIDE_CURSOR;
+		textOut += CONSOLE_LINE_BEGIN;
 	else
 	{
 		if (textOut.empty() || textOut.back() != '\n')
 			textOut += '\n';
-
-		textOut += CONSOLE_SHOW_CURSOR;
 	}
 
 	auto& stream = type == Error || type == Critical || type == SQL || type == Except ? std::cerr : std::cout;
