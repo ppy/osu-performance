@@ -140,10 +140,6 @@ void Processor::ProcessAllUsers(bool reProcess, u32 numThreads)
 	else
 		begin = retrieveCount(*_pDB, lastUserIdKey());
 
-	// We're done, nothing to reprocess
-	if (begin == -1)
-		return;
-
 	Log(Info, StrFormat("Processing all users starting with ID {0}.", begin));
 
 	auto startTime = steady_clock::now();
@@ -876,7 +872,7 @@ s64 Processor::retrieveCount(DatabaseConnection& db, std::string key)
 		if (!res.IsNull(0))
 			return res.Get<s64>(0);
 
-	return -1;
+	throw ProcessorException{SRC_POS, StrFormat("Unable to retrieve count '{0}'.", key)};
 }
 
 PP_NAMESPACE_END
