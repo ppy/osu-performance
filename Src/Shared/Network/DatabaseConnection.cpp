@@ -87,22 +87,18 @@ void DatabaseConnection::NonQuery(const std::string& queryString)
 	s32 status;
 	do
 	{
-		/* did current statement return data? */
 		MYSQL_RES* pRes = mysql_store_result(&_mySQL);
 		if (pRes != nullptr)
 			mysql_free_result(pRes);
-		else          /* no result set or error */
-		{
-			if (mysql_field_count(&_mySQL) != 0)
-				throw DatabaseException(SRC_POS, StrFormat("Error getting result. ({0})", Error()));
-		}
-		/* more results? -1 = no, >0 = error, 0 = yes (keep looping) */
+		else if (mysql_field_count(&_mySQL) != 0)
+			throw DatabaseException(SRC_POS, StrFormat("Error getting result. ({0})", Error()));
 
+		/* more results? -1 = no, >0 = error, 0 = yes (keep looping) */
 		status = mysql_next_result(&_mySQL);
 		if (status > 0)
 			throw DatabaseException(SRC_POS, StrFormat("Error executing query {0}. ({1})", queryString, Error()));
 	}
-	while(status == 0);
+	while (status == 0);
 }
 
 QueryResult DatabaseConnection::Query(const std::string& queryString)
