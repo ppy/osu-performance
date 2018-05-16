@@ -140,7 +140,7 @@ void Processor::ProcessAllUsers(bool reProcess, u32 numThreads)
 	else
 		begin = retrieveCount(*_pDB, lastUserIdKey());
 
-	Log(Info, StrFormat("Processing all users starting with ID {0}.", begin));
+	Log(Info, StrFormat("Processing all users with ID larger than {0}.", begin));
 
 	auto startTime = steady_clock::now();
 
@@ -152,7 +152,7 @@ void Processor::ProcessAllUsers(bool reProcess, u32 numThreads)
 	if (!res.NextRow())
 		throw ProcessorException(SRC_POS, "Could not find user ID stats.");
 
-	const s64 maxUserId = res.Get<s64>(0);
+	const s64 maxUserId = res.IsNull(0) ? 0 : res.Get<s64>(0);
 	const s64 numUsers = res.Get<s64>(1);
 
 	s64 numUsersProcessed = 0;
