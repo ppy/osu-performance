@@ -134,12 +134,6 @@ private:
 
 	bool enableControlCharacters();
 
-	void logText(ELogType type, const std::string& text);
-
-	void write(const std::string& text, EStream Stream);
-
-	std::unique_ptr<Active> _pActive;
-
 	bool canHandleControlCharacters;
 	std::unordered_set<std::underlying_type_t<ELogType>> hiddenTypes;
 };
