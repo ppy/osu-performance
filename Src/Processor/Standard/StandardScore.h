@@ -11,7 +11,7 @@ public:
 	StandardScore(
 		s64 scoreId,
 		EGamemode mode,
-		s32 userId,
+		s64 userId,
 		s32 beatmapId,
 		s32 score,
 		s32 maxCombo,

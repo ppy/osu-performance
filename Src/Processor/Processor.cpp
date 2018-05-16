@@ -751,7 +751,7 @@ User Processor::processSingleUserGeneric(
 			TScore score = TScore{
 				scoreId,
 				_gamemode,
-				res.Get<s32>(1), // user_id
+				res.Get<s64>(1), // user_id
 				beatmapId,
 				res.Get<s32>(3), // score
 				res.Get<s32>(4), // maxcombo

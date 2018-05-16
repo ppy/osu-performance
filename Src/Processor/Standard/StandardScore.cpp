@@ -8,7 +8,7 @@ PP_NAMESPACE_BEGIN
 StandardScore::StandardScore(
 	s64 scoreId,
 	EGamemode mode,
-	s32 userId,
+	s64 userId,
 	s32 beatmapId,
 	s32 score,
 	s32 maxCombo,
@@ -155,7 +155,7 @@ void StandardScore::computeSpeedValue(const Beatmap& beatmap)
 	float maxCombo = beatmap.DifficultyAttribute(_mods, Beatmap::MaxCombo);
 	if (maxCombo > 0)
 		_speedValue *= std::min(static_cast<f32>(pow(_maxCombo, 0.8f) / pow(maxCombo, 0.8f)), 1.0f);
-	
+
 	if ((_mods & EMods::Hidden) > 0)
 		_speedValue *= 1.18f;
 
