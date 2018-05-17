@@ -30,9 +30,6 @@ private:
 		operator s32() const { return atoi(_data); }
 		operator u32() const { return strtoul(_data, 0, 0); }
 
-		operator long() const { return strtol(_data, 0, 0); }
-		operator unsigned long() const { return strtoul(_data, 0, 0); }
-
 		operator s64() const { return strtoll(_data, 0, 0); }
 		operator u64() const { return strtoull(_data, 0, 0); }
 

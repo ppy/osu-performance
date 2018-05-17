@@ -482,7 +482,7 @@ bool Processor::queryBeatmapDifficulty(DatabaseConnection& dbSlave, s32 startId,
 		beatmap.SetRankedStatus(res[5]);
 		beatmap.SetScoreVersion(res[6]);
 		beatmap.SetNumHitCircles(res.IsNull(1) ? 0 : (s32)res[1]);
-		beatmap.SetDifficultyAttribute(res[2], _difficultyAttributes[(size_t)res[3]], res[4]);
+		beatmap.SetDifficultyAttribute(res[2], _difficultyAttributes[(s32)res[3]], res[4]);
 	}
 
 	if (endId != 0) {
