@@ -48,11 +48,41 @@ public:
 	// Column entries of the current row
 	inline bool IsNull(u32 i) const { return !_row[i]; }
 
-	template <typename T, std::enable_if_t<std::is_enum<bare_type_t<T>>::value>...>
-	T Get(u32 i) const { return static_cast<T>(Get<std::underlying_type_t<T>>(i)); }
+private:
+	class Field
+	{
+	public:
+		Field(char* data) : _data{data} {}
 
-	template <typename T, std::enable_if_t<!std::is_enum<bare_type_t<T>>::value>...>
-	T Get(u32 i) const;
+		explicit operator const char*() const { return _data; }
+		operator std::string() const { return static_cast<const char*>(*this); }
+		operator s32() const { return xtoi(_data); }
+		operator u32() const { return xtou(_data); }
+		operator s64() const { return xtoi64(_data); }
+		operator u64() const { return xtou64(_data); }
+		operator f32() const { return xtof(_data); }
+		operator f64() const { return xtod(_data); }
+		operator bool() const { return static_cast<s32>(*this) != 0; }
+
+		template<typename T, std::enable_if_t<std::is_enum<bare_type_t<T>>::value>...>
+		operator T(){
+			return static_cast<T>(static_cast<std::underlying_type_t<bare_type_t<T>>>(*this));
+		}
+
+	private:
+		char* _data;
+	};
+
+public:
+	Field Get(u32 i) const
+	{
+		if (IsNull(i))
+			throw QueryResultException{SRC_POS, StrFormat("Attempted to interpret null result at {0}.", i)};
+		return Field{_row[i]};
+	}
+
+	template <typename T>
+	T Get(u32 i) const { return static_cast<T>(Get(i)); }
 
 private:
 	QueryResult(MYSQL_RES* pRes);

@@ -415,8 +415,8 @@ void Processor::queryAllBeatmapDifficulties(u32 numThreads)
 	if (!res.NextRow())
 		throw ProcessorException(SRC_POS, "Could not find beatmap ID stats.");
 
-	const s32 maxBeatmapId = res.Get<s32>(0);
-	const s32 numBeatmaps = res.Get<s32>(1);
+	const s32 maxBeatmapId = res.Get(0);
+	const s32 numBeatmaps = res.Get(1);
 
 	std::vector<std::shared_ptr<DatabaseConnection>> dbSlaveConnections;
 	for (u32 i = 0; i < numThreads; ++i)
@@ -472,21 +472,17 @@ bool Processor::queryBeatmapDifficulty(DatabaseConnection& dbSlave, s32 startId,
 
 	while (res.NextRow())
 	{
-		s32 id = res.Get<s32>(0);
+		s32 id = res.Get(0);
 
 		if (_beatmaps.count(id) == 0)
 			_beatmaps.emplace(std::make_pair(id, id));
 
 		auto& beatmap = _beatmaps.at(id);
 
-		beatmap.SetRankedStatus(res.Get<Beatmap::ERankedStatus>(5));
-		beatmap.SetScoreVersion(res.Get<Beatmap::EScoreVersion>(6));
+		beatmap.SetRankedStatus(res.Get(5));
+		beatmap.SetScoreVersion(res.Get(6));
 		beatmap.SetNumHitCircles(res.IsNull(1) ? 0 : res.Get<s32>(1));
-		beatmap.SetDifficultyAttribute(
-			res.Get<EMods>(2),
-			_difficultyAttributes[res.Get<s32>(3)],
-			res.Get<f32>(4)
-		);
+		beatmap.SetDifficultyAttribute(res.Get(2), _difficultyAttributes[res.Get<s32>(3)], res.Get(4));
 	}
 
 	if (endId != 0) {
@@ -546,8 +542,8 @@ void Processor::pollAndProcessNewScores()
 		if (!res.IsNull(2))
 			continue;
 
-		s64 ScoreId = res.Get<s64>(0);
-		s64 UserId = res.Get<s64>(1);
+		s64 ScoreId = res.Get(0);
+		s64 UserId = res.Get(1);
 
 		_currentScoreId = std::max(_currentScoreId, ScoreId);
 
@@ -596,7 +592,7 @@ void Processor::pollAndProcessNewBeatmapSets(DatabaseConnection& dbSlave)
 	while (res.NextRow())
 	{
 		_lastApprovedDate = res.Get<std::string>(1);
-		queryBeatmapDifficulty(dbSlave, res.Get<s32>(0));
+		queryBeatmapDifficulty(dbSlave, res.Get(0));
 
 		_pDataDog->Increment("osu.pp.difficulty.required_retrieval", 1, { StrFormat("mode:{0}", GamemodeTag(_gamemode)) });
 	}
@@ -613,7 +609,7 @@ void Processor::queryBeatmapBlacklist()
 	));
 
 	while (res.NextRow())
-		_blacklistedBeatmapIds.insert(res.Get<s32>(0));
+		_blacklistedBeatmapIds.insert(res.Get(0));
 
 	Log(Success, StrFormat("Retrieved {0} blacklisted beatmaps.", _blacklistedBeatmapIds.size()));
 }
@@ -627,11 +623,11 @@ void Processor::queryBeatmapDifficultyAttributes()
 	auto res = _pDBSlave->Query("SELECT `attrib_id`,`name` FROM `osu_difficulty_attribs` WHERE 1 ORDER BY `attrib_id` DESC");
 	while (res.NextRow())
 	{
-		u32 id = res.Get<s32>(0);
+		u32 id = res.Get(0);
 		if (_difficultyAttributes.size() < id + 1)
 			_difficultyAttributes.resize(id + 1);
 
-		_difficultyAttributes[id] = Beatmap::DifficultyAttributeFromName(res.Get<std::string>(1));
+		_difficultyAttributes[id] = Beatmap::DifficultyAttributeFromName(res.Get(1));
 		++numEntries;
 	}
 
@@ -707,10 +703,10 @@ User Processor::processSingleUserGeneric(
 		// Process the data we got
 		while (res.NextRow())
 		{
-			s64 scoreId = res.Get<s64>(0);
-			s32 beatmapId = res.Get<s32>(2);
+			s64 scoreId = res.Get(0);
+			s32 beatmapId = res.Get(2);
 
-			EMods mods = res.Get<EMods>(11);
+			EMods mods = res.Get(11);
 
 			// Blacklisted maps don't count
 			if (_blacklistedBeatmapIds.count(beatmapId) > 0)
@@ -751,16 +747,16 @@ User Processor::processSingleUserGeneric(
 			TScore score = TScore{
 				scoreId,
 				_gamemode,
-				res.Get<s64>(1), // user_id
+				res.Get(1), // user_id
 				beatmapId,
-				res.Get<s32>(3), // score
-				res.Get<s32>(4), // maxcombo
-				res.Get<s32>(5), // Num300
-				res.Get<s32>(6), // Num100
-				res.Get<s32>(7), // Num50
-				res.Get<s32>(8), // NumMiss
-				res.Get<s32>(9), // NumGeki
-				res.Get<s32>(10), // NumKatu
+				res.Get(3), // score
+				res.Get(4), // maxcombo
+				res.Get(5), // Num300
+				res.Get(6), // Num100
+				res.Get(7), // Num50
+				res.Get(8), // NumMiss
+				res.Get(9), // NumGeki
+				res.Get(10), // NumKatu
 				mods,
 				beatmap,
 			};
@@ -870,7 +866,7 @@ s64 Processor::retrieveCount(DatabaseConnection& db, std::string key)
 
 	while (res.NextRow())
 		if (!res.IsNull(0))
-			return res.Get<s64>(0);
+			return res.Get(0);
 
 	throw ProcessorException{SRC_POS, StrFormat("Unable to retrieve count '{0}'.", key)};
 }
