@@ -34,6 +34,7 @@ public:
 		EMods mods
 	);
 
+	s64 Id() const { return _scoreId; }
 	s64 UserId() const { return _userId; }
 	s32 BeatmapId() const { return _beatmapId; }
 
