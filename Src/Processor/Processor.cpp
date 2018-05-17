@@ -763,11 +763,14 @@ User Processor::processSingleUserGeneric(
 
 			user.AddScorePPRecord(score.CreatePPRecord());
 
-			if (res.IsNull(12) || selectedScoreId == 0 || selectedScoreId == scoreId)
+			// Column 12 is the pp value of the score from the database.
+			// Only update score if it differs a lot!
+			if (res.IsNull(12) || fabs((f32)res[12] - score.TotalValue()) > 0.001f)
 			{
-				// Column 12 is the pp value of the score from the database.
-				// Only update score if it differs a lot!
-				if (res.IsNull(12) || fabs((f32)res[12] - score.TotalValue()) > 0.001f)
+				// Ensure the selected score is in the front if it exists
+				if (selectedScoreId == scoreId)
+					scoresThatNeedDBUpdate.insert(std::begin(scoresThatNeedDBUpdate), score);
+				else
 					scoresThatNeedDBUpdate.emplace_back(score);
 			}
 		}
@@ -786,8 +789,7 @@ User Processor::processSingleUserGeneric(
 	auto userPPRecord = user.GetPPRecord();
 
 	// Check for notable event
-	if (selectedScoreId > 0 && // We only check for notable events if a score has been selected
-		!scoresThatNeedDBUpdate.empty() && // Did the score actually get found (this _should_ never be false, but better make sure)
+	if (!scoresThatNeedDBUpdate.empty() && scoresThatNeedDBUpdate.front().Id() == selectedScoreId && // Did the score actually get found (this _should_ never be false, but better make sure)
 		scoresThatNeedDBUpdate.front().TotalValue() > userPPRecord.Value * s_notableEventRatingThreshold)
 	{
 		_pDataDog->Increment("osu.pp.score.notable_events", 1, {StrFormat("mode:{0}", GamemodeTag(_gamemode))});
