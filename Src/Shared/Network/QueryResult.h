@@ -48,7 +48,10 @@ public:
 	// Column entries of the current row
 	inline bool IsNull(u32 i) const { return !_row[i]; }
 
-	template <typename T>
+	template <typename T, std::enable_if_t<std::is_enum<bare_type_t<T>>::value>...>
+	T Get(u32 i) const { return static_cast<T>(Get<std::underlying_type_t<T>>(i)); }
+
+	template <typename T, std::enable_if_t<!std::is_enum<bare_type_t<T>>::value>...>
 	T Get(u32 i) const;
 
 private:

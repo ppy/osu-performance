@@ -79,4 +79,3 @@ template<> bool QueryResult::Get(u32 i) const
 		throw QueryResultException{SRC_POS, StrFormat("Attempted to interpret null result at {0}.", i)};
 	return Get<s32>(i) != 0;
 }
-

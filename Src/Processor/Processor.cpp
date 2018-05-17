@@ -479,11 +479,11 @@ bool Processor::queryBeatmapDifficulty(DatabaseConnection& dbSlave, s32 startId,
 
 		auto& beatmap = _beatmaps.at(id);
 
-		beatmap.SetRankedStatus(static_cast<Beatmap::ERankedStatus>(res.Get<std::underlying_type_t<Beatmap::ERankedStatus>>(5)));
-		beatmap.SetScoreVersion(static_cast<Beatmap::EScoreVersion>(res.Get<std::underlying_type_t<Beatmap::EScoreVersion>>(6)));
+		beatmap.SetRankedStatus(res.Get<Beatmap::ERankedStatus>(5));
+		beatmap.SetScoreVersion(res.Get<Beatmap::EScoreVersion>(6));
 		beatmap.SetNumHitCircles(res.IsNull(1) ? 0 : res.Get<s32>(1));
 		beatmap.SetDifficultyAttribute(
-			static_cast<EMods>(res.Get<std::underlying_type_t<EMods>>(2)),
+			res.Get<EMods>(2),
 			_difficultyAttributes[res.Get<s32>(3)],
 			res.Get<f32>(4)
 		);
@@ -710,7 +710,7 @@ User Processor::processSingleUserGeneric(
 			s64 scoreId = res.Get<s64>(0);
 			s32 beatmapId = res.Get<s32>(2);
 
-			EMods mods = static_cast<EMods>(res.Get<std::underlying_type_t<EMods>>(11));
+			EMods mods = res.Get<EMods>(11);
 
 			// Blacklisted maps don't count
 			if (_blacklistedBeatmapIds.count(beatmapId) > 0)
