@@ -33,7 +33,6 @@ public:
 		s32 numKatu,
 		EMods mods
 	);
-	~Score() = default;
 
 	s64 UserId() const { return _userId; }
 	s32 BeatmapId() const { return _beatmapId; }
