@@ -81,7 +81,7 @@ void Processor::MonitorNewScores()
 	if (!res.NextRow())
 		throw ProcessorException(SRC_POS, "Couldn't find maximum approved date.");
 
-	_lastApprovedDate = res.String(0);
+	_lastApprovedDate = (std::string)res[0];
 
 	std::thread beatmapPollThread{[this]()
 	{
@@ -140,11 +140,7 @@ void Processor::ProcessAllUsers(bool reProcess, u32 numThreads)
 	else
 		begin = retrieveCount(*_pDB, lastUserIdKey());
 
-	// We're done, nothing to reprocess
-	if (begin == -1)
-		return;
-
-	Log(Info, StrFormat("Processing all users starting with ID {0}.", begin));
+	Log(Info, StrFormat("Processing all users with ID larger than {0}.", begin));
 
 	auto startTime = steady_clock::now();
 
@@ -156,8 +152,8 @@ void Processor::ProcessAllUsers(bool reProcess, u32 numThreads)
 	if (!res.NextRow())
 		throw ProcessorException(SRC_POS, "Could not find user ID stats.");
 
-	const s64 maxUserId = res.S64(0);
-	const s64 numUsers = res.S64(1);
+	const s64 maxUserId = res.IsNull(0) ? 0 : (s64)res[0];
+	const s64 numUsers = res[1];
 
 	s64 numUsersProcessed = 0;
 	u32 currentConnection = 0;
@@ -177,7 +173,7 @@ void Processor::ProcessAllUsers(bool reProcess, u32 numThreads)
 
 		while (res.NextRow())
 		{
-			s64 userId = res.S64(0);
+			s64 userId = res[0];
 
 			threadPool.EnqueueTask(
 				[&, userId, currentConnection]()
@@ -239,7 +235,7 @@ void Processor::ProcessUsers(const std::vector<std::string>& userNames)
 	std::vector<s64> userIds;
 	for (const auto& name : userNames)
 	{
-		s64 id = xtoi64(name.c_str());
+		s64 id = strtoll(name.c_str(), 0, 0);
 		if (id == 0)
 		{
 			// If the given string is not a number, try treating it as a username
@@ -251,7 +247,7 @@ void Processor::ProcessUsers(const std::vector<std::string>& userNames)
 			if (!res.NextRow())
 				continue;
 
-			id = res.S64(0);
+			id = res[0];
 		}
 
 		userIds.emplace_back(id);
@@ -315,7 +311,7 @@ void Processor::ProcessUsers(const std::vector<s64>& userIds)
 		));
 
 		if (res.NextRow())
-			name = res.String(0);
+			name = (std::string)res[0];
 
 		Log(Info, StrFormat(
 			"{0w16ar}  {1w8ar}  {2w5ar}pp  {3w6arp2} %",
@@ -419,8 +415,8 @@ void Processor::queryAllBeatmapDifficulties(u32 numThreads)
 	if (!res.NextRow())
 		throw ProcessorException(SRC_POS, "Could not find beatmap ID stats.");
 
-	const s32 maxBeatmapId = res.S32(0);
-	const s32 numBeatmaps = res.S32(1);
+	const s32 maxBeatmapId = res[0];
+	const s32 numBeatmaps = res[1];
 
 	std::vector<std::shared_ptr<DatabaseConnection>> dbSlaveConnections;
 	for (u32 i = 0; i < numThreads; ++i)
@@ -476,21 +472,17 @@ bool Processor::queryBeatmapDifficulty(DatabaseConnection& dbSlave, s32 startId,
 
 	while (res.NextRow())
 	{
-		s32 id = res.S32(0);
+		s32 id = res[0];
 
 		if (_beatmaps.count(id) == 0)
 			_beatmaps.emplace(std::make_pair(id, id));
 
 		auto& beatmap = _beatmaps.at(id);
 
-		beatmap.SetRankedStatus(static_cast<Beatmap::ERankedStatus>(res.S32(5)));
-		beatmap.SetScoreVersion(static_cast<Beatmap::EScoreVersion>(res.S32(6)));
-		beatmap.SetNumHitCircles(res.IsNull(1) ? 0 : res.S32(1));
-		beatmap.SetDifficultyAttribute(
-			static_cast<EMods>(res.U32(2)),
-			_difficultyAttributes[res.S32(3)],
-			res.F32(4)
-		);
+		beatmap.SetRankedStatus(res[5]);
+		beatmap.SetScoreVersion(res[6]);
+		beatmap.SetNumHitCircles(res.IsNull(1) ? 0 : (s32)res[1]);
+		beatmap.SetDifficultyAttribute(res[2], _difficultyAttributes[(s32)res[3]], res[4]);
 	}
 
 	if (endId != 0) {
@@ -550,8 +542,8 @@ void Processor::pollAndProcessNewScores()
 		if (!res.IsNull(2))
 			continue;
 
-		s64 ScoreId = res.S64(0);
-		s64 UserId = res.S64(1);
+		s64 ScoreId = res[0];
+		s64 UserId = res[1];
 
 		_currentScoreId = std::max(_currentScoreId, ScoreId);
 
@@ -599,8 +591,8 @@ void Processor::pollAndProcessNewBeatmapSets(DatabaseConnection& dbSlave)
 
 	while (res.NextRow())
 	{
-		_lastApprovedDate = res.String(1);
-		queryBeatmapDifficulty(dbSlave, res.S32(0));
+		_lastApprovedDate = (std::string)res[1];
+		queryBeatmapDifficulty(dbSlave, res[0]);
 
 		_pDataDog->Increment("osu.pp.difficulty.required_retrieval", 1, { StrFormat("mode:{0}", GamemodeTag(_gamemode)) });
 	}
@@ -617,7 +609,7 @@ void Processor::queryBeatmapBlacklist()
 	));
 
 	while (res.NextRow())
-		_blacklistedBeatmapIds.insert(res.S32(0));
+		_blacklistedBeatmapIds.insert(res[0]);
 
 	Log(Success, StrFormat("Retrieved {0} blacklisted beatmaps.", _blacklistedBeatmapIds.size()));
 }
@@ -631,11 +623,11 @@ void Processor::queryBeatmapDifficultyAttributes()
 	auto res = _pDBSlave->Query("SELECT `attrib_id`,`name` FROM `osu_difficulty_attribs` WHERE 1 ORDER BY `attrib_id` DESC");
 	while (res.NextRow())
 	{
-		u32 id = res.S32(0);
+		u32 id = res[0];
 		if (_difficultyAttributes.size() < id + 1)
 			_difficultyAttributes.resize(id + 1);
 
-		_difficultyAttributes[id] = Beatmap::DifficultyAttributeFromName(res.String(1));
+		_difficultyAttributes[id] = Beatmap::DifficultyAttributeFromName(res[1]);
 		++numEntries;
 	}
 
@@ -711,10 +703,10 @@ User Processor::processSingleUserGeneric(
 		// Process the data we got
 		while (res.NextRow())
 		{
-			s64 scoreId = res.S64(0);
-			s32 beatmapId = res.S32(2);
+			s64 scoreId = res[0];
+			s32 beatmapId = res[2];
 
-			EMods mods = static_cast<EMods>(res.S32(11));
+			EMods mods = res[11];
 
 			// Blacklisted maps don't count
 			if (_blacklistedBeatmapIds.count(beatmapId) > 0)
@@ -755,16 +747,16 @@ User Processor::processSingleUserGeneric(
 			TScore score = TScore{
 				scoreId,
 				_gamemode,
-				res.S32(1), // user_id
+				res[1], // user_id
 				beatmapId,
-				res.S32(3), // score
-				res.S32(4), // maxcombo
-				res.S32(5), // Num300
-				res.S32(6), // Num100
-				res.S32(7), // Num50
-				res.S32(8), // NumMiss
-				res.S32(9), // NumGeki
-				res.S32(10), // NumKatu
+				res[3], // score
+				res[4], // maxcombo
+				res[5], // Num300
+				res[6], // Num100
+				res[7], // Num50
+				res[8], // NumMiss
+				res[9], // NumGeki
+				res[10], // NumKatu
 				mods,
 				beatmap,
 			};
@@ -775,7 +767,7 @@ User Processor::processSingleUserGeneric(
 			{
 				// Column 12 is the pp value of the score from the database.
 				// Only update score if it differs a lot!
-				if (res.IsNull(12) || fabs(res.F32(12) - score.TotalValue()) > 0.001f)
+				if (res.IsNull(12) || fabs((f32)res[12] - score.TotalValue()) > 0.001f)
 					scoresThatNeedDBUpdate.emplace_back(score);
 			}
 		}
@@ -815,7 +807,7 @@ User Processor::processSingleUserGeneric(
 			if (res.IsNull(0))
 				continue;
 
-			f64 ratingChange = userPPRecord.Value - res.F32(0);
+			f64 ratingChange = userPPRecord.Value - (f64)res[0];
 
 			// We don't want to log scores, that give less than a mere 5 pp
 			if (ratingChange < s_notableEventRatingDifferenceMinimum)
@@ -874,9 +866,9 @@ s64 Processor::retrieveCount(DatabaseConnection& db, std::string key)
 
 	while (res.NextRow())
 		if (!res.IsNull(0))
-			return res.S64(0);
+			return res[0];
 
-	return -1;
+	throw ProcessorException{SRC_POS, StrFormat("Unable to retrieve count '{0}'.", key)};
 }
 
 PP_NAMESPACE_END

@@ -19,14 +19,6 @@ std::unique_ptr<Logger>& Logger::Instance()
 	return pLog;
 }
 
-void Logger::Log(ELogType type, const std::string& text)
-{
-	if (hiddenTypes.count(type))
-		return;
-
-	_pActive->Send([this, type, text]() { logText(type, text); });
-}
-
 Logger::Logger()
 {
 #ifdef NDEBUG
@@ -35,7 +27,6 @@ Logger::Logger()
 #endif
 
 	canHandleControlCharacters = enableControlCharacters();
-	_pActive = Active::Create();
 }
 
 std::unique_ptr<Logger> Logger::createLogger()
@@ -83,13 +74,10 @@ bool Logger::enableControlCharacters()
 	return true;
 }
 
-void Logger::logText(ELogType type, const std::string& text)
+void Logger::Log(ELogType type, const std::string& text)
 {
-	EStream stream;
-	if (type == Error || type == Critical || type == SQL || type == Except)
-		stream = EStream::STDERR;
-	else
-		stream = EStream::STDOUT;
+	if (hiddenTypes.count(type))
+		return;
 
 	std::string textOut;
 
@@ -129,24 +117,13 @@ void Logger::logText(ELogType type, const std::string& text)
 
 	// Make sure there is a linebreak in the end. We don't want duplicates!
 	if (type == Progress)
-		textOut += CONSOLE_LINE_BEGIN CONSOLE_HIDE_CURSOR;
+		textOut += CONSOLE_LINE_BEGIN;
 	else
 	{
 		if (textOut.empty() || textOut.back() != '\n')
 			textOut += '\n';
-
-		textOut += CONSOLE_SHOW_CURSOR;
 	}
 
-	write(textOut, stream);
-}
-
-void Logger::write(const std::string& text, EStream stream)
-{
-	if (stream == EStream::STDERR)
-		std::cerr << text << std::flush;
-	else if (stream == EStream::STDOUT)
-		std::cout << text << std::flush;
-	else
-		std::cerr << "Unknown stream specified.\n";
+	auto& stream = type == Error || type == Critical || type == SQL || type == Except ? std::cerr : std::cout;
+	stream << textOut << std::flush;
 }

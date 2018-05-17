@@ -21,7 +21,7 @@ public:
 	Score(
 		s64 scoreId,
 		EGamemode mode,
-		s32 userId,
+		s64 userId,
 		s32 beatmapId,
 		s32 score,
 		s32 maxCombo,
@@ -35,7 +35,7 @@ public:
 	);
 	~Score() = default;
 
-	s32 UserId() const { return _userId; }
+	s64 UserId() const { return _userId; }
 	s32 BeatmapId() const { return _beatmapId; }
 
 	virtual f32 TotalValue() const = 0;
@@ -50,7 +50,7 @@ public:
 protected:
 	s64 _scoreId;
 	EGamemode _mode;
-	s32 _userId;
+	s64 _userId;
 	s32 _beatmapId;
 
 	s32 _score;
