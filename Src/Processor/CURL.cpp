@@ -59,7 +59,7 @@ void CURL::SendToSlack(
 
 	if (error != CURLE_OK)
 	{
-		Log(Error, StrFormat("Slack CURL error {0}", error));
+		tlog::error() << StrFormat("Slack CURL error {0}", error);
 		return;
 	}
 
@@ -68,11 +68,11 @@ void CURL::SendToSlack(
 
 	if (responseCode != 200)
 	{
-		Log(Error, StrFormat("Slack CURL response {0}", responseCode));
+		tlog::error() << StrFormat("Slack CURL response {0}", responseCode);
 		return;
 	}
 
-	Log(Success, StrFormat("Sent message to slack channel \"{0}\". \"{1}: {2}\".", channel, username, message));
+	tlog::success() << StrFormat("Sent message to slack channel \"{0}\". \"{1}: {2}\".", channel, username, message);
 }
 
 void CURL::SendToSentry(
@@ -131,7 +131,7 @@ void CURL::SendToSentry(
 
 	if (error != CURLE_OK)
 	{
-		Log(Error, StrFormat("Sentry CURL error {0}", error));
+		tlog::error() << StrFormat("Sentry CURL error {0}", error);
 		return;
 	}
 
@@ -140,11 +140,11 @@ void CURL::SendToSentry(
 
 	if (responseCode != 200)
 	{
-		Log(Error, StrFormat("Sentry CURL response {0}", responseCode));
+		tlog::error() << StrFormat("Sentry CURL response {0}", responseCode);
 		return;
 	}
 
-	Log(Success, "Submitted exception to sentry.");
+	tlog::success() << "Submitted exception to sentry.";
 }
 
 PP_NAMESPACE_END

@@ -32,7 +32,6 @@ set(SHARED_SOURCES
 
 	${SHARED}/Core/Active.cpp
 	${SHARED}/Core/Exception.cpp
-	${SHARED}/Core/Logger.cpp
 	${SHARED}/Core/Threading.cpp
 
 	${SHARED}/Network/DatabaseConnection.cpp
@@ -72,9 +71,7 @@ set(HEADERS
 
 	${SHARED}/Core/Active.h
 	${SHARED}/Core/Exception.h
-	${SHARED}/Core/Logger.h
 	${SHARED}/Core/SharedQueue.h
-	${SHARED}/Core/StringUtils.h
 	${SHARED}/Core/Threading.h
 	${SHARED}/Core/Types.h
 
@@ -96,6 +93,7 @@ include_directories(${EXTERNAL}/curl/include)
 include_directories(${EXTERNAL}/json/include)
 include_directories(${EXTERNAL}/MySQL/include)
 include_directories(${EXTERNAL}/StrFormat)
+include_directories(${EXTERNAL}/tinylogger)
 
 # External library directories
 link_directories(${EXTERNAL}/curl/lib)

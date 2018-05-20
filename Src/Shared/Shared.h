@@ -110,6 +110,8 @@
 
 // Third party libraries
 
+#include <tinylogger/tinylogger.h>
+
 // MariaDB needs this to compile. Defining it here avoids modification of their
 // header files and thus additional licensing work.
 typedef unsigned int uint;
@@ -122,13 +124,9 @@ typedef unsigned int uint;
 #include <StrFormat.h>
 
 #include "Core/Exception.h"
-#include "Core/StringUtils.h"
 
 #include "Math/Math.h"
 
-// The logger requires CVector2d<s32> for positions in the console, thus it comes
-// after the math things
-#include "Core/Logger.h"
 #include "Core/Threading.h"
 
 #endif //H_SHARED

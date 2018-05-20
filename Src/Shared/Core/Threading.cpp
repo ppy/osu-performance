@@ -114,7 +114,7 @@ ThreadPool::ThreadPool(const u32 numThreads)
 ThreadPool::~ThreadPool()
 {
 	ShutdownThreads((u32)_threads.size());
-	Log(Threads, "All threads terminated.");
+	tlog::debug() << "All threads terminated.";
 }
 
 void ThreadPool::StartThreads(const u32 num)
@@ -124,7 +124,7 @@ void ThreadPool::StartThreads(const u32 num)
 	{
 		_threads.emplace_back([this, i]
 		{
-			Log(Threads, StrFormat("Worker thread {0} started.", i));
+			tlog::debug() << StrFormat("Worker thread {0} started.", i);
 
 			while (true)
 			{
@@ -167,7 +167,7 @@ void ThreadPool::StartThreads(const u32 num)
 				}
 			}
 
-			Log(Threads, StrFormat("Worker thread {0} stopped.", i));
+			tlog::debug() << StrFormat("Worker thread {0} stopped.", i);
 		});
 	}
 }
