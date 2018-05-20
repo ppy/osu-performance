@@ -4,3 +4,6 @@
 [submodule "Dependencies/json"]
 	path = Dependencies/json
 	url = https://github.com/nlohmann/json
+[submodule "Dependencies/tinylogger"]
+	path = Dependencies/tinylogger
+	url = https://github.com/Tom94/tinylogger
