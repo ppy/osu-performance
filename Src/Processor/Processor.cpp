@@ -141,10 +141,6 @@ void Processor::ProcessAllUsers(bool reProcess, u32 numThreads)
 	else
 		begin = retrieveCount(*_pDB, lastUserIdKey());
 
-	tlog::info() << StrFormat("Processing all users with ID larger than {0}.", begin);
-
-	auto startTime = steady_clock::now();
-
 	auto res = _pDBSlave->Query(StrFormat(
 		"SELECT MAX(`user_id`),COUNT(`user_id`) FROM `osu_user_stats{0}` WHERE `user_id`>={1}",
 		GamemodeSuffix(_gamemode), begin
@@ -155,6 +151,9 @@ void Processor::ProcessAllUsers(bool reProcess, u32 numThreads)
 
 	const s64 maxUserId = res.IsNull(0) ? 0 : (s64)res[0];
 	const s64 numUsers = res[1];
+
+	tlog::info() << StrFormat("Processing all users with ID larger than {0}.", begin);
+	auto progress = tlog::progress(numUsers);
 
 	s64 numUsersProcessed = 0;
 	u32 currentConnection = 0;
@@ -200,7 +199,7 @@ void Processor::ProcessAllUsers(bool reProcess, u32 numThreads)
 		begin += userIdStep;
 		numUsersProcessed += res.NumRows();
 
-		tlog::progress(numUsersProcessed, numUsers, steady_clock::now() - startTime);
+		progress.update(numUsersProcessed);
 
 		u32 numPendingQueries = 0;
 
@@ -227,7 +226,7 @@ void Processor::ProcessAllUsers(bool reProcess, u32 numThreads)
 	tlog::success() << StrFormat(
 		"Processed all {0} users for {1}.",
 		numUsers,
-		tlog::durationToString(steady_clock::now() - startTime)
+		tlog::durationToString(progress.duration())
 	);
 }
 
@@ -263,8 +262,7 @@ void Processor::ProcessUsers(const std::vector<s64>& userIds)
 	UpdateBatch newScores{_pDB, 10000};
 
 	tlog::info() << StrFormat("Processing {0} users.", userIds.size());
-
-	auto startTime = steady_clock::now();
+	auto progress = tlog::progress(userIds.size());
 
 	std::vector<User> users;
 	for (s64 userId : userIds)
@@ -278,7 +276,7 @@ void Processor::ProcessUsers(const std::vector<s64>& userIds)
 			userId
 		));
 
-		tlog::progress(users.size(), userIds.size(), steady_clock::now() - startTime);
+		progress.update(users.size());
 	}
 
 	tlog::info() << StrFormat("Sorting {0} users.", users.size());
@@ -293,7 +291,7 @@ void Processor::ProcessUsers(const std::vector<s64>& userIds)
 	tlog::success() << StrFormat(
 		"Processed {0} users for {1}.",
 		users.size(),
-		tlog::durationToString(steady_clock::now() - startTime)
+		tlog::durationToString(progress.duration())
 	);
 
 	tlog::info() << "=============================================";
@@ -404,10 +402,6 @@ void Processor::queryAllBeatmapDifficulties(u32 numThreads)
 {
 	static const s32 step = 10000;
 
-	tlog::info() << "Retrieving all beatmap difficulties.";
-
-	auto startTime = steady_clock::now();
-
 	auto res = _pDBSlave->Query(StrFormat(
 		"SELECT MAX(`beatmap_id`),COUNT(*) FROM `osu_beatmaps` WHERE `approved` BETWEEN {0} AND {1} AND (`playmode`=0 OR `playmode`={2})",
 		s_minRankedStatus, s_maxRankedStatus, _gamemode
@@ -418,6 +412,9 @@ void Processor::queryAllBeatmapDifficulties(u32 numThreads)
 
 	const s32 maxBeatmapId = res[0];
 	const s32 numBeatmaps = res[1];
+
+	tlog::info() << "Retrieving all beatmap difficulties.";
+	auto progress = tlog::progress(numBeatmaps);
 
 	std::vector<std::shared_ptr<DatabaseConnection>> dbSlaveConnections;
 	for (u32 i = 0; i < numThreads; ++i)
@@ -434,7 +431,7 @@ void Processor::queryAllBeatmapDifficulties(u32 numThreads)
 		threadPool.EnqueueTask([&, begin]() {
 			queryBeatmapDifficulty(dbSlave, begin, std::min(begin + step, maxBeatmapId + 1));
 
-			tlog::progress(_beatmaps.size(), numBeatmaps, steady_clock::now() - startTime);
+			progress.update(_beatmaps.size());
 		});
 	}
 
@@ -446,7 +443,7 @@ void Processor::queryAllBeatmapDifficulties(u32 numThreads)
 	tlog::success() << StrFormat(
 		"Loaded difficulties for a total of {0} beatmaps for {1}.",
 		_beatmaps.size(),
-		tlog::durationToString(steady_clock::now() - startTime)
+		tlog::durationToString(progress.duration())
 	);
 }
 
