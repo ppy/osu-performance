@@ -36,7 +36,7 @@ int main(s32 argc, char* argv[])
 		WSADATA wsaData;
 		if (WSAStartup(wVersionRequested, &wsaData) != 0)
 		{
-			Log(Critical, "Could not startup winsock.");
+			tlog::error() << "Could not startup winsock.";
 			return 2;
 		}
 #endif

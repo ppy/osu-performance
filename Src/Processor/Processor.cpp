@@ -45,9 +45,10 @@ const Beatmap::ERankedStatus Processor::s_maxRankedStatus = Beatmap::Approved;
 Processor::Processor(EGamemode gamemode, const std::string& configFile)
 : _gamemode{gamemode}
 {
-	Log(None,           "---------------------------------------------------");
-	Log(None, StrFormat("---- pp processor for gamemode {0}", GamemodeName(gamemode)));
-	Log(None,           "---------------------------------------------------");
+	tlog::none()
+		<< "---------------------------------------------------\n"
+		<< "---- pp processor for gamemode " << GamemodeName(gamemode) << '\n'
+		<< "---------------------------------------------------";
 
 	readConfig(configFile);
 
@@ -64,7 +65,7 @@ Processor::Processor(EGamemode gamemode, const std::string& configFile)
 
 Processor::~Processor()
 {
-	Log(Info, "Shutting down.");
+	tlog::info() << "Shutting down.";
 }
 
 void Processor::MonitorNewScores()
@@ -72,7 +73,7 @@ void Processor::MonitorNewScores()
 	_lastScorePollTime = steady_clock::now();
 	_lastBeatmapSetPollTime = steady_clock::now();
 
-	Log(Info, "Monitoring new scores.");
+	tlog::info() << "Monitoring new scores.";
 
 	_currentScoreId = retrieveCount(*_pDB, lastScoreIdKey());
 
@@ -140,10 +141,6 @@ void Processor::ProcessAllUsers(bool reProcess, u32 numThreads)
 	else
 		begin = retrieveCount(*_pDB, lastUserIdKey());
 
-	Log(Info, StrFormat("Processing all users with ID larger than {0}.", begin));
-
-	auto startTime = steady_clock::now();
-
 	auto res = _pDBSlave->Query(StrFormat(
 		"SELECT MAX(`user_id`),COUNT(`user_id`) FROM `osu_user_stats{0}` WHERE `user_id`>={1}",
 		GamemodeSuffix(_gamemode), begin
@@ -154,6 +151,9 @@ void Processor::ProcessAllUsers(bool reProcess, u32 numThreads)
 
 	const s64 maxUserId = res.IsNull(0) ? 0 : (s64)res[0];
 	const s64 numUsers = res[1];
+
+	tlog::info() << StrFormat("Processing all users with ID larger than {0}.", begin);
+	auto progress = tlog::progress(numUsers);
 
 	s64 numUsersProcessed = 0;
 	u32 currentConnection = 0;
@@ -199,7 +199,7 @@ void Processor::ProcessAllUsers(bool reProcess, u32 numThreads)
 		begin += userIdStep;
 		numUsersProcessed += res.NumRows();
 
-		LogProgress(numUsersProcessed, numUsers, steady_clock::now() - startTime);
+		progress.update(numUsersProcessed);
 
 		u32 numPendingQueries = 0;
 
@@ -223,11 +223,11 @@ void Processor::ProcessAllUsers(bool reProcess, u32 numThreads)
 		storeCount(*_pDB, lastUserIdKey(), begin);
 	}
 
-	Log(Success, StrFormat(
+	tlog::success() << StrFormat(
 		"Processed all {0} users for {1}.",
 		numUsers,
-		durationToString(steady_clock::now() - startTime)
-	));
+		tlog::durationToString(progress.duration())
+	);
 }
 
 void Processor::ProcessUsers(const std::vector<std::string>& userNames)
@@ -261,9 +261,8 @@ void Processor::ProcessUsers(const std::vector<s64>& userIds)
 	UpdateBatch newUsers{_pDB, 10000};
 	UpdateBatch newScores{_pDB, 10000};
 
-	Log(Info, StrFormat("Processing {0} users.", userIds.size()));
-
-	auto startTime = steady_clock::now();
+	tlog::info() << StrFormat("Processing {0} users.", userIds.size());
+	auto progress = tlog::progress(userIds.size());
 
 	std::vector<User> users;
 	for (s64 userId : userIds)
@@ -277,10 +276,10 @@ void Processor::ProcessUsers(const std::vector<s64>& userIds)
 			userId
 		));
 
-		LogProgress(users.size(), userIds.size(), steady_clock::now() - startTime);
+		progress.update(users.size());
 	}
 
-	Log(Info, StrFormat("Sorting {0} users.", users.size()));
+	tlog::info() << StrFormat("Sorting {0} users.", users.size());
 
 	std::sort(std::begin(users), std::end(users), [](const User& a, const User& b) {
 		if (a.GetPPRecord().Value != b.GetPPRecord().Value)
@@ -289,17 +288,17 @@ void Processor::ProcessUsers(const std::vector<s64>& userIds)
 		return a.Id() > b.Id();
 	});
 
-	Log(Success, StrFormat(
+	tlog::success() << StrFormat(
 		"Processed {0} users for {1}.",
 		users.size(),
-		durationToString(steady_clock::now() - startTime)
-	));
+		tlog::durationToString(progress.duration())
+	);
 
-	Log(Info, "=============================================");
-	Log(Info, "======= USER SUMMARY ========================");
-	Log(Info, "=============================================");
-	Log(Info, "            Name        Id    Perf.      Acc.");
-	Log(Info, "---------------------------------------------");
+	tlog::info() << "=============================================";
+	tlog::info() << "======= USER SUMMARY ========================";
+	tlog::info() << "=============================================";
+	tlog::info() << "            Name        Id    Perf.      Acc.";
+	tlog::info() << "---------------------------------------------";
 
 	for (const auto& user : users)
 	{
@@ -313,16 +312,16 @@ void Processor::ProcessUsers(const std::vector<s64>& userIds)
 		if (res.NextRow())
 			name = (std::string)res[0];
 
-		Log(Info, StrFormat(
+		tlog::info() << StrFormat(
 			"{0w16ar}  {1w8ar}  {2w5ar}pp  {3w6arp2} %",
 			name,
 			user.Id(),
 			(s32)std::round(user.GetPPRecord().Value),
 			user.GetPPRecord().Accuracy
-		));
+		);
 	}
 
-	Log(Info, "=============================================");
+	tlog::info() << "=============================================";
 }
 
 void Processor::readConfig(const std::string& filename)
@@ -403,10 +402,6 @@ void Processor::queryAllBeatmapDifficulties(u32 numThreads)
 {
 	static const s32 step = 10000;
 
-	Log(Info, "Retrieving all beatmap difficulties.");
-
-	auto startTime = steady_clock::now();
-
 	auto res = _pDBSlave->Query(StrFormat(
 		"SELECT MAX(`beatmap_id`),COUNT(*) FROM `osu_beatmaps` WHERE `approved` BETWEEN {0} AND {1} AND (`playmode`=0 OR `playmode`={2})",
 		s_minRankedStatus, s_maxRankedStatus, _gamemode
@@ -417,6 +412,9 @@ void Processor::queryAllBeatmapDifficulties(u32 numThreads)
 
 	const s32 maxBeatmapId = res[0];
 	const s32 numBeatmaps = res[1];
+
+	tlog::info() << "Retrieving all beatmap difficulties.";
+	auto progress = tlog::progress(numBeatmaps);
 
 	std::vector<std::shared_ptr<DatabaseConnection>> dbSlaveConnections;
 	for (u32 i = 0; i < numThreads; ++i)
@@ -433,7 +431,7 @@ void Processor::queryAllBeatmapDifficulties(u32 numThreads)
 		threadPool.EnqueueTask([&, begin]() {
 			queryBeatmapDifficulty(dbSlave, begin, std::min(begin + step, maxBeatmapId + 1));
 
-			LogProgress(_beatmaps.size(), numBeatmaps, steady_clock::now() - startTime);
+			progress.update(_beatmaps.size());
 		});
 	}
 
@@ -442,11 +440,11 @@ void Processor::queryAllBeatmapDifficulties(u32 numThreads)
 		std::this_thread::sleep_for(milliseconds{ 10 });
 	}
 
-	Log(Success, StrFormat(
+	tlog::success() << StrFormat(
 		"Loaded difficulties for a total of {0} beatmaps for {1}.",
 		_beatmaps.size(),
-		durationToString(steady_clock::now() - startTime)
-	));
+		tlog::durationToString(progress.duration())
+	);
 }
 
 bool Processor::queryBeatmapDifficulty(DatabaseConnection& dbSlave, s32 startId, s32 endId)
@@ -493,7 +491,7 @@ bool Processor::queryBeatmapDifficulty(DatabaseConnection& dbSlave, s32 startId,
 	{
 		std::string message = StrFormat("Couldn't find beatmap /b/{0}.", startId);
 
-		Log(Warning, message.c_str());
+		tlog::warning() << message.c_str();
 		_pDataDog->Increment("osu.pp.difficulty.retrieval_not_found", 1, {StrFormat("mode:{0}", GamemodeTag(_gamemode))});
 
 		/*ProcessorException e{SRC_POS, message};
@@ -510,7 +508,7 @@ bool Processor::queryBeatmapDifficulty(DatabaseConnection& dbSlave, s32 startId,
 	}
 	else
 	{
-		Log(Success, StrFormat("Obtained beatmap difficulty of /b/{0}.", startId));
+		tlog::success() << StrFormat("Obtained beatmap difficulty of /b/{0}.", startId);
 		_pDataDog->Increment("osu.pp.difficulty.retrieval_success", 1, { StrFormat("mode:{0}", GamemodeTag(_gamemode)) });
 	}
 
@@ -547,7 +545,7 @@ void Processor::pollAndProcessNewScores()
 
 		_currentScoreId = std::max(_currentScoreId, ScoreId);
 
-		Log(Info, StrFormat("New score {0} in mode {1} by {2}.", ScoreId, GamemodeName(_gamemode), UserId));
+		tlog::info() << StrFormat("New score {0} in mode {1} by {2}.", ScoreId, GamemodeName(_gamemode), UserId);
 
 		processSingleUser(
 			ScoreId, // Only update the new score, old ones are caught by the background processor anyways
@@ -577,7 +575,7 @@ void Processor::pollAndProcessNewBeatmapSets(DatabaseConnection& dbSlave)
 {
 	_lastBeatmapSetPollTime = steady_clock::now();
 
-	Log(Info, "Retrieving new beatmap sets.");
+	tlog::info() << "Retrieving new beatmap sets.";
 
 	auto res = dbSlave.Query(StrFormat(
 		"SELECT `beatmap_id`, `approved_date` "
@@ -587,7 +585,7 @@ void Processor::pollAndProcessNewBeatmapSets(DatabaseConnection& dbSlave)
 		_lastApprovedDate
 	));
 
-	Log(Success, StrFormat("Retrieved {0} new beatmaps.", res.NumRows()));
+	tlog::success() << StrFormat("Retrieved {0} new beatmaps.", res.NumRows());
 
 	while (res.NextRow())
 	{
@@ -600,7 +598,7 @@ void Processor::pollAndProcessNewBeatmapSets(DatabaseConnection& dbSlave)
 
 void Processor::queryBeatmapBlacklist()
 {
-	Log(Info, "Retrieving blacklisted beatmaps.");
+	tlog::info() << "Retrieving blacklisted beatmaps.";
 
 	auto res = _pDBSlave->Query(StrFormat(
 		"SELECT `beatmap_id` "
@@ -611,12 +609,12 @@ void Processor::queryBeatmapBlacklist()
 	while (res.NextRow())
 		_blacklistedBeatmapIds.insert(res[0]);
 
-	Log(Success, StrFormat("Retrieved {0} blacklisted beatmaps.", _blacklistedBeatmapIds.size()));
+	tlog::success() << StrFormat("Retrieved {0} blacklisted beatmaps.", _blacklistedBeatmapIds.size());
 }
 
 void Processor::queryBeatmapDifficultyAttributes()
 {
-	Log(Info, "Retrieving difficulty attribute names.");
+	tlog::info() << "Retrieving difficulty attribute names.";
 
 	u32 numEntries = 0;
 
@@ -631,7 +629,7 @@ void Processor::queryBeatmapDifficultyAttributes()
 		++numEntries;
 	}
 
-	Log(Success, StrFormat("Retrieved {0} difficulty attributes, stored in {1} entries.", numEntries, _difficultyAttributes.size()));
+	tlog::success() << StrFormat("Retrieved {0} difficulty attributes, stored in {1} entries.", numEntries, _difficultyAttributes.size());
 }
 
 User Processor::processSingleUser(
@@ -815,7 +813,7 @@ User Processor::processSingleUserGeneric(
 			if (ratingChange < s_notableEventRatingDifferenceMinimum)
 				continue;
 
-			Log(Info, StrFormat("Notable event: /b/{0} /u/{1}", score.BeatmapId(), userId));
+			tlog::info() << StrFormat("Notable event: /b/{0} /u/{1}", score.BeatmapId(), userId);
 
 			db.NonQueryBackground(StrFormat(
 				"INSERT INTO "

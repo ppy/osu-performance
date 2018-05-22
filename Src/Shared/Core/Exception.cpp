@@ -17,5 +17,5 @@ LoggedException::LoggedException(std::string file, s32 line, std::string descrip
 
 void LoggedException::Log() const
 {
-	::Log(Except, StrFormat("{0}:{1} - {2}", _file, _line, _description));
+	tlog::error() << StrFormat("{0}:{1} - {2}", _file, _line, _description);
 }

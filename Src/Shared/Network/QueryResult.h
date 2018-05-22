@@ -16,7 +16,7 @@ public:
 	inline char** CurrentRow() { return _row; }
 
 	// Column entries of the current row
-	inline bool IsNull(u32 i) const { return !_row[i]; }
+	inline bool IsNull(size_t i) const { return !_row[i]; }
 
 private:
 	class Field
