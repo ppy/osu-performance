@@ -1,4 +1,4 @@
-#include <pp/common.h>
+#include <pp/Common.h>
 #include <pp/performance/mania/ManiaScore.h>
 
 PP_NAMESPACE_BEGIN

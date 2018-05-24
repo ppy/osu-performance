@@ -1,6 +1,6 @@
 #pragma once
 
-#include <pp/common.h>
+#include <pp/Common.h>
 
 #include <pp/performance/Beatmap.h>
 #include <pp/performance/CURL.h>

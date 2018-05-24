@@ -1,4 +1,4 @@
-#include <pp/common.h>
+#include <pp/Common.h>
 
 #include <pp/performance/Processor.h>
 #include <pp/performance/Score.h>

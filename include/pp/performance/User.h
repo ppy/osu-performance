@@ -1,6 +1,6 @@
 #pragma once
 
-#include <pp/common.h>
+#include <pp/Common.h>
 #include <pp/performance/Score.h>
 
 #include <vector>
