@@ -2,27 +2,28 @@ cmake_minimum_required(VERSION 2.8)
 
 # Processor
 set(SOURCES
+	Common.cpp ../include/pp/Common.h
+
 	performance/main.cpp
 
-	performance/Beatmap.cpp
-	performance/CURL.cpp
-	performance/DDog.cpp
-	performance/Processor.cpp
-	performance/Score.cpp
-	performance/User.cpp
-	performance/UUID.cpp
+	performance/Beatmap.cpp ../include/pp/performance/Beatmap.h
+	performance/CURL.cpp ../include/pp/performance/CURL.h
+	performance/DDog.cpp ../include/pp/performance/DDog.h
+	performance/Processor.cpp ../include/pp/performance/Processor.h
+	performance/Score.cpp ../include/pp/performance/Score.h
+	performance/User.cpp ../include/pp/performance/User.h
+	performance/UUID.cpp ../include/pp/performance/UUID.h
 
-	performance/osu/StandardScore.cpp
-	performance/taiko/TaikoScore.cpp
-	performance/catch/CatchTheBeatScore.cpp
-	performance/mania/ManiaScore.cpp
+	performance/osu/StandardScore.cpp ../include/pp/performance/osu/StandardScore.h
+	performance/taiko/TaikoScore.cpp ../include/pp/performance/taiko/TaikoScore.h
+	performance/catch/CatchTheBeatScore.cpp ../include/pp/performance/catch/CatchTheBeatScore.h
+	performance/mania/ManiaScore.cpp ../include/pp/performance/mania/ManiaScore.h
 
-	shared/Active.cpp
-	shared/Threading.cpp
-
-	shared/DatabaseConnection.cpp
-	shared/QueryResult.cpp
-	shared/UpdateBatch.cpp
+	shared/Active.cpp ../include/pp/shared/Active.h
+	shared/Threading.cpp ../include/pp/shared/Threading.h
+	shared/DatabaseConnection.cpp ../include/pp/shared/DatabaseConnection.h
+	shared/QueryResult.cpp ../include/pp/shared/QueryResult.h
+	shared/UpdateBatch.cpp ../include/pp/shared/UpdateBatch.h
 )
 
 if (WIN32)
@@ -43,10 +44,10 @@ add_executable(osu-performance ${SOURCES})
 target_link_libraries(osu-performance ${LIBRARIES})
 
 if (MSVC)
-	set_target_properties(${ExecutableName} PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG ${BIN})
-	set_target_properties(${ExecutableName} PROPERTIES RUNTIME_OUTPUT_DIRECTORY_MINSIZEREL ${BIN})
-	set_target_properties(${ExecutableName} PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE ${BIN})
-	set_target_properties(${ExecutableName} PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO ${BIN})
+	set_target_properties(osu-performance PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG ${BIN})
+	set_target_properties(osu-performance PROPERTIES RUNTIME_OUTPUT_DIRECTORY_MINSIZEREL ${BIN})
+	set_target_properties(osu-performance PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE ${BIN})
+	set_target_properties(osu-performance PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO ${BIN})
 endif()
 
 if (WIN32)
