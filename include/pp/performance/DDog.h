@@ -4,7 +4,11 @@
 
 #include <vector>
 
-#ifndef _WIN32
+#ifdef _WIN32
+	#define NOMINMAX
+	#include <Windows.h>
+	#undef NOMINMAX
+#else
 	#include <netinet/in.h>
 #endif
 

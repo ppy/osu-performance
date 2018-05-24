@@ -5,26 +5,11 @@
 #include <random>
 #include <thread>
 
-#ifdef _WIN32
-	#define NOMINMAX
-	#define WIN32_LEAN_AND_MEAN
-	#include <Windows.h>
-
-	// Networking. That is winsock for windows
-	#define _WINSOCK_DEPRECATED_NO_WARNINGS
-	#include <WinSock2.h>
-#else
-	#include <unistd.h>
-	#include <fcntl.h>
-	#include <sys/mman.h>
-
-	// Required for networking under UNIX
-	#include <sys/types.h>
-	#include <sys/socket.h>
-	#include <sys/ioctl.h>
-	#include <netinet/in.h>
-	#include <netdb.h>
+#ifndef _WIN32
 	#include <arpa/inet.h>
+	#include <cstring>
+	#include <sys/file.h>
+	#include <unistd.h>
 #endif
 
 PP_NAMESPACE_BEGIN
