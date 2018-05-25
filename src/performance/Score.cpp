@@ -1,8 +1,6 @@
 #include <pp/Common.h>
 
-#include <pp/performance/Processor.h>
 #include <pp/performance/Score.h>
-
 #include <pp/shared/UpdateBatch.h>
 
 PP_NAMESPACE_BEGIN
@@ -45,7 +43,7 @@ void Score::AppendToUpdateBatch(UpdateBatch& batch) const
 		"UPDATE `osu_scores{0}_high` "
 		"SET `pp`={1} "
 		"WHERE `score_id`={2};",
-		Processor::GamemodeSuffix(_mode),
+		GamemodeSuffix(_mode),
 		TotalValue(),
 		_scoreId
 	));

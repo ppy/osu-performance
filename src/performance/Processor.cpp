@@ -15,30 +15,6 @@ using namespace std::chrono;
 
 PP_NAMESPACE_BEGIN
 
-const std::array<const std::string, NumGamemodes> Processor::s_gamemodeSuffixes =
-{
-	"",
-	"_taiko",
-	"_fruits",
-	"_mania",
-};
-
-const std::array<const std::string, NumGamemodes> Processor::s_gamemodeNames =
-{
-	"osu!",
-	"Taiko",
-	"Catch the Beat",
-	"osu!mania",
-};
-
-const std::array<const std::string, NumGamemodes> Processor::s_gamemodeTags =
-{
-	"osu",
-	"taiko",
-	"catch_the_beat",
-	"osu_mania",
-};
-
 const Beatmap::ERankedStatus Processor::s_minRankedStatus = Beatmap::Ranked;
 const Beatmap::ERankedStatus Processor::s_maxRankedStatus = Beatmap::Approved;
 

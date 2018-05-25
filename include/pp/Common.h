@@ -110,4 +110,43 @@ enum EGamemode : u32
 	NumGamemodes,
 };
 
+inline std::string GamemodeSuffix(EGamemode gamemode)
+{
+	switch (gamemode)
+	{
+	case EGamemode::Osu:   return "";
+	case EGamemode::Taiko: return "_taiko";
+	case EGamemode::Catch: return "_fruits";
+	case EGamemode::Mania: return "_mania";
+	default:
+		throw LoggedException(SRC_POS, StrFormat("Unknown gamemode requested. ({0})", gamemode));
+	}
+}
+
+inline std::string GamemodeName(EGamemode gamemode)
+{
+	switch (gamemode)
+	{
+	case EGamemode::Osu:   return "osu!";
+	case EGamemode::Taiko: return "osu!taiko";
+	case EGamemode::Catch: return "osu!catch";
+	case EGamemode::Mania: return "osu!mania";
+	default:
+		throw LoggedException(SRC_POS, StrFormat("Unknown gamemode requested. ({0})", gamemode));
+	}
+}
+
+inline std::string GamemodeTag(EGamemode gamemode)
+{
+	switch (gamemode)
+	{
+	case EGamemode::Osu:   return "osu";
+	case EGamemode::Taiko: return "taiko";
+	case EGamemode::Catch: return "catch_the_beat";
+	case EGamemode::Mania: return "osu_mania";
+	default:
+		throw LoggedException(SRC_POS, StrFormat("Unknown gamemode requested. ({0})", gamemode));
+	}
+}
+
 PP_NAMESPACE_END

@@ -24,31 +24,12 @@ public:
 	Processor(EGamemode gamemode, const std::string& configFile);
 	~Processor();
 
-	static const std::string& GamemodeSuffix(EGamemode gamemode)
-	{
-		return s_gamemodeSuffixes.at(gamemode);
-	}
-
-	static const std::string& GamemodeName(EGamemode gamemode)
-	{
-		return s_gamemodeNames.at(gamemode);
-	}
-
-	static const std::string& GamemodeTag(EGamemode gamemode)
-	{
-		return s_gamemodeTags.at(gamemode);
-	}
-
 	void MonitorNewScores();
 	void ProcessAllUsers(bool reProcess, u32 numThreads);
 	void ProcessUsers(const std::vector<std::string>& userNames);
 	void ProcessUsers(const std::vector<s64>& userIds);
 
 private:
-	static const std::array<const std::string, NumGamemodes> s_gamemodeSuffixes;
-	static const std::array<const std::string, NumGamemodes> s_gamemodeNames;
-	static const std::array<const std::string, NumGamemodes> s_gamemodeTags;
-
 	static const Beatmap::ERankedStatus s_minRankedStatus;
 	static const Beatmap::ERankedStatus s_maxRankedStatus;
 
