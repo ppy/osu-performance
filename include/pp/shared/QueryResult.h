@@ -6,7 +6,7 @@
 
 PP_NAMESPACE_BEGIN
 
-DEFINE_LOGGED_EXCEPTION(QueryResultException);
+DEFINE_EXCEPTION(QueryResultException);
 
 class QueryResult
 {

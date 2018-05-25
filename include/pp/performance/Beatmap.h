@@ -6,7 +6,7 @@
 
 PP_NAMESPACE_BEGIN
 
-DEFINE_LOGGED_EXCEPTION(BeatmapException);
+DEFINE_EXCEPTION(BeatmapException);
 
 class Beatmap
 {

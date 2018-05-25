@@ -19,7 +19,7 @@ public:
 	: _file{file}, _line{line}, _description{description} {}
 	~Exception() = default;
 
-	void Print() const { std::cerr << StrFormat("Exception in: {0}:{1} - {2}\n", _file, _line, _description); }
+	void Log() const { tlog::error() << StrFormat("{0}:{1} - {2}", _file, _line, _description); }
 
 	std::string Description() const { return _description; }
 
@@ -33,25 +33,10 @@ protected:
 	std::string _description;
 };
 
-class LoggedException : public Exception
-{
-public:
-	LoggedException(const std::string& file, s32 line, const std::string& description)
-	: Exception{file, line, description} {}
-	~LoggedException() = default;
-
-	void Log() const { tlog::error() << StrFormat("{0}:{1} - {2}", _file, _line, _description); }
-};
-
 #define DEFINE_EXCEPTION(x) \
 	class x : public Exception \
 	{ public: x(const std::string& file, s32 line, const std::string& description) \
 	: Exception{file, line, description} {} }
-
-#define DEFINE_LOGGED_EXCEPTION(x) \
-	class x : public LoggedException \
-	{ public: x(const std::string& file, s32 line, const std::string& description) \
-	: LoggedException{file, line, description} {} }
 
 #define SRC_POS __FILE__,__LINE__
 

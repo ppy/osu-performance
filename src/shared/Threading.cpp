@@ -154,7 +154,7 @@ void ThreadPool::StartThreads(const u32 num)
 				{
 					task();
 				}
-				catch (const LoggedException& e)
+				catch (const Exception& e)
 				{
 					e.Log();
 				}

@@ -8,7 +8,7 @@
 
 PP_NAMESPACE_BEGIN
 
-DEFINE_LOGGED_EXCEPTION(DatabaseException);
+DEFINE_EXCEPTION(DatabaseException);
 
 class DatabaseConnection
 {

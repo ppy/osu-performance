@@ -158,14 +158,9 @@ int main(s32 argc, char* argv[])
 		auto modeString = arguments[1];
 		auto targetString = arguments[2];
 	}
-	catch (const LoggedException& e)
-	{
-		e.Log();
-		return 1;
-	}
 	catch (const Exception& e)
 	{
-		e.Print();
+		e.Log();
 		return 1;
 	}
 	catch (const std::exception& e)

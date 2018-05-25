@@ -16,7 +16,7 @@
 
 PP_NAMESPACE_BEGIN
 
-DEFINE_LOGGED_EXCEPTION(ProcessorException);
+DEFINE_EXCEPTION(ProcessorException);
 
 class Processor
 {
