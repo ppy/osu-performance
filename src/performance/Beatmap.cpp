@@ -22,7 +22,7 @@ Beatmap::Beatmap(s32 id)
 f32 Beatmap::DifficultyAttribute(EMods mods, EDifficultyAttributeType type) const
 {
 	auto difficultyIt = _difficulty.find(maskRelevantDifficultyMods(mods));
-	return difficultyIt == std::end(_difficulty) ? 0.0f : (*difficultyIt).second[type];
+	return difficultyIt == std::end(_difficulty) ? 0.0f : difficultyIt->second[type];
 }
 
 void Beatmap::SetDifficultyAttribute(EMods mods, EDifficultyAttributeType type, f32 value)
