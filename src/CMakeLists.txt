@@ -14,9 +14,9 @@ set(SOURCES
 	performance/User.cpp ../include/pp/performance/User.h
 	performance/UUID.cpp ../include/pp/performance/UUID.h
 
-	performance/osu/StandardScore.cpp ../include/pp/performance/osu/StandardScore.h
+	performance/osu/OsuScore.cpp ../include/pp/performance/osu/OsuScore.h
 	performance/taiko/TaikoScore.cpp ../include/pp/performance/taiko/TaikoScore.h
-	performance/catch/CatchTheBeatScore.cpp ../include/pp/performance/catch/CatchTheBeatScore.h
+	performance/catch/CatchScore.cpp ../include/pp/performance/catch/CatchScore.h
 	performance/mania/ManiaScore.cpp ../include/pp/performance/mania/ManiaScore.h
 
 	shared/Active.cpp ../include/pp/shared/Active.h

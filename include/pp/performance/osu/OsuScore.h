@@ -5,11 +5,11 @@
 
 PP_NAMESPACE_BEGIN
 
-class StandardScore : public Score
+class OsuScore : public Score
 {
 public:
 
-	StandardScore(
+	OsuScore(
 		s64 scoreId,
 		EGamemode mode,
 		s64 userId,

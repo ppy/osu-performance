@@ -1,9 +1,9 @@
 #include <pp/Common.h>
-#include <pp/performance/catch/CatchTheBeatScore.h>
+#include <pp/performance/catch/CatchScore.h>
 
 PP_NAMESPACE_BEGIN
 
-CatchTheBeatScore::CatchTheBeatScore(
+CatchScore::CatchScore(
 	s64 scoreId,
 	EGamemode mode,
 	s64 userId,
@@ -79,12 +79,12 @@ CatchTheBeatScore::CatchTheBeatScore(
 		_value *= 0.95f;
 }
 
-f32 CatchTheBeatScore::TotalValue() const
+f32 CatchScore::TotalValue() const
 {
 	return _value;
 }
 
-f32 CatchTheBeatScore::Accuracy() const
+f32 CatchScore::Accuracy() const
 {
 	if (TotalHits() == 0)
 		return 0;
@@ -92,17 +92,17 @@ f32 CatchTheBeatScore::Accuracy() const
 	return Clamp(static_cast<f32>(TotalSuccessfulHits()) / TotalHits(), 0.0f, 1.0f);
 }
 
-s32 CatchTheBeatScore::TotalHits() const
+s32 CatchScore::TotalHits() const
 {
 	return _num50 + _num100 + _num300 + _numMiss + _numKatu;
 }
 
-s32 CatchTheBeatScore::TotalSuccessfulHits() const
+s32 CatchScore::TotalSuccessfulHits() const
 {
 	return _num50 + _num100 + _num300;
 }
 
-s32 CatchTheBeatScore::totalComboHits() const
+s32 CatchScore::totalComboHits() const
 {
 	return _num300 + _num100 + _numMiss;
 }

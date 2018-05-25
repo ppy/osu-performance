@@ -1,9 +1,9 @@
 #include <pp/Common.h>
 #include <pp/performance/Processor.h>
 
-#include <pp/performance/osu/StandardScore.h>
+#include <pp/performance/osu/OsuScore.h>
 #include <pp/performance/taiko/TaikoScore.h>
-#include <pp/performance/catch/CatchTheBeatScore.h>
+#include <pp/performance/catch/CatchScore.h>
 #include <pp/performance/mania/ManiaScore.h>
 
 #include <pp/shared/Threading.h>
@@ -650,13 +650,13 @@ User Processor::processSingleUser(
 	switch (_gamemode)
 	{
 	case EGamemode::Standard:
-		return processSingleUserGeneric<StandardScore>(selectedScoreId, db, dbSlave, newUsers, newScores, userId);
+		return processSingleUserGeneric<OsuScore>(selectedScoreId, db, dbSlave, newUsers, newScores, userId);
 
 	case EGamemode::Taiko:
 		return processSingleUserGeneric<TaikoScore>(selectedScoreId, db, dbSlave, newUsers, newScores, userId);
 
 	case EGamemode::CatchTheBeat:
-		return processSingleUserGeneric<CatchTheBeatScore>(selectedScoreId, db, dbSlave, newUsers, newScores, userId);
+		return processSingleUserGeneric<CatchScore>(selectedScoreId, db, dbSlave, newUsers, newScores, userId);
 
 	case EGamemode::Mania:
 		return processSingleUserGeneric<ManiaScore>(selectedScoreId, db, dbSlave, newUsers, newScores, userId);

@@ -5,10 +5,10 @@
 
 PP_NAMESPACE_BEGIN
 
-class CatchTheBeatScore : public Score
+class CatchScore : public Score
 {
 public:
-	CatchTheBeatScore(
+	CatchScore(
 		s64 scoreId,
 		EGamemode mode,
 		s64 userId,
