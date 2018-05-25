@@ -5,23 +5,6 @@
 
 PP_NAMESPACE_BEGIN
 
-EGamemode StringToGamemode(const std::string& modeString)
-{
-	EGamemode mode;
-	if (modeString == "osu")
-		mode = EGamemode::Osu;
-	else if (modeString == "taiko")
-		mode = EGamemode::Taiko;
-	else if (modeString == "catch")
-		mode = EGamemode::Catch;
-	else if (modeString == "mania")
-		mode = EGamemode::Mania;
-	else
-		throw LoggedException(SRC_POS, StrFormat("Invalid mode '{0}'", modeString));
-
-	return mode;
-}
-
 int main(s32 argc, char* argv[])
 {
 	try
@@ -73,7 +56,7 @@ int main(s32 argc, char* argv[])
 		args::Command newCommand(commands, "new", "Continually poll for new scores and compute pp of these", [&](args::Subparser& parser)
 		{
 			parser.Parse();
-			Processor processor{StringToGamemode(args::get(modePositional)), args::get(configFlag)};
+			Processor processor{ToGamemode(args::get(modePositional)), args::get(configFlag)};
 			processor.MonitorNewScores();
 		});
 
@@ -100,7 +83,7 @@ int main(s32 argc, char* argv[])
 
 			u32 numThreads = args::get(threadsFlag);
 
-			Processor processor{StringToGamemode(args::get(modePositional)), args::get(configFlag)};
+			Processor processor{ToGamemode(args::get(modePositional)), args::get(configFlag)};
 			processor.ProcessAllUsers(!continueFlag, numThreads);
 		});
 
@@ -115,7 +98,7 @@ int main(s32 argc, char* argv[])
 			parser.Parse();
 
 			std::vector<std::string> userNames = args::get(usersPositional);
-			Processor processor{StringToGamemode(args::get(modePositional)), args::get(configFlag)};
+			Processor processor{ToGamemode(args::get(modePositional)), args::get(configFlag)};
 			processor.ProcessUsers(args::get(usersPositional));
 		});
 

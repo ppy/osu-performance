@@ -40,12 +40,19 @@ protected:
 
 #define SRC_POS __FILE__,__LINE__
 
+// std::string operations
+std::vector<std::string> Split(std::string text, const std::string& delim);
+std::string ToLower(std::string str);
+std::string ToUpper(std::string str);
+
+// Math operations
 template <class T>
-inline const T Clamp(const T& value, const T& low, const T& high)
+const T Clamp(const T& value, const T& low, const T& high)
 {
 	return std::min(std::max(value, low), high);
 }
 
+// Common enums
 enum EMods : u32
 {
 	Nomod = 0,
@@ -85,53 +92,17 @@ enum EMods : u32
 	ScoreIncreaseMods = Hidden | HardRock | DoubleTime | Flashlight | FadeIn
 };
 
-enum EGamemode : u32
+enum class EGamemode
 {
-	Osu = 0,
+	Osu,
 	Taiko,
 	Catch,
 	Mania,
-
-	NumGamemodes,
 };
 
-inline std::string GamemodeSuffix(EGamemode gamemode)
-{
-	switch (gamemode)
-	{
-	case EGamemode::Osu:   return "";
-	case EGamemode::Taiko: return "_taiko";
-	case EGamemode::Catch: return "_fruits";
-	case EGamemode::Mania: return "_mania";
-	default:
-		throw LoggedException(SRC_POS, StrFormat("Unknown gamemode requested. ({0})", gamemode));
-	}
-}
-
-inline std::string GamemodeName(EGamemode gamemode)
-{
-	switch (gamemode)
-	{
-	case EGamemode::Osu:   return "osu!";
-	case EGamemode::Taiko: return "osu!taiko";
-	case EGamemode::Catch: return "osu!catch";
-	case EGamemode::Mania: return "osu!mania";
-	default:
-		throw LoggedException(SRC_POS, StrFormat("Unknown gamemode requested. ({0})", gamemode));
-	}
-}
-
-inline std::string GamemodeTag(EGamemode gamemode)
-{
-	switch (gamemode)
-	{
-	case EGamemode::Osu:   return "osu";
-	case EGamemode::Taiko: return "taiko";
-	case EGamemode::Catch: return "catch_the_beat";
-	case EGamemode::Mania: return "osu_mania";
-	default:
-		throw LoggedException(SRC_POS, StrFormat("Unknown gamemode requested. ({0})", gamemode));
-	}
-}
+std::string GamemodeSuffix(EGamemode gamemode);
+std::string GamemodeName(EGamemode gamemode);
+std::string GamemodeTag(EGamemode gamemode);
+EGamemode ToGamemode(std::string modeString);
 
 PP_NAMESPACE_END
