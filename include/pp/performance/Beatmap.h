@@ -23,6 +23,8 @@ public:
 		Strain,
 		HitWindow300,
 		ScoreMultiplier,
+
+		NumTypes,
 	};
 
 	enum ERankedStatus : s32
@@ -75,10 +77,7 @@ private:
 	// Calculated difficulty
 	using difficulty_t = std::unordered_map<
 		std::underlying_type_t<EMods>,
-		std::unordered_map<
-			std::underlying_type_t<EDifficultyAttributeType>,
-			f32
-		>
+		std::array<f32, NumTypes>
 	>;
 
 	difficulty_t _difficulty;

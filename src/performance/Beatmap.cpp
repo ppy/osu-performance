@@ -21,18 +21,13 @@ Beatmap::Beatmap(s32 id)
 
 f32 Beatmap::DifficultyAttribute(EMods mods, EDifficultyAttributeType type) const
 {
-	mods = maskRelevantDifficultyMods(mods);
-
-	if (_difficulty.count(mods) == 0 || _difficulty.at(mods).count(type) == 0)
-		return 0.0f;
-	else
-		return _difficulty.at(mods).at(type);
+	auto difficultyIt = _difficulty.find(maskRelevantDifficultyMods(mods));
+	return difficultyIt == std::end(_difficulty) ? 0.0f : (*difficultyIt).second[type];
 }
 
 void Beatmap::SetDifficultyAttribute(EMods mods, EDifficultyAttributeType type, f32 value)
 {
-	mods = maskRelevantDifficultyMods(mods);
-	_difficulty[mods][type] = value;
+	_difficulty[maskRelevantDifficultyMods(mods)][type] = value;
 }
 
 PP_NAMESPACE_END
