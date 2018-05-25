@@ -6,6 +6,8 @@
 #include <tinylogger/tinylogger.h>
 #include <StrFormat.h>
 
+#include <vector>
+
 // We use a helper macro such that our namespace does not cause indentation.
 #define PP_NAMESPACE_BEGIN namespace pp {
 #define PP_NAMESPACE_END }
