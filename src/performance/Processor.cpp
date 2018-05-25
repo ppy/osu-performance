@@ -649,13 +649,13 @@ User Processor::processSingleUser(
 {
 	switch (_gamemode)
 	{
-	case EGamemode::Standard:
+	case EGamemode::Osu:
 		return processSingleUserGeneric<OsuScore>(selectedScoreId, db, dbSlave, newUsers, newScores, userId);
 
 	case EGamemode::Taiko:
 		return processSingleUserGeneric<TaikoScore>(selectedScoreId, db, dbSlave, newUsers, newScores, userId);
 
-	case EGamemode::CatchTheBeat:
+	case EGamemode::Catch:
 		return processSingleUserGeneric<CatchScore>(selectedScoreId, db, dbSlave, newUsers, newScores, userId);
 
 	case EGamemode::Mania:

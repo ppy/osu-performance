@@ -102,9 +102,9 @@ enum EMods : u32
 
 enum EGamemode : u32
 {
-	Standard = 0,
+	Osu = 0,
 	Taiko,
-	CatchTheBeat,
+	Catch,
 	Mania,
 
 	NumGamemodes,

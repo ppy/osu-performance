@@ -72,7 +72,7 @@ private:
 
 	// General information
 	s32 _id;
-	EGamemode _mode = EGamemode::Standard;
+	EGamemode _mode = EGamemode::Osu;
 
 	// Calculated difficulty
 	using difficulty_t = std::unordered_map<

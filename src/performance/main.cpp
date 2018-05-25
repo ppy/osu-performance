@@ -9,13 +9,13 @@ EGamemode StringToGamemode(const std::string& modeString)
 {
 	EGamemode mode;
 	if (modeString == "osu")
-		mode = Standard;
+		mode = EGamemode::Osu;
 	else if (modeString == "taiko")
-		mode = Taiko;
+		mode = EGamemode::Taiko;
 	else if (modeString == "catch")
-		mode = CatchTheBeat;
+		mode = EGamemode::Catch;
 	else if (modeString == "mania")
-		mode = Mania;
+		mode = EGamemode::Mania;
 	else
 		throw LoggedException(SRC_POS, StrFormat("Invalid mode '{0}'", modeString));
 
