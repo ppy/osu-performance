@@ -155,8 +155,9 @@ void Processor::ProcessAllUsers(bool reProcess, u32 numThreads)
 	tlog::info() << StrFormat("Processing all users with ID larger than {0}.", begin);
 	auto progress = tlog::progress(numUsers);
 
-	s64 numUsersProcessed = 0;
+	std::atomic<s64> numUsersProcessed{0};
 	u32 currentConnection = 0;
+	auto lastProgressUpdate = steady_clock::now();
 
 	// We will break out as soon as there are no more results
 	while (begin <= maxUserId)
@@ -186,6 +187,8 @@ void Processor::ProcessAllUsers(bool reProcess, u32 numThreads)
 						newScoresBatches[currentConnection],
 						userId
 					);
+
+					++numUsersProcessed;
 				}
 			);
 
@@ -197,15 +200,12 @@ void Processor::ProcessAllUsers(bool reProcess, u32 numThreads)
 		}
 
 		begin += userIdStep;
-		numUsersProcessed += res.NumRows();
-
-		progress.update(numUsersProcessed);
 
 		u32 numPendingQueries = 0;
 
 		do
 		{
-			numPendingQueries = 0;
+			u32 numPendingQueries = 0;
 			for (auto& pDBConn : dbConnections)
 				numPendingQueries += (u32)pDBConn->NumPendingQueries();
 
@@ -215,7 +215,13 @@ void Processor::ProcessAllUsers(bool reProcess, u32 numThreads)
 				"connection:background",
 			}, 0.01f);
 
-			std::this_thread::sleep_for(milliseconds(10));
+			if (steady_clock::now() - lastProgressUpdate > milliseconds{100})
+			{
+				progress.update(numUsersProcessed);
+				lastProgressUpdate += milliseconds{100};
+			}
+
+			std::this_thread::sleep_for(milliseconds{10});
 		}
 		while (threadPool.GetNumTasksInSystem() > 0 || numPendingQueries > 0);
 
