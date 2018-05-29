@@ -1,9 +1,9 @@
 #include <pp/Common.h>
-#include <pp/performance/osu/StandardScore.h>
+#include <pp/performance/osu/OsuScore.h>
 
 PP_NAMESPACE_BEGIN
 
-StandardScore::StandardScore(
+OsuScore::OsuScore(
 	s64 scoreId,
 	EGamemode mode,
 	s64 userId,
@@ -28,12 +28,12 @@ StandardScore::StandardScore(
 }
 
 
-f32 StandardScore::TotalValue() const
+f32 OsuScore::TotalValue() const
 {
 	return _totalValue;
 }
 
-f32 StandardScore::Accuracy() const
+f32 OsuScore::Accuracy() const
 {
 	if (TotalHits() == 0)
 		return 0;
@@ -43,17 +43,17 @@ f32 StandardScore::Accuracy() const
 	);
 }
 
-s32 StandardScore::TotalHits() const
+s32 OsuScore::TotalHits() const
 {
 	return _num50 + _num100 + _num300 + _numMiss;
 }
 
-s32 StandardScore::TotalSuccessfulHits() const
+s32 OsuScore::TotalSuccessfulHits() const
 {
 	return _num50 + _num100 + _num300;
 }
 
-void StandardScore::computeTotalValue()
+void OsuScore::computeTotalValue()
 {
 	// Don't count scores made with supposedly unranked mods
 	if ((_mods & EMods::Relax) > 0 ||
@@ -81,7 +81,7 @@ void StandardScore::computeTotalValue()
 		) * multiplier;
 }
 
-void StandardScore::computeAimValue(const Beatmap& beatmap)
+void OsuScore::computeAimValue(const Beatmap& beatmap)
 {
 	f32 rawAim = beatmap.DifficultyAttribute(_mods, Beatmap::Aim);
 
@@ -135,7 +135,7 @@ void StandardScore::computeAimValue(const Beatmap& beatmap)
 	_aimValue *= 0.98f + (pow(beatmap.DifficultyAttribute(_mods, Beatmap::OD), 2) / 2500);
 }
 
-void StandardScore::computeSpeedValue(const Beatmap& beatmap)
+void OsuScore::computeSpeedValue(const Beatmap& beatmap)
 {
 	_speedValue = pow(5.0f * std::max(1.0f, beatmap.DifficultyAttribute(_mods, Beatmap::Speed) / 0.0675f) - 4.0f, 3.0f) / 100000.0f;
 
@@ -163,7 +163,7 @@ void StandardScore::computeSpeedValue(const Beatmap& beatmap)
 	_speedValue *= 0.98f + (pow(beatmap.DifficultyAttribute(_mods, Beatmap::OD), 2) / 2500);
 }
 
-void StandardScore::computeAccValue(const Beatmap& beatmap)
+void OsuScore::computeAccValue(const Beatmap& beatmap)
 {
 	// This percentage only considers HitCircles of any value - in this part of the calculation we focus on hitting the timing hit window
 	f32 betterAccuracyPercentage;

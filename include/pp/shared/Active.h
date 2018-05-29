@@ -8,7 +8,7 @@
 
 PP_NAMESPACE_BEGIN
 
-DEFINE_LOGGED_EXCEPTION(ActiveException);
+DEFINE_EXCEPTION(ActiveException);
 
 class Active
 {

@@ -6,7 +6,7 @@
 
 PP_NAMESPACE_BEGIN
 
-DEFINE_LOGGED_EXCEPTION(BeatmapException);
+DEFINE_EXCEPTION(BeatmapException);
 
 class Beatmap
 {
@@ -23,6 +23,8 @@ public:
 		Strain,
 		HitWindow300,
 		ScoreMultiplier,
+
+		NumTypes,
 	};
 
 	enum ERankedStatus : s32
@@ -70,15 +72,12 @@ private:
 
 	// General information
 	s32 _id;
-	EGamemode _mode = EGamemode::Standard;
+	EGamemode _mode = EGamemode::Osu;
 
 	// Calculated difficulty
 	using difficulty_t = std::unordered_map<
 		std::underlying_type_t<EMods>,
-		std::unordered_map<
-			std::underlying_type_t<EDifficultyAttributeType>,
-			f32
-		>
+		std::array<f32, NumTypes>
 	>;
 
 	difficulty_t _difficulty;

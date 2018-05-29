@@ -1,9 +1,9 @@
 #include <pp/Common.h>
 #include <pp/performance/Processor.h>
 
-#include <pp/performance/osu/StandardScore.h>
+#include <pp/performance/osu/OsuScore.h>
 #include <pp/performance/taiko/TaikoScore.h>
-#include <pp/performance/catch/CatchTheBeatScore.h>
+#include <pp/performance/catch/CatchScore.h>
 #include <pp/performance/mania/ManiaScore.h>
 
 #include <pp/shared/Threading.h>
@@ -14,30 +14,6 @@
 using namespace std::chrono;
 
 PP_NAMESPACE_BEGIN
-
-const std::array<const std::string, NumGamemodes> Processor::s_gamemodeSuffixes =
-{
-	"",
-	"_taiko",
-	"_fruits",
-	"_mania",
-};
-
-const std::array<const std::string, NumGamemodes> Processor::s_gamemodeNames =
-{
-	"osu!",
-	"Taiko",
-	"Catch the Beat",
-	"osu!mania",
-};
-
-const std::array<const std::string, NumGamemodes> Processor::s_gamemodeTags =
-{
-	"osu",
-	"taiko",
-	"catch_the_beat",
-	"osu_mania",
-};
 
 const Beatmap::ERankedStatus Processor::s_minRankedStatus = Beatmap::Ranked;
 const Beatmap::ERankedStatus Processor::s_maxRankedStatus = Beatmap::Approved;
@@ -155,8 +131,9 @@ void Processor::ProcessAllUsers(bool reProcess, u32 numThreads)
 	tlog::info() << StrFormat("Processing all users with ID larger than {0}.", begin);
 	auto progress = tlog::progress(numUsers);
 
-	s64 numUsersProcessed = 0;
+	std::atomic<s64> numUsersProcessed{0};
 	u32 currentConnection = 0;
+	auto lastProgressUpdate = steady_clock::now();
 
 	// We will break out as soon as there are no more results
 	while (begin <= maxUserId)
@@ -186,6 +163,8 @@ void Processor::ProcessAllUsers(bool reProcess, u32 numThreads)
 						newScoresBatches[currentConnection],
 						userId
 					);
+
+					++numUsersProcessed;
 				}
 			);
 
@@ -197,15 +176,12 @@ void Processor::ProcessAllUsers(bool reProcess, u32 numThreads)
 		}
 
 		begin += userIdStep;
-		numUsersProcessed += res.NumRows();
-
-		progress.update(numUsersProcessed);
 
 		u32 numPendingQueries = 0;
 
 		do
 		{
-			numPendingQueries = 0;
+			u32 numPendingQueries = 0;
 			for (auto& pDBConn : dbConnections)
 				numPendingQueries += (u32)pDBConn->NumPendingQueries();
 
@@ -215,7 +191,13 @@ void Processor::ProcessAllUsers(bool reProcess, u32 numThreads)
 				"connection:background",
 			}, 0.01f);
 
-			std::this_thread::sleep_for(milliseconds(10));
+			if (steady_clock::now() - lastProgressUpdate > milliseconds{100})
+			{
+				progress.update(numUsersProcessed);
+				lastProgressUpdate += milliseconds{100};
+			}
+
+			std::this_thread::sleep_for(milliseconds{10});
 		}
 		while (threadPool.GetNumTasksInSystem() > 0 || numPendingQueries > 0);
 
@@ -643,14 +625,14 @@ User Processor::processSingleUser(
 {
 	switch (_gamemode)
 	{
-	case EGamemode::Standard:
-		return processSingleUserGeneric<StandardScore>(selectedScoreId, db, dbSlave, newUsers, newScores, userId);
+	case EGamemode::Osu:
+		return processSingleUserGeneric<OsuScore>(selectedScoreId, db, dbSlave, newUsers, newScores, userId);
 
 	case EGamemode::Taiko:
 		return processSingleUserGeneric<TaikoScore>(selectedScoreId, db, dbSlave, newUsers, newScores, userId);
 
-	case EGamemode::CatchTheBeat:
-		return processSingleUserGeneric<CatchTheBeatScore>(selectedScoreId, db, dbSlave, newUsers, newScores, userId);
+	case EGamemode::Catch:
+		return processSingleUserGeneric<CatchScore>(selectedScoreId, db, dbSlave, newUsers, newScores, userId);
 
 	case EGamemode::Mania:
 		return processSingleUserGeneric<ManiaScore>(selectedScoreId, db, dbSlave, newUsers, newScores, userId);

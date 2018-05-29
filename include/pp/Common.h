@@ -6,6 +6,8 @@
 #include <tinylogger/tinylogger.h>
 #include <StrFormat.h>
 
+#include <vector>
+
 // We use a helper macro such that our namespace does not cause indentation.
 #define PP_NAMESPACE_BEGIN namespace pp {
 #define PP_NAMESPACE_END }
@@ -19,7 +21,7 @@ public:
 	: _file{file}, _line{line}, _description{description} {}
 	~Exception() = default;
 
-	void Print() const { std::cerr << StrFormat("Exception in: {0}:{1} - {2}\n", _file, _line, _description); }
+	void Log() const { tlog::error() << StrFormat("{0}:{1} - {2}", _file, _line, _description); }
 
 	std::string Description() const { return _description; }
 
@@ -33,34 +35,26 @@ protected:
 	std::string _description;
 };
 
-class LoggedException : public Exception
-{
-public:
-	LoggedException(const std::string& file, s32 line, const std::string& description)
-	: Exception{file, line, description} {}
-	~LoggedException() = default;
-
-	void Log() const { tlog::error() << StrFormat("{0}:{1} - {2}", _file, _line, _description); }
-};
-
 #define DEFINE_EXCEPTION(x) \
 	class x : public Exception \
 	{ public: x(const std::string& file, s32 line, const std::string& description) \
 	: Exception{file, line, description} {} }
 
-#define DEFINE_LOGGED_EXCEPTION(x) \
-	class x : public LoggedException \
-	{ public: x(const std::string& file, s32 line, const std::string& description) \
-	: LoggedException{file, line, description} {} }
-
 #define SRC_POS __FILE__,__LINE__
 
+// std::string operations
+std::vector<std::string> Split(std::string text, const std::string& delim);
+std::string ToLower(std::string str);
+std::string ToUpper(std::string str);
+
+// Math operations
 template <class T>
-inline const T Clamp(const T& value, const T& low, const T& high)
+const T Clamp(const T& value, const T& low, const T& high)
 {
 	return std::min(std::max(value, low), high);
 }
 
+// Common enums
 enum EMods : u32
 {
 	Nomod = 0,
@@ -100,14 +94,17 @@ enum EMods : u32
 	ScoreIncreaseMods = Hidden | HardRock | DoubleTime | Flashlight | FadeIn
 };
 
-enum EGamemode : u32
+enum class EGamemode
 {
-	Standard = 0,
+	Osu,
 	Taiko,
-	CatchTheBeat,
+	Catch,
 	Mania,
-
-	NumGamemodes,
 };
+
+std::string GamemodeSuffix(EGamemode gamemode);
+std::string GamemodeName(EGamemode gamemode);
+std::string GamemodeTag(EGamemode gamemode);
+EGamemode ToGamemode(std::string modeString);
 
 PP_NAMESPACE_END
