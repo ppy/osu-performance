@@ -1,0 +1,4 @@
+#include <pp/Common.h>
+
+PP_NAMESPACE_BEGIN
+PP_NAMESPACE_END

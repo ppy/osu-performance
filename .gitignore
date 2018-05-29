@@ -19,9 +19,9 @@ osu!/Properties/Strings.*.txt
 osu!/Constants/General_Version.cs
 
 # Build artifacts
-/[Bb]uild
-/Bin/osu-performance*
-/Bin/*.dll
+/build
+/bin/osu-performance*
+/bin/*.dll
 
 # MSVC auxiliary build files
 /Win32
