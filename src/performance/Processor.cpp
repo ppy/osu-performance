@@ -500,14 +500,17 @@ bool Processor::queryBeatmapDifficulty(DatabaseConnection& dbSlave, s32 startId,
 void Processor::pollAndProcessNewScores()
 {
 	static const s64 s_lastScoreIdUpdateStep = 100;
+	static const s64 s_maxNumScores = 1000;
 
 	UpdateBatch newUsers{_pDB, 0};  // We want the updates to occur immediately
 	UpdateBatch newScores{_pDB, 0}; // batches are used to conform the interface of processSingleUser
 
 	// Obtain all new scores since the last poll and process them
 	auto res = _pDBSlave->Query(StrFormat(
-		"SELECT `score_id`,`user_id`,`pp` FROM `osu_scores{0}_high` WHERE `score_id` > {1} ORDER BY `score_id` ASC",
-		GamemodeSuffix(_gamemode), _currentScoreId
+		"SELECT `score_id`,`user_id`,`pp` "
+		"FROM `osu_scores{0}_high` "
+		"WHERE `score_id` > {1} ORDER BY `score_id` ASC LIMIT {3}",
+		GamemodeSuffix(_gamemode), _currentScoreId, _config.UserMetadataTableName, s_maxNumScores
 	));
 
 	// Only reset the poll timer when we find nothing. Otherwise we want to directly keep going
