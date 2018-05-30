@@ -29,6 +29,8 @@ public:
 
 	size_t NumScores() const { return _scores.size(); }
 
+	const std::vector<Score::PPRecord>& Scores() const { return _scores; }
+
 	void ComputePPRecord();
 
 	const PPRecord& GetPPRecord() const { return _rating; }

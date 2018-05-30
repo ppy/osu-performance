@@ -522,20 +522,37 @@ void Processor::pollAndProcessNewScores()
 		if (!res.IsNull(2))
 			continue;
 
-		s64 ScoreId = res[0];
-		s64 UserId = res[1];
 
-		_currentScoreId = std::max(_currentScoreId, ScoreId);
+		s64 scoreId = res[0];
+		s64 userId = res[1];
 
-		tlog::info() << StrFormat("New score {0} in mode {1} by {2}.", ScoreId, GamemodeName(_gamemode), UserId);
+		_currentScoreId = std::max(_currentScoreId, scoreId);
 
-		processSingleUser(
-			ScoreId, // Only update the new score, old ones are caught by the background processor anyways
+		User user = processSingleUser(
+			scoreId, // Only update the new score, old ones are caught by the background processor anyways
 			*_pDB,
 			*_pDBSlave,
 			newUsers,
 			newScores,
-			UserId
+			userId
+		);
+
+		auto scoreIt = std::find_if(std::begin(user.Scores()), std::end(user.Scores()), [scoreId](const Score::PPRecord& a)
+		{
+			return a.ScoreId == scoreId;
+		});
+
+		if (scoreIt == std::end(user.Scores()))
+		{
+			tlog::warning() << StrFormat("Could not find score ID {0} in result set.", scoreId);
+			continue;
+		}
+
+		tlog::info() << StrFormat(
+			"Score={0w10ar} {1p1w6ar}pp {2p2w6ar}% | User={3w8ar} {4p1w7ar}pp {5p2w6ar}% | Beatmap={6w7ar}",
+			scoreId, scoreIt->Value, scoreIt->Accuracy * 100,
+			userId, user.GetPPRecord().Value, user.GetPPRecord().Accuracy,
+			scoreIt->BeatmapId
 		);
 
 		++_numScoresProcessedSinceLastStore;
