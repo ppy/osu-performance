@@ -133,6 +133,9 @@ private:
 	void storeCount(DatabaseConnection& db, std::string key, s64 value);
 	s64 retrieveCount(DatabaseConnection& db, std::string key);
 
+	std::string retrieveUserName(s64 userId, DatabaseConnection& db) const;
+	std::string retrieveBeatmapName(s32 beatmapId, DatabaseConnection& db) const;
+
 	EGamemode _gamemode;
 
 	RWMutex _beatmapMutex;

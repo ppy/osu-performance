@@ -284,19 +284,9 @@ void Processor::ProcessUsers(const std::vector<s64>& userIds)
 
 	for (const auto& user : users)
 	{
-		// Try to obtain name
-		std::string name = "<not-found>";
-		auto res = _pDBSlave->Query(StrFormat(
-			"SELECT `username` FROM `{0}` WHERE `user_id`='{1}'",
-			_config.UserMetadataTableName, user.Id()
-		));
-
-		if (res.NextRow())
-			name = (std::string)res[0];
-
 		tlog::info() << StrFormat(
 			"{0w16ar}  {1w8ar}  {2w5ar}pp  {3w6arp2} %",
-			name,
+			retrieveUserName(user.Id(), *_pDBSlave),
 			user.Id(),
 			(s32)std::round(user.GetPPRecord().Value),
 			user.GetPPRecord().Accuracy
@@ -871,6 +861,35 @@ s64 Processor::retrieveCount(DatabaseConnection& db, std::string key)
 			return res[0];
 
 	throw ProcessorException{SRC_POS, StrFormat("Unable to retrieve count '{0}'.", key)};
+}
+
+std::string Processor::retrieveUserName(s64 userId, DatabaseConnection& db) const
+{
+	auto res = db.Query(StrFormat(
+		"SELECT `username` FROM `{0}` WHERE `user_id`='{1}'",
+		_config.UserMetadataTableName, userId
+	));
+
+	if (!res.NextRow() || res.IsNull(0))
+		return "<not-found>";
+
+	return res[0];
+}
+
+std::string Processor::retrieveBeatmapName(s32 beatmapId, DatabaseConnection& db) const
+{
+	auto res = db.Query(StrFormat("SELECT `filename` FROM `osu_beatmaps` WHERE `beatmap_id`='{0}'", beatmapId));
+
+	if (!res.NextRow() || res.IsNull(0))
+		return "<not-found>";
+
+	std::string result = res[0];
+
+	// Strip trailing ".osu"
+	if (result.size() > 4)
+		result = result.substr(0, result.size()-4);
+
+	return result;
 }
 
 PP_NAMESPACE_END
