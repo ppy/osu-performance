@@ -104,31 +104,30 @@ void Processor::ProcessAllUsers(bool reProcess, u32 numThreads)
 		newScoresBatches.emplace_back(dbConnections[i], 10000);
 	}
 
-	static const s32 userIdStep = 10000;
+	static const s32 s_maxNumUsers = 10000;
 
-	s64 begin; // Will be initialized in the next few lines
+	s64 currentUserId; // Will be initialized in the next few lines
 	if (reProcess)
 	{
-		begin = 0;
+		currentUserId = 0;
 
 		// Make sure in case of a restart we still do the full process, even if we didn't trigger a store before
-		storeCount(*_pDB, lastUserIdKey(), begin);
+		storeCount(*_pDB, lastUserIdKey(), currentUserId);
 	}
 	else
-		begin = retrieveCount(*_pDB, lastUserIdKey());
+		currentUserId = retrieveCount(*_pDB, lastUserIdKey());
 
 	auto res = _pDBSlave->Query(StrFormat(
-		"SELECT MAX(`user_id`),COUNT(`user_id`) FROM `osu_user_stats{0}` WHERE `user_id`>={1}",
-		GamemodeSuffix(_gamemode), begin
+		"SELECT COUNT(`user_id`) FROM `osu_user_stats{0}` WHERE `user_id`>={1}",
+		GamemodeSuffix(_gamemode), currentUserId
 	));
 
 	if (!res.NextRow())
-		throw ProcessorException(SRC_POS, "Could not find user ID stats.");
+		throw ProcessorException(SRC_POS, "Could not find user ID count.");
 
-	const s64 maxUserId = res.IsNull(0) ? 0 : (s64)res[0];
-	const s64 numUsers = res[1];
+	const s64 numUsers = res[0];
 
-	tlog::info() << StrFormat("Processing all users with ID larger than {0}.", begin);
+	tlog::info() << StrFormat("Processing all users with ID larger than {0}.", currentUserId);
 	auto progress = tlog::progress(numUsers);
 
 	std::atomic<s64> numUsersProcessed{0};
@@ -136,17 +135,18 @@ void Processor::ProcessAllUsers(bool reProcess, u32 numThreads)
 	auto lastProgressUpdate = steady_clock::now();
 
 	// We will break out as soon as there are no more results
-	while (begin <= maxUserId)
+	while (true)
 	{
-		s64 end = begin + userIdStep;
-
 		res = _pDBSlave->Query(StrFormat(
 			"SELECT "
 			"`user_id`"
 			"FROM `osu_user_stats{0}` "
-			"WHERE `user_id` BETWEEN {1} AND {2}",
-			GamemodeSuffix(_gamemode), begin, end
+			"WHERE `user_id`>{1} ORDER BY `user_id` ASC LIMIT {2}",
+			GamemodeSuffix(_gamemode), currentUserId, s_maxNumUsers
 		));
+
+		if (res.NumRows() == 0)
+			break;
 
 		while (res.NextRow())
 		{
@@ -169,13 +169,12 @@ void Processor::ProcessAllUsers(bool reProcess, u32 numThreads)
 			);
 
 			currentConnection = (currentConnection + 1) % numThreads;
+			currentUserId = std::max(currentUserId, userId);
 
 			// Shut down when requested!
 			if (_shallShutdown)
 				return;
 		}
-
-		begin += userIdStep;
 
 		u32 numPendingQueries = 0;
 
@@ -202,7 +201,7 @@ void Processor::ProcessAllUsers(bool reProcess, u32 numThreads)
 		while (threadPool.GetNumTasksInSystem() > 0 || numPendingQueries > 0);
 
 		// Update our user_id counter
-		storeCount(*_pDB, lastUserIdKey(), begin);
+		storeCount(*_pDB, lastUserIdKey(), currentUserId);
 	}
 
 	tlog::success() << StrFormat(
