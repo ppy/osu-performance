@@ -44,6 +44,7 @@ protected:
 
 // std::string operations
 std::vector<std::string> Split(std::string text, const std::string& delim);
+std::string Join(const std::vector<std::string>& words, const std::string& delim);
 std::string ToLower(std::string str);
 std::string ToUpper(std::string str);
 
@@ -93,6 +94,13 @@ enum EMods : u32
 	FreeModAllowed = NoFail | Easy | Hidden | HardRock | SuddenDeath | Flashlight | FadeIn | Relax | Relax2 | SpunOut | keyMod,
 	ScoreIncreaseMods = Hidden | HardRock | DoubleTime | Flashlight | FadeIn
 };
+
+inline EMods MaskRelevantDifficultyMods(EMods mods)
+{
+	return static_cast<EMods>(mods & (DoubleTime | HalfTime | HardRock | Easy | keyMod));
+}
+
+std::string ToString(EMods mods);
 
 enum class EGamemode
 {

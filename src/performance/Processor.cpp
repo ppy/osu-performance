@@ -295,6 +295,86 @@ void Processor::ProcessUsers(const std::vector<s64>& userIds)
 	tlog::info() << "=============================================";
 }
 
+void Processor::ProcessScores(const std::vector<s64>& scoreIds)
+{
+	UpdateBatch newUsers{_pDB, 10000};
+	UpdateBatch newScores{_pDB, 10000};
+
+	tlog::info() << StrFormat("Processing {0} scores.", scoreIds.size());
+	auto progress = tlog::progress(scoreIds.size());
+
+	struct Result {
+		Score::PPRecord Score;
+		User User;
+		EMods Mods;
+	};
+
+	std::vector<Result> results;
+
+	for (s64 scoreId : scoreIds)
+	{
+		// Get user ID for this particular score
+		auto res = _pDBSlave->Query(StrFormat(
+			"SELECT `user_id`,`enabled_mods` FROM `osu_scores{0}_high` WHERE `score_id`='{1}'",
+			GamemodeSuffix(_gamemode), scoreId
+		));
+
+		if (!res.NextRow())
+			continue;
+
+		User user = processSingleUser(scoreId, *_pDB, *_pDBSlave, newUsers, newScores, res[0]);
+
+		auto scoreIt = std::find_if(std::begin(user.Scores()), std::end(user.Scores()), [scoreId](const Score::PPRecord& a)
+		{
+			return a.ScoreId == scoreId;
+		});
+
+		if (scoreIt == std::end(user.Scores()))
+		{
+			tlog::warning() << StrFormat("Could not find score ID {0} in result set.", scoreId);
+			continue;
+		}
+
+		results.push_back({*scoreIt, user, res[1]});
+		progress.update(results.size());
+	}
+
+	tlog::info() << StrFormat("Sorting {0} results.", results.size());
+
+	std::sort(std::begin(results), std::end(results), [](const Result& a, const Result& b) {
+		if (a.Score.Value != b.Score.Value)
+			return a.Score.Value > b.Score.Value;
+
+		return a.Score.ScoreId > b.Score.ScoreId;
+	});
+
+	tlog::success() << StrFormat(
+		"Processed {0} scores for {1}.",
+		scoreIds.size(),
+		tlog::durationToString(progress.duration())
+	);
+
+	tlog::info() << "================================================================================";
+	tlog::info() << "======= SCORE SUMMARY ==========================================================";
+	tlog::info() << "================================================================================";
+	tlog::info() << "            Name     Perf.      Acc.  Beatmap - Mods";
+	tlog::info() << "--------------------------------------------------------------------------------";
+
+	for (const auto& result : results)
+	{
+		tlog::info() << StrFormat(
+			"{0w16ar}  {1p1w6ar}pp  {2w6arp2} %  {3} - {4}",
+			retrieveUserName(result.User.Id(), *_pDBSlave),
+			result.Score.Value,
+			result.Score.Accuracy * 100,
+			retrieveBeatmapName(result.Score.BeatmapId, *_pDBSlave),
+			ToString(result.Mods)
+		);
+	}
+
+	tlog::info() << "================================================================================";
+}
+
 void Processor::readConfig(const std::string& filename)
 {
 	using json = nlohmann::json;

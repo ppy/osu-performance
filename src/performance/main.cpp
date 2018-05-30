@@ -97,9 +97,22 @@ int main(s32 argc, char* argv[])
 
 			parser.Parse();
 
-			std::vector<std::string> userNames = args::get(usersPositional);
 			Processor processor{ToGamemode(args::get(modePositional)), args::get(configFlag)};
 			processor.ProcessUsers(args::get(usersPositional));
+		});
+
+		args::Command scoresCommand(commands, "scores", "Compute pp of specific scores", [&](args::Subparser& parser)
+		{
+			args::PositionalList<s64> scoresPositional{
+				parser,
+				"scores",
+				"Score IDs to recompute pp for.",
+			};
+
+			parser.Parse();
+
+			Processor processor{ToGamemode(args::get(modePositional)), args::get(configFlag)};
+			processor.ProcessScores(args::get(scoresPositional));
 		});
 
 		args::GlobalOptions argumentsGlobal{parser, argumentsGroup};
