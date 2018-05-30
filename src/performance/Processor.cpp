@@ -815,7 +815,7 @@ User Processor::processSingleUserGeneric(
 			if (ratingChange < s_notableEventRatingDifferenceMinimum)
 				continue;
 
-			tlog::info() << StrFormat("Notable event: /b/{0} /u/{1}", score.BeatmapId(), userId);
+			tlog::info() << StrFormat("Notable event: s{0} u{1} b{2}", score.Id(), userId, score.BeatmapId());
 
 			db.NonQueryBackground(StrFormat(
 				"INSERT INTO "
