@@ -109,7 +109,7 @@ void OsuScore::computeAimValue(const Beatmap& beatmap)
 	f32 approachRate = beatmap.DifficultyAttribute(_mods, Beatmap::AR);
 	f32 approachRateFactor = 1.0f;
 	if (approachRate > 10.33f)
-		approachRateFactor += (approachRate - 10.33f) / 4.0f;
+		approachRateFactor += (approachRate - 10.33f) / 3.6f;
 	else if (approachRate < 8.0f)
 	{
 		// HD is worth more with lower ar!
