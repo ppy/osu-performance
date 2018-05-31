@@ -109,7 +109,7 @@ void OsuScore::computeAimValue(const Beatmap& beatmap)
 	f32 approachRate = beatmap.DifficultyAttribute(_mods, Beatmap::AR);
 	f32 approachRateFactor = 1.0f;
 	if (approachRate > 10.33f)
-		approachRateFactor += 0.45f * (approachRate - 10.33f);
+		approachRateFactor += (approachRate - 10.33f) / 4.0f;
 	else if (approachRate < 8.0f)
 	{
 		// HD is worth more with lower ar!
@@ -153,7 +153,14 @@ void OsuScore::computeSpeedValue(const Beatmap& beatmap)
 	float maxCombo = beatmap.DifficultyAttribute(_mods, Beatmap::MaxCombo);
 	if (maxCombo > 0)
 		_speedValue *= std::min(static_cast<f32>(pow(_maxCombo, 0.8f) / pow(maxCombo, 0.8f)), 1.0f);
+	
+	f32 approachRate = beatmap.DifficultyAttribute(_mods, Beatmap::AR);
+	f32 approachRateFactor = 1.0f;
+	if (approachRate > 10.33f)
+		approachRateFactor += (approachRate - 10.33f) / 3.0f;
 
+	_speedValue *= approachRateFactor;
+	
 	if ((_mods & EMods::Hidden) > 0)
 		_speedValue *= 1.18f;
 
