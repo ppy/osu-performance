@@ -59,15 +59,6 @@ public:
 	}
 
 private:
-	static const EMods s_relevantDifficultyMods = static_cast<EMods>(
-		DoubleTime | HalfTime | HardRock | Easy | keyMod
-	);
-
-	static EMods maskRelevantDifficultyMods(EMods mods)
-	{
-		return static_cast<EMods>(mods & s_relevantDifficultyMods);
-	}
-
 	static const std::unordered_map<std::string, EDifficultyAttributeType> s_difficultyAttributes;
 
 	// General information

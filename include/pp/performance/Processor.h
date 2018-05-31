@@ -28,6 +28,7 @@ public:
 	void ProcessAllUsers(bool reProcess, u32 numThreads);
 	void ProcessUsers(const std::vector<std::string>& userNames);
 	void ProcessUsers(const std::vector<s64>& userIds);
+	void ProcessScores(const std::vector<s64>& scoreIds);
 
 private:
 	static const Beatmap::ERankedStatus s_minRankedStatus;
@@ -132,6 +133,9 @@ private:
 
 	void storeCount(DatabaseConnection& db, std::string key, s64 value);
 	s64 retrieveCount(DatabaseConnection& db, std::string key);
+
+	std::string retrieveUserName(s64 userId, DatabaseConnection& db) const;
+	std::string retrieveBeatmapName(s32 beatmapId, DatabaseConnection& db) const;
 
 	EGamemode _gamemode;
 

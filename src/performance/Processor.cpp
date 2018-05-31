@@ -104,31 +104,30 @@ void Processor::ProcessAllUsers(bool reProcess, u32 numThreads)
 		newScoresBatches.emplace_back(dbConnections[i], 10000);
 	}
 
-	static const s32 userIdStep = 10000;
+	static const s32 s_maxNumUsers = 10000;
 
-	s64 begin; // Will be initialized in the next few lines
+	s64 currentUserId; // Will be initialized in the next few lines
 	if (reProcess)
 	{
-		begin = 0;
+		currentUserId = 0;
 
 		// Make sure in case of a restart we still do the full process, even if we didn't trigger a store before
-		storeCount(*_pDB, lastUserIdKey(), begin);
+		storeCount(*_pDB, lastUserIdKey(), currentUserId);
 	}
 	else
-		begin = retrieveCount(*_pDB, lastUserIdKey());
+		currentUserId = retrieveCount(*_pDB, lastUserIdKey());
 
 	auto res = _pDBSlave->Query(StrFormat(
-		"SELECT MAX(`user_id`),COUNT(`user_id`) FROM `osu_user_stats{0}` WHERE `user_id`>={1}",
-		GamemodeSuffix(_gamemode), begin
+		"SELECT COUNT(`user_id`) FROM `osu_user_stats{0}` WHERE `user_id`>={1}",
+		GamemodeSuffix(_gamemode), currentUserId
 	));
 
 	if (!res.NextRow())
-		throw ProcessorException(SRC_POS, "Could not find user ID stats.");
+		throw ProcessorException(SRC_POS, "Could not find user ID count.");
 
-	const s64 maxUserId = res.IsNull(0) ? 0 : (s64)res[0];
-	const s64 numUsers = res[1];
+	const s64 numUsers = res[0];
 
-	tlog::info() << StrFormat("Processing all users with ID larger than {0}.", begin);
+	tlog::info() << StrFormat("Processing all users with ID larger than {0}.", currentUserId);
 	auto progress = tlog::progress(numUsers);
 
 	std::atomic<s64> numUsersProcessed{0};
@@ -136,17 +135,18 @@ void Processor::ProcessAllUsers(bool reProcess, u32 numThreads)
 	auto lastProgressUpdate = steady_clock::now();
 
 	// We will break out as soon as there are no more results
-	while (begin <= maxUserId)
+	while (true)
 	{
-		s64 end = begin + userIdStep;
-
 		res = _pDBSlave->Query(StrFormat(
 			"SELECT "
 			"`user_id`"
 			"FROM `osu_user_stats{0}` "
-			"WHERE `user_id` BETWEEN {1} AND {2}",
-			GamemodeSuffix(_gamemode), begin, end
+			"WHERE `user_id`>{1} ORDER BY `user_id` ASC LIMIT {2}",
+			GamemodeSuffix(_gamemode), currentUserId, s_maxNumUsers
 		));
+
+		if (res.NumRows() == 0)
+			break;
 
 		while (res.NextRow())
 		{
@@ -169,13 +169,12 @@ void Processor::ProcessAllUsers(bool reProcess, u32 numThreads)
 			);
 
 			currentConnection = (currentConnection + 1) % numThreads;
+			currentUserId = std::max(currentUserId, userId);
 
 			// Shut down when requested!
 			if (_shallShutdown)
 				return;
 		}
-
-		begin += userIdStep;
 
 		u32 numPendingQueries = 0;
 
@@ -202,7 +201,7 @@ void Processor::ProcessAllUsers(bool reProcess, u32 numThreads)
 		while (threadPool.GetNumTasksInSystem() > 0 || numPendingQueries > 0);
 
 		// Update our user_id counter
-		storeCount(*_pDB, lastUserIdKey(), begin);
+		storeCount(*_pDB, lastUserIdKey(), currentUserId);
 	}
 
 	tlog::success() << StrFormat(
@@ -284,19 +283,9 @@ void Processor::ProcessUsers(const std::vector<s64>& userIds)
 
 	for (const auto& user : users)
 	{
-		// Try to obtain name
-		std::string name = "<not-found>";
-		auto res = _pDBSlave->Query(StrFormat(
-			"SELECT `username` FROM `{0}` WHERE `user_id`='{1}'",
-			_config.UserMetadataTableName, user.Id()
-		));
-
-		if (res.NextRow())
-			name = (std::string)res[0];
-
 		tlog::info() << StrFormat(
 			"{0w16ar}  {1w8ar}  {2w5ar}pp  {3w6arp2} %",
-			name,
+			retrieveUserName(user.Id(), *_pDBSlave),
 			user.Id(),
 			(s32)std::round(user.GetPPRecord().Value),
 			user.GetPPRecord().Accuracy
@@ -304,6 +293,86 @@ void Processor::ProcessUsers(const std::vector<s64>& userIds)
 	}
 
 	tlog::info() << "=============================================";
+}
+
+void Processor::ProcessScores(const std::vector<s64>& scoreIds)
+{
+	UpdateBatch newUsers{_pDB, 10000};
+	UpdateBatch newScores{_pDB, 10000};
+
+	tlog::info() << StrFormat("Processing {0} scores.", scoreIds.size());
+	auto progress = tlog::progress(scoreIds.size());
+
+	struct Result {
+		Score::PPRecord PP;
+		s64 UserId;
+		EMods Mods;
+	};
+
+	std::vector<Result> results;
+
+	for (s64 scoreId : scoreIds)
+	{
+		// Get user ID for this particular score
+		auto res = _pDBSlave->Query(StrFormat(
+			"SELECT `user_id`,`enabled_mods` FROM `osu_scores{0}_high` WHERE `score_id`='{1}'",
+			GamemodeSuffix(_gamemode), scoreId
+		));
+
+		if (!res.NextRow())
+			continue;
+
+		User user = processSingleUser(scoreId, *_pDB, *_pDBSlave, newUsers, newScores, res[0]);
+
+		auto scoreIt = std::find_if(std::begin(user.Scores()), std::end(user.Scores()), [scoreId](const Score::PPRecord& a)
+		{
+			return a.ScoreId == scoreId;
+		});
+
+		if (scoreIt == std::end(user.Scores()))
+		{
+			tlog::warning() << StrFormat("Could not find score ID {0} in result set.", scoreId);
+			continue;
+		}
+
+		results.push_back({*scoreIt, user.Id(), res[1]});
+		progress.update(results.size());
+	}
+
+	tlog::info() << StrFormat("Sorting {0} results.", results.size());
+
+	std::sort(std::begin(results), std::end(results), [](const Result& a, const Result& b) {
+		if (a.PP.Value != b.PP.Value)
+			return a.PP.Value > b.PP.Value;
+
+		return a.PP.ScoreId > b.PP.ScoreId;
+	});
+
+	tlog::success() << StrFormat(
+		"Processed {0} scores for {1}.",
+		scoreIds.size(),
+		tlog::durationToString(progress.duration())
+	);
+
+	tlog::info() << "================================================================================";
+	tlog::info() << "======= SCORE SUMMARY ==========================================================";
+	tlog::info() << "================================================================================";
+	tlog::info() << "            Name     Perf.      Acc.  Beatmap - Mods";
+	tlog::info() << "--------------------------------------------------------------------------------";
+
+	for (const auto& result : results)
+	{
+		tlog::info() << StrFormat(
+			"{0w16ar}  {1p1w6ar}pp  {2w6arp2} %  {3} - {4}",
+			retrieveUserName(result.UserId, *_pDBSlave),
+			result.PP.Value,
+			result.PP.Accuracy * 100,
+			retrieveBeatmapName(result.PP.BeatmapId, *_pDBSlave),
+			ToString(result.Mods)
+		);
+	}
+
+	tlog::info() << "================================================================================";
 }
 
 void Processor::readConfig(const std::string& filename)
@@ -500,14 +569,17 @@ bool Processor::queryBeatmapDifficulty(DatabaseConnection& dbSlave, s32 startId,
 void Processor::pollAndProcessNewScores()
 {
 	static const s64 s_lastScoreIdUpdateStep = 100;
+	static const s64 s_maxNumScores = 1000;
 
 	UpdateBatch newUsers{_pDB, 0};  // We want the updates to occur immediately
 	UpdateBatch newScores{_pDB, 0}; // batches are used to conform the interface of processSingleUser
 
 	// Obtain all new scores since the last poll and process them
 	auto res = _pDBSlave->Query(StrFormat(
-		"SELECT `score_id`,`user_id`,`pp` FROM `osu_scores{0}_high` WHERE `score_id` > {1} ORDER BY `score_id` ASC",
-		GamemodeSuffix(_gamemode), _currentScoreId
+		"SELECT `score_id`,`user_id`,`pp` "
+		"FROM `osu_scores{0}_high` "
+		"WHERE `score_id` > {1} ORDER BY `score_id` ASC LIMIT {3}",
+		GamemodeSuffix(_gamemode), _currentScoreId, _config.UserMetadataTableName, s_maxNumScores
 	));
 
 	// Only reset the poll timer when we find nothing. Otherwise we want to directly keep going
@@ -522,20 +594,37 @@ void Processor::pollAndProcessNewScores()
 		if (!res.IsNull(2))
 			continue;
 
-		s64 ScoreId = res[0];
-		s64 UserId = res[1];
 
-		_currentScoreId = std::max(_currentScoreId, ScoreId);
+		s64 scoreId = res[0];
+		s64 userId = res[1];
 
-		tlog::info() << StrFormat("New score {0} in mode {1} by {2}.", ScoreId, GamemodeName(_gamemode), UserId);
+		_currentScoreId = std::max(_currentScoreId, scoreId);
 
-		processSingleUser(
-			ScoreId, // Only update the new score, old ones are caught by the background processor anyways
+		User user = processSingleUser(
+			scoreId, // Only update the new score, old ones are caught by the background processor anyways
 			*_pDB,
 			*_pDBSlave,
 			newUsers,
 			newScores,
-			UserId
+			userId
+		);
+
+		auto scoreIt = std::find_if(std::begin(user.Scores()), std::end(user.Scores()), [scoreId](const Score::PPRecord& a)
+		{
+			return a.ScoreId == scoreId;
+		});
+
+		if (scoreIt == std::end(user.Scores()))
+		{
+			tlog::warning() << StrFormat("Could not find score ID {0} in result set.", scoreId);
+			continue;
+		}
+
+		tlog::info() << StrFormat(
+			"Score={0w10ar} {1p1w6ar}pp {2p2w6ar}% | User={3w8ar} {4p1w7ar}pp {5p2w6ar}% | Beatmap={6w7ar}",
+			scoreId, scoreIt->Value, scoreIt->Accuracy * 100,
+			userId, user.GetPPRecord().Value, user.GetPPRecord().Accuracy,
+			scoreIt->BeatmapId
 		);
 
 		++_numScoresProcessedSinceLastStore;
@@ -795,7 +884,7 @@ User Processor::processSingleUserGeneric(
 			if (ratingChange < s_notableEventRatingDifferenceMinimum)
 				continue;
 
-			tlog::info() << StrFormat("Notable event: /b/{0} /u/{1}", score.BeatmapId(), userId);
+			tlog::info() << StrFormat("Notable event: s{0} u{1} b{2}", score.Id(), userId, score.BeatmapId());
 
 			db.NonQueryBackground(StrFormat(
 				"INSERT INTO "
@@ -851,6 +940,35 @@ s64 Processor::retrieveCount(DatabaseConnection& db, std::string key)
 			return res[0];
 
 	throw ProcessorException{SRC_POS, StrFormat("Unable to retrieve count '{0}'.", key)};
+}
+
+std::string Processor::retrieveUserName(s64 userId, DatabaseConnection& db) const
+{
+	auto res = db.Query(StrFormat(
+		"SELECT `username` FROM `{0}` WHERE `user_id`='{1}'",
+		_config.UserMetadataTableName, userId
+	));
+
+	if (!res.NextRow() || res.IsNull(0))
+		return "<not-found>";
+
+	return res[0];
+}
+
+std::string Processor::retrieveBeatmapName(s32 beatmapId, DatabaseConnection& db) const
+{
+	auto res = db.Query(StrFormat("SELECT `filename` FROM `osu_beatmaps` WHERE `beatmap_id`='{0}'", beatmapId));
+
+	if (!res.NextRow() || res.IsNull(0))
+		return "<not-found>";
+
+	std::string result = res[0];
+
+	// Strip trailing ".osu"
+	if (result.size() > 4)
+		result = result.substr(0, result.size()-4);
+
+	return result;
 }
 
 PP_NAMESPACE_END
