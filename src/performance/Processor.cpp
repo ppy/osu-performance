@@ -304,8 +304,8 @@ void Processor::ProcessScores(const std::vector<s64>& scoreIds)
 	auto progress = tlog::progress(scoreIds.size());
 
 	struct Result {
-		Score::PPRecord Score;
-		User User;
+		Score::PPRecord PP;
+		s64 UserId;
 		EMods Mods;
 	};
 
@@ -335,17 +335,17 @@ void Processor::ProcessScores(const std::vector<s64>& scoreIds)
 			continue;
 		}
 
-		results.push_back({*scoreIt, user, res[1]});
+		results.push_back({*scoreIt, user.Id(), res[1]});
 		progress.update(results.size());
 	}
 
 	tlog::info() << StrFormat("Sorting {0} results.", results.size());
 
 	std::sort(std::begin(results), std::end(results), [](const Result& a, const Result& b) {
-		if (a.Score.Value != b.Score.Value)
-			return a.Score.Value > b.Score.Value;
+		if (a.PP.Value != b.PP.Value)
+			return a.PP.Value > b.PP.Value;
 
-		return a.Score.ScoreId > b.Score.ScoreId;
+		return a.PP.ScoreId > b.PP.ScoreId;
 	});
 
 	tlog::success() << StrFormat(
@@ -364,10 +364,10 @@ void Processor::ProcessScores(const std::vector<s64>& scoreIds)
 	{
 		tlog::info() << StrFormat(
 			"{0w16ar}  {1p1w6ar}pp  {2w6arp2} %  {3} - {4}",
-			retrieveUserName(result.User.Id(), *_pDBSlave),
-			result.Score.Value,
-			result.Score.Accuracy * 100,
-			retrieveBeatmapName(result.Score.BeatmapId, *_pDBSlave),
+			retrieveUserName(result.UserId, *_pDBSlave),
+			result.PP.Value,
+			result.PP.Accuracy * 100,
+			retrieveBeatmapName(result.PP.BeatmapId, *_pDBSlave),
 			ToString(result.Mods)
 		);
 	}
