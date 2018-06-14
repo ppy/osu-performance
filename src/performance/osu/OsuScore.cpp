@@ -128,6 +128,7 @@ void OsuScore::computeAimValue(const Beatmap& beatmap)
 	if ((_mods & EMods::Flashlight) > 0)
 		// Apply length bonus again if flashlight is on simply because it becomes a lot harder on longer maps.
 		_aimValue *= 1.45f * LengthBonus;
+		// Bonus for HDFL
 		if ((_mods & EMods::Hidden) > 0)
 			_aimValue *= 1.05f;
 
