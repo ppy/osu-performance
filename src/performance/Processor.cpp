@@ -36,7 +36,7 @@ Processor::Processor(EGamemode gamemode, const std::string& configFile)
 
 	queryBeatmapBlacklist();
 	queryBeatmapDifficultyAttributes();
-	queryAllBeatmapDifficulties(16);
+	queryAllBeatmapDifficulties(4);
 }
 
 Processor::~Processor()
