@@ -451,7 +451,7 @@ std::shared_ptr<DatabaseConnection> Processor::newDBConnectionSlave()
 
 void Processor::queryAllBeatmapDifficulties(u32 numThreads)
 {
-	static const s32 step = 10000;
+	static const s32 step = 1000;
 
 	auto res = _pDBSlave->Query(StrFormat(
 		"SELECT MAX(`beatmap_id`),COUNT(*) FROM `osu_beatmaps` WHERE `approved` BETWEEN {0} AND {1} AND (`playmode`=0 OR `playmode`={2})",
