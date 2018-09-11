@@ -109,7 +109,7 @@ void OsuScore::computeAimValue(const Beatmap& beatmap)
 	f32 approachRate = beatmap.DifficultyAttribute(_mods, Beatmap::AR);
 	f32 approachRateFactor = 1.0f;
 	if (approachRate > 10.33f)
-		approachRateFactor += (approachRate - 10.33f) / 3.2f;
+		approachRateFactor += 0.35 * (approachRate - 10.33f);
 	else if (approachRate < 8.0f)
 	{
 		// HD is worth more with lower ar!
@@ -128,9 +128,6 @@ void OsuScore::computeAimValue(const Beatmap& beatmap)
 	if ((_mods & EMods::Flashlight) > 0)
 		// Apply length bonus again if flashlight is on simply because it becomes a lot harder on longer maps.
 		_aimValue *= 1.45f * LengthBonus;
-		// Bonus for HDFL
-		// if ((_mods & EMods::Hidden) > 0)
-		// 	_aimValue *= 1.05f;
 
 	// Scale the aim value with accuracy _slightly_
 	_aimValue *= 0.5f + Accuracy() / 2.0f;
@@ -160,7 +157,7 @@ void OsuScore::computeSpeedValue(const Beatmap& beatmap)
 	f32 approachRate = beatmap.DifficultyAttribute(_mods, Beatmap::AR);
 	f32 approachRateFactor = 1.0f;
 	if (approachRate > 10.33f)
-		approachRateFactor += (approachRate - 10.33f) / 3.0f;
+		approachRateFactor += 0.30f * (approachRate - 10.33f);
 
 	_speedValue *= approachRateFactor;
 	
