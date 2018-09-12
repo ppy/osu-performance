@@ -888,7 +888,7 @@ User Processor::processSingleUserGeneric(
 
 			db.NonQueryBackground(StrFormat(
 				"INSERT INTO "
-				"osu_user_performance_change(user_id, mode, beatmap_id, performance_change, rank) "
+				"osu_user_performance_change(user_id, mode, beatmap_id, performance_change, `rank`) "
 				"VALUES({0},{1},{2},{3},null)",
 				userId,
 				_gamemode,
