@@ -1,6 +1,9 @@
-[submodule "Dependencies/args"]
-	path = Dependencies/args
+[submodule "dependencies/args"]
+	path = dependencies/args
 	url = https://github.com/Taywee/args
-[submodule "Dependencies/json"]
-	path = Dependencies/json
+[submodule "dependencies/tinylogger"]
+	path = dependencies/tinylogger
+	url = https://github.com/Tom94/tinylogger
+[submodule "dependencies/json"]
+	path = dependencies/json
 	url = https://github.com/nlohmann/json
