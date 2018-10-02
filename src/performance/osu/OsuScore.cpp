@@ -145,11 +145,11 @@ void OsuScore::computeSpeedValue(const Beatmap& beatmap)
 	int numTotalHits = TotalHits();
 
 	// Longer maps are worth more
-	_speedValue *= 0.55f + 0.4f * std::min(1.0f, static_cast<f32>(numTotalHits) / 250.0f) +
-        	(numTotalHits > 250 ? 0.1f * std::min(1.0f, static_cast<f32>(numTotalHits - 250) / 250.0f) +
+	// 0-500 combo is scaled exponentially, 500-2000 linearly, 2000+ logarithmically
+	f32 lowComboMultiplier = std::max(0.5f, 0.59f + (-0.59f * exp(-0.0038f * static_cast<f32>(numTotalHits))));
+	_speedValue = 0.55f + lowComboMultiplier +
         	(numTotalHits > 500 ? 0.3f * std::min(1.0f, static_cast<f32>(numTotalHits - 500) / 1500.0f) +
-        	(numTotalHits > 2000 ? log10(static_cast<f32>(numTotalHits) / 2000.0f) * 0.5f : 0.0f)
-		 : 0.0f) : 0.0f);
+        	(numTotalHits > 2000 ? log10(static_cast<f32>(numTotalHits) / 2000.0f) * 0.5f : 0.0f) : 0.0f);
 
 	// Penalize misses exponentially. This mainly fixes tag4 maps and the likes until a per-hitobject solution is available
 	_speedValue *= pow(0.97f, _numMiss);
