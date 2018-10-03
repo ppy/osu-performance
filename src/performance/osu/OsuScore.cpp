@@ -93,8 +93,17 @@ void OsuScore::computeAimValue(const Beatmap& beatmap)
 	int numTotalHits = TotalHits();
 
 	// Longer maps are worth more
-	f32 LengthBonus = 0.95f + 0.4f * std::min(1.0f, static_cast<f32>(numTotalHits) / 2000.0f) +
-		(numTotalHits > 2000 ? log10(static_cast<f32>(numTotalHits) / 2000.0f) * 0.5f : 0.0f);
+	
+	// 0-500 combo is scaled exponentially, 500-2000 linearly, 2000+ logarithmically
+	f32 lowComboMultiplier = std::min(0.5f, 0.59f + (-0.59f * static_cast<f32>(exp(-0.0038f * static_cast<f32>(numTotalHits)))));
+	
+	// Limit combo scaling harshness on low difficulty beatmaps
+	lowComboMultiplier = std::min(0.95f + std::min(0.1f, static_cast<f32>(numTotalHits) / 5000.0f), 
+				      0.55f + lowComboMultiplier + std::max(0.0f, 0.4f - (_aimValue / 12.5f))); 
+	
+	f32 LengthBonus = lowComboMultiplier +
+        	(numTotalHits > 500 ? 0.3f * std::min(1.0f, static_cast<f32>(numTotalHits - 500) / 1500.0f) +
+        	(numTotalHits > 2000 ? log10(static_cast<f32>(numTotalHits) / 2000.0f) * 0.5f : 0.0f) : 0.0f);
 
 	_aimValue *= LengthBonus;
 
@@ -127,7 +136,7 @@ void OsuScore::computeAimValue(const Beatmap& beatmap)
 
 	if ((_mods & EMods::Flashlight) > 0)
 		// Apply length bonus again if flashlight is on simply because it becomes a lot harder on longer maps.
-		_aimValue *= 1.45f * LengthBonus;
+		_aimValue *= std::max(1.0f, 1.45f * LengthBonus);
 
 	// Scale the aim value with accuracy _slightly_
 	_aimValue *= 0.5f + Accuracy() / 2.0f;
@@ -142,9 +151,17 @@ void OsuScore::computeSpeedValue(const Beatmap& beatmap)
 	int numTotalHits = TotalHits();
 
 	// Longer maps are worth more
-	_speedValue *=
-		0.95f + 0.4f * std::min(1.0f, static_cast<f32>(numTotalHits) / 2000.0f) +
-		(numTotalHits > 2000 ? log10(static_cast<f32>(numTotalHits) / 2000.0f) * 0.5f : 0.0f);
+	
+	// 0-500 combo is scaled exponentially, 500-2000 linearly, 2000+ logarithmically
+	f32 lowComboMultiplier = std::min(0.5f, 0.59f + (-0.59f * static_cast<f32>(exp(-0.0038f * static_cast<f32>(numTotalHits)))));
+	
+	// Limit combo scaling harshness on low difficulty beatmaps
+	lowComboMultiplier = std::min(0.95f + std::min(0.1f, static_cast<f32>(numTotalHits) / 5000.0f), 
+				      0.55f + lowComboMultiplier + std::max(0.0f, 0.4f - (_speedValue / 12.5f))); 
+	
+	_speedValue *= lowComboMultiplier +
+        	(numTotalHits > 500 ? 0.3f * std::min(1.0f, static_cast<f32>(numTotalHits - 500) / 1500.0f) +
+        	(numTotalHits > 2000 ? log10(static_cast<f32>(numTotalHits) / 2000.0f) * 0.5f : 0.0f) : 0.0f);
 
 	// Penalize misses exponentially. This mainly fixes tag4 maps and the likes until a per-hitobject solution is available
 	_speedValue *= pow(0.97f, _numMiss);
