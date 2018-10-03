@@ -95,10 +95,10 @@ void OsuScore::computeAimValue(const Beatmap& beatmap)
 	// Longer maps are worth more
 	
 	// 0-500 combo is scaled exponentially, 500-2000 linearly, 2000+ logarithmically
-	f32 lowComboMultiplier = std::max(0.5f, 0.59f + (-0.59f * static_cast<f32>(exp(-0.0038f * static_cast<f32>(numTotalHits)))));
+	f32 lowComboMultiplier = std::min(0.5f, 0.59f + (-0.59f * static_cast<f32>(exp(-0.0038f * static_cast<f32>(numTotalHits)))));
 	
 	// Limit combo scaling harshness on low difficulty beatmaps
-	lowComboMultiplier = std::min(0.95f + std::max(0.1f, static_cast<f32>(numTotalHits) / 5000.0f), 
+	lowComboMultiplier = std::min(0.95f + std::min(0.1f, static_cast<f32>(numTotalHits) / 5000.0f), 
 				      0.55f + lowComboMultiplier + std::max(0.0f, 0.4f - (_aimValue / 12.5f))); 
 	
 	f32 LengthBonus = lowComboMultiplier +
@@ -153,10 +153,10 @@ void OsuScore::computeSpeedValue(const Beatmap& beatmap)
 	// Longer maps are worth more
 	
 	// 0-500 combo is scaled exponentially, 500-2000 linearly, 2000+ logarithmically
-	f32 lowComboMultiplier = std::max(0.5f, 0.59f + (-0.59f * static_cast<f32>(exp(-0.0038f * static_cast<f32>(numTotalHits)))));
+	f32 lowComboMultiplier = std::min(0.5f, 0.59f + (-0.59f * static_cast<f32>(exp(-0.0038f * static_cast<f32>(numTotalHits)))));
 	
 	// Limit combo scaling harshness on low difficulty beatmaps
-	lowComboMultiplier = std::min(0.95f + std::max(0.1f, static_cast<f32>(numTotalHits) / 5000.0f), 
+	lowComboMultiplier = std::min(0.95f + std::min(0.1f, static_cast<f32>(numTotalHits) / 5000.0f), 
 				      0.55f + lowComboMultiplier + std::max(0.0f, 0.4f - (_speedValue / 12.5f))); 
 	
 	_speedValue = lowComboMultiplier +
