@@ -159,7 +159,7 @@ void OsuScore::computeSpeedValue(const Beatmap& beatmap)
 	lowComboMultiplier = std::min(0.95f + std::min(0.1f, static_cast<f32>(numTotalHits) / 5000.0f), 
 				      0.55f + lowComboMultiplier + std::max(0.0f, 0.4f - (_speedValue / 12.5f))); 
 	
-	_speedValue = lowComboMultiplier +
+	_speedValue *= lowComboMultiplier +
         	(numTotalHits > 500 ? 0.3f * std::min(1.0f, static_cast<f32>(numTotalHits - 500) / 1500.0f) +
         	(numTotalHits > 2000 ? log10(static_cast<f32>(numTotalHits) / 2000.0f) * 0.5f : 0.0f) : 0.0f);
 
