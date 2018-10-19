@@ -31,12 +31,29 @@ Processor::Processor(EGamemode gamemode, const std::string& configFile)
 	_pDataDog = std::make_unique<DDog>(_config.DataDogHost, _config.DataDogPort);
 	_pDataDog->Increment("osu.pp.startups", 1, {StrFormat("mode:{0}", GamemodeTag(_gamemode))});
 
-	_pDB = newDBConnectionMaster();
+	tlog::info() << "Waiting for database...";
+
+	while (true)
+	{
+		try
+		{
+			_pDB = newDBConnectionMaster();
+
+			if (retrieveCount(*_pDB, "docker_db_step") == 2)
+				break;
+		}
+		catch (...)
+		{
+		}
+	}
+
 	_pDBSlave = newDBConnectionSlave();
 
 	queryBeatmapBlacklist();
 	queryBeatmapDifficultyAttributes();
 	queryAllBeatmapDifficulties(16);
+
+	storeCount(*_pDB, "docker_db_step", 3);
 }
 
 Processor::~Processor()
