@@ -31,7 +31,7 @@ Processor::Processor(EGamemode gamemode, const std::string& configFile)
 	_pDataDog = std::make_unique<DDog>(_config.DataDogHost, _config.DataDogPort);
 	_pDataDog->Increment("osu.pp.startups", 1, {StrFormat("mode:{0}", GamemodeTag(_gamemode))});
 
-	bool isDocker = std::getenv("DOCKER") == "1";
+	bool isDocker = std::getenv("DOCKER") != NULL;
 
 	if (isDocker)
 	{
