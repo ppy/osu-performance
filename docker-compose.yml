@@ -4,6 +4,8 @@ x-env: &x-env
   DB_HOST: db
   DB_PORT: 3306
   DB_USER: osuweb
+  DB_PASS: ''
+  DB_DATABASE: osu
   THREADS: 8
 
 services:

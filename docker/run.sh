@@ -12,8 +12,8 @@ echo "{
     \"mysql.master.host\" : \"${DB_HOST}\",
     \"mysql.master.port\" : ${DB_PORT},
     \"mysql.master.username\" : \"${DB_USER}\",
-    \"mysql.master.password\" : \"\",
-    \"mysql.master.database\" : \"osu\"
+    \"mysql.master.password\" : \"${DB_PASS}\",
+    \"mysql.master.database\" : \"${DB_DATABASE}\"
 }" > config.json
 
 ./osu-performance all -t ${THREADS}
