@@ -45,6 +45,8 @@ Processor::Processor(EGamemode gamemode, const std::string& configFile)
 		catch (...)
 		{
 		}
+
+		std::this_thread::sleep_for(seconds(1));
 	}
 
 	_pDBSlave = newDBConnectionSlave();
