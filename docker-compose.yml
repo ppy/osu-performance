@@ -13,6 +13,6 @@ services:
     volumes:
       - .:/data
     working_dir: /data
-    env:
+    environment:
       <<: *x-env
     command: [ './docker/run.sh' ]
