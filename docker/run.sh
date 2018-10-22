@@ -1,7 +1,5 @@
 #!/bin/sh
 
-cd ..
-
 mkdir -p Build
 
 cd Build
