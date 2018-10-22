@@ -31,23 +31,32 @@ Processor::Processor(EGamemode gamemode, const std::string& configFile)
 	_pDataDog = std::make_unique<DDog>(_config.DataDogHost, _config.DataDogPort);
 	_pDataDog->Increment("osu.pp.startups", 1, {StrFormat("mode:{0}", GamemodeTag(_gamemode))});
 
-	tlog::info() << "Waiting for database...";
+	bool isDocker = std::getenv("DOCKER") == "1";
 
-	while (true)
+	if (isDocker)
 	{
-		try
-		{
-			_pDB = newDBConnectionMaster();
+		tlog::info() << "Waiting for database...";
 
-			if (retrieveCount(*_pDB, "docker_db_step") == 2)
-				break;
-		}
-		catch (...)
+		while (true)
 		{
-		}
+			try
+			{
+				_pDB = newDBConnectionMaster();
 
-		std::this_thread::sleep_for(seconds(1));
+				if (retrieveCount(*_pDB, "docker_db_step") == 2)
+					break;
+			}
+			catch (...)
+			{
+				// This may fail due to either the DB not being started yet, or the tables haven't been populated
+				// This indicates that other docker processes are still running, so this failure can be ignored
+			}
+
+			std::this_thread::sleep_for(seconds(1));
+		}
 	}
+	else
+		_pDB = newDBConnectionMaster();
 
 	_pDBSlave = newDBConnectionSlave();
 
@@ -55,7 +64,8 @@ Processor::Processor(EGamemode gamemode, const std::string& configFile)
 	queryBeatmapDifficultyAttributes();
 	queryAllBeatmapDifficulties(16);
 
-	storeCount(*_pDB, "docker_db_step", 3);
+	if (isDocker)
+		storeCount(*_pDB, "docker_db_step", 3);
 }
 
 Processor::~Processor()
