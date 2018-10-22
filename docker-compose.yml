@@ -1,18 +1,18 @@
 version: '3.4'
 
 x-env: &x-env
-	DB_HOST: db
-	DB_PORT: 3306
-	DB_USER: osuweb
-	THREADS: 8
+  DB_HOST: db
+  DB_PORT: 3306
+  DB_USER: osuweb
+  THREADS: 8
 
 services:
   pp:
     build:
-			context: ./docker
-		volumes:
-			- .:/data
-		working_dir: /data
-		env:
-			<<: *x-env
-		command: [ './docker/run.sh' ]
+      context: ./docker
+    volumes:
+      - .:/data
+    working_dir: /data
+    env:
+      <<: *x-env
+    command: [ './docker/run.sh' ]
