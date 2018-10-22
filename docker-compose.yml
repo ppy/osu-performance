@@ -14,5 +14,6 @@ services:
       - .:/data
     working_dir: /data
     environment:
-      <<: *x-env
+			<<: *x-env
+			DOCKER: 1
     command: [ './docker/run.sh' ]
