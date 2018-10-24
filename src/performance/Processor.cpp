@@ -43,7 +43,7 @@ Processor::Processor(EGamemode gamemode, const std::string& configFile)
 			{
 				_pDB = newDBConnectionMaster();
 
-				if (retrieveCount(*_pDB, "docker_db_step") == 2)
+				if (retrieveCount(*_pDB, "docker_db_step") >= 2)
 					break;
 			}
 			catch (...)
