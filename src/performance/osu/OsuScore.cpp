@@ -141,9 +141,7 @@ void OsuScore::computeSpeedValue(const Beatmap& beatmap)
 	int numTotalHits = TotalHits();
 
 	// Longer maps are worth more
-	_speedValue *=
-		0.95f + 0.4f * std::min(1.0f, static_cast<f32>(numTotalHits) / 2000.0f) +
-		(numTotalHits > 2000 ? log10(static_cast<f32>(numTotalHits) / 2000.0f) * 0.5f : 0.0f);
+	_speedValue *= beatmap.DifficultyAttribute(_mods, Beatmap::LengthBonus);
 
 	// Penalize misses exponentially. This mainly fixes tag4 maps and the likes until a per-hitobject solution is available
 	_speedValue *= pow(0.97f, _numMiss);
