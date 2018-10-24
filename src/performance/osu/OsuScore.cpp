@@ -93,8 +93,7 @@ void OsuScore::computeAimValue(const Beatmap& beatmap)
 	int numTotalHits = TotalHits();
 
 	// Longer maps are worth more
-	f32 LengthBonus = 0.95f + 0.4f * std::min(1.0f, static_cast<f32>(numTotalHits) / 2000.0f) +
-		(numTotalHits > 2000 ? log10(static_cast<f32>(numTotalHits) / 2000.0f) * 0.5f : 0.0f);
+	f32 LengthBonus = beatmap.DifficultyAttribute(_mods, Beatmap::LengthBonus);
 
 	_aimValue *= LengthBonus;
 
