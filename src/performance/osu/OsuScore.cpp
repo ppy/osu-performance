@@ -93,7 +93,7 @@ void OsuScore::computeAimValue(const Beatmap& beatmap)
 	int numTotalHits = TotalHits();
 
 	// Longer maps are worth more
-	f32 LengthBonus = beatmap.DifficultyAttribute(_mods, Beatmap::LengthBonus);
+	f32 LengthBonus = beatmap.DifficultyAttribute(_mods, Beatmap::AimLengthBonus);
 
 	_aimValue *= LengthBonus;
 
@@ -141,7 +141,7 @@ void OsuScore::computeSpeedValue(const Beatmap& beatmap)
 	int numTotalHits = TotalHits();
 
 	// Longer maps are worth more
-	_speedValue *= beatmap.DifficultyAttribute(_mods, Beatmap::LengthBonus);
+	_speedValue *= beatmap.DifficultyAttribute(_mods, Beatmap::SpeedLengthBonus);
 
 	// Penalize misses exponentially. This mainly fixes tag4 maps and the likes until a per-hitobject solution is available
 	_speedValue *= pow(0.97f, _numMiss);
