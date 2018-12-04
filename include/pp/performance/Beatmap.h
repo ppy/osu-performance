@@ -23,8 +23,8 @@ public:
 		Strain,
 		HitWindow300,
 		ScoreMultiplier,
-		LengthBonus,
-
+		AimLengthBonus,
+		SpeedLengthBonus,
 		NumTypes,
 	};
 
