@@ -126,8 +126,10 @@ void OsuScore::computeAimValue(const Beatmap& beatmap)
 		_aimValue *= (1.02f + (11.0f - approachRate) / 50.0f); // Gives a 1.04 bonus for AR10, a 1.06 bonus for AR9, a 1.02 bonus for AR11.
 
 	if ((_mods & EMods::Flashlight) > 0)
-		// Apply length bonus again if flashlight is on simply because it becomes a lot harder on longer maps.
-		_aimValue *= 1.45f * LengthBonus;
+		// Apply object-based bonus for flashlight.
+		_aimValue *= 1.0f + 0.35f * std::min(1.0f, static_cast<f32>(numTotalHits) / 250.0f) +
+         		(numTotalHits > 250 ? 0.3f * std::min(1.0f, static_cast<f32>(numTotalHits - 250) / 250.0f) +
+         		(numTotalHits > 500 ? static_cast<f32>(numTotalHits - 500) / 1200.0f : 0.0f) : 0.0f);
 
 	// Scale the aim value with accuracy _slightly_
 	_aimValue *= 0.5f + Accuracy() / 2.0f;
