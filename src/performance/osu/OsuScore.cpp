@@ -164,8 +164,10 @@ void OsuScore::computeSpeedValue(const Beatmap& beatmap)
                 1.0f / (
                     1 + Math.Pow(
                         Math.E, 
-                        -20f * (accuracy + Math.Pow(Attributes.OverallDifficulty, 2.0f) / 2310.0f - 0.8733f
-                    )))) / 1.89f + Math.Pow(Attributes.OverallDifficulty, 2.0f) / 5000.0f + 0.49f;
+                        -20f * (betterAccuracyPercentage +
+				Math.Pow(beatmap.DifficultyAttribute(_mods, Beatmap::OD), 2.0f) / 2310.0f
+				- 0.8733f
+                    )))) / 1.89f + Math.Pow(beatmap.DifficultyAttribute(_mods, Beatmap::OD), 2.0f) / 5000.0f + 0.49f;
 }
 
 void OsuScore::computeAccValue(const Beatmap& beatmap)
