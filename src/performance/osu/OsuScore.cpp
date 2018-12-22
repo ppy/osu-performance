@@ -152,7 +152,7 @@ void OsuScore::computeSpeedValue(const Beatmap& beatmap)
 	if (maxCombo > 0)
 		_speedValue *= std::min(static_cast<f32>(pow(_maxCombo, 0.8f) / pow(maxCombo, 0.8f)), 1.0f);
 
-	// We want to give more reward for lower AR when it comes to aim and HD. This nerfs high AR and buffs lower AR.
+	// We want to give more reward for lower AR when it comes to speed and HD. This nerfs high AR and buffs lower AR.
 	if ((_mods & EMods::Hidden) > 0)
 		_speedValue *= 1.0f + 0.04f * (12.0f - approachRate);
 
