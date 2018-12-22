@@ -57,8 +57,9 @@ After compilation, an executable named `osu-performance` is placed in the _Bin_ 
 
 where command controls which scores are the target of the computation.
 The following commands are valid:
-* `new`: Continually poll for new scores and compute pp of these
 * `all`: Compute pp of all users
+* `new`: Continually poll for new scores and compute pp of these
+* `scores`: Compute pp of specific scores
 * `users`: Compute pp of specific users
 
 The gamemode to compute pp for can be selected via the `-m` option, which may take the value `osu`, `taiko`, `catch`, or `mania`.
