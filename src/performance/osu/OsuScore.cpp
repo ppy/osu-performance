@@ -109,7 +109,7 @@ void OsuScore::computeAimValue(const Beatmap& beatmap)
 	f32 approachRate = beatmap.DifficultyAttribute(_mods, Beatmap::AR);
 	f32 approachRateFactor = 1.0f;
 	if (approachRate > 10.33f)
-		approachRateFactor += 0.45f * (approachRate - 10.33f);
+		approachRateFactor += 0.3f * (approachRate - 10.33f);
 	else if (approachRate < 8.0f)
 	{
 		approachRateFactor += 0.01f * (8.0f - approachRate);
@@ -139,6 +139,13 @@ void OsuScore::computeSpeedValue(const Beatmap& beatmap)
 
 	int numTotalHits = TotalHits();
 
+	f32 approachRate = beatmap.DifficultyAttribute(_mods, Beatmap::AR);
+	f32 approachRateFactor = 1.0f;
+	if (approachRate > 10.33f)
+		approachRateFactor += 0.3f * (approachRate - 10.33f);
+
+	_speedValue *= approachRateFactor;
+	
 	// Longer maps are worth more
 	_speedValue *=
 		0.95f + 0.4f * std::min(1.0f, static_cast<f32>(numTotalHits) / 2000.0f) +
