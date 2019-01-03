@@ -160,7 +160,6 @@ void OsuScore::computeSpeedValue(const Beatmap& beatmap)
 		_speedValue *= std::min(static_cast<f32>(pow(_maxCombo, 0.8f) / pow(maxCombo, 0.8f)), 1.0f);
 
 	// We want to give more reward for lower AR when it comes to speed and HD. This nerfs high AR and buffs lower AR.
-	f32 approachRate = beatmap.DifficultyAttribute(_mods, Beatmap::AR);
 	if ((_mods & EMods::Hidden) > 0)
 		_speedValue *= 1.0f + 0.04f * (12.0f - approachRate);
 
