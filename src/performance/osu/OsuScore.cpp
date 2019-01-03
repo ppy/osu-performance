@@ -112,19 +112,15 @@ void OsuScore::computeAimValue(const Beatmap& beatmap)
 		approachRateFactor += 0.45f * (approachRate - 10.33f);
 	else if (approachRate < 8.0f)
 	{
-		// HD is worth more with lower ar!
-		if ((_mods & EMods::Hidden) > 0)
-			approachRateFactor += 0.02f * (8.0f - approachRate);
-		else
-			approachRateFactor += 0.01f * (8.0f - approachRate);
+		approachRateFactor += 0.01f * (8.0f - approachRate);
 	}
 
 	_aimValue *= approachRateFactor;
 
 	// We want to give more reward for lower AR when it comes to aim and HD. This nerfs high AR and buffs lower AR.
 	if ((_mods & EMods::Hidden) > 0)
-		_aimValue *= (1.02f + (11.0f - approachRate) / 50.0f); // Gives a 1.04 bonus for AR10, a 1.06 bonus for AR9, a 1.02 bonus for AR11.
-
+		_aimValue *= 1.0f + 0.04f * (12.0f - approachRate);
+	
 	if ((_mods & EMods::Flashlight) > 0)
 		// Apply object-based bonus for flashlight.
 		_aimValue *= 1.0f + 0.35f * std::min(1.0f, static_cast<f32>(numTotalHits) / 200.0f) +
@@ -156,8 +152,10 @@ void OsuScore::computeSpeedValue(const Beatmap& beatmap)
 	if (maxCombo > 0)
 		_speedValue *= std::min(static_cast<f32>(pow(_maxCombo, 0.8f) / pow(maxCombo, 0.8f)), 1.0f);
 
+	// We want to give more reward for lower AR when it comes to speed and HD. This nerfs high AR and buffs lower AR.
+	f32 approachRate = beatmap.DifficultyAttribute(_mods, Beatmap::AR);
 	if ((_mods & EMods::Hidden) > 0)
-		_speedValue *= 1.18f;
+		_speedValue *= 1.0f + 0.04f * (12.0f - approachRate);
 
 	// Scale the speed value with accuracy _slightly_
 	_speedValue *= 0.5f + Accuracy() / 2.0f;
@@ -200,7 +198,7 @@ void OsuScore::computeAccValue(const Beatmap& beatmap)
 	_accValue *= std::min(1.15f, static_cast<f32>(pow(numHitObjectsWithAccuracy / 1000.0f, 0.3f)));
 
 	if ((_mods & EMods::Hidden) > 0)
-		_accValue *= 1.02f;
+		_accValue *= 1.08f;
 
 	if ((_mods & EMods::Flashlight) > 0)
 		_accValue *= 1.02f;
