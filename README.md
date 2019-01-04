@@ -47,7 +47,7 @@ You can import these dumps to mysql (after first extracting them) by running `ca
 
 # Usage
 
-First, [set up a MySQL server](https://dev.mysql.com/doc/mysql-getting-started/en/) and import the provided data from above which is most relevant to your use case. Next, edit _Bin/Config.json_ with your favourite text editor and configure `mysql.master` to point to your MySQL server.
+First, [set up a MySQL server](https://dev.mysql.com/doc/mysql-getting-started/en/) and import the provided data from above which is most relevant to your use case. Next, edit _bin/config.json_ with your favourite text editor and configure `mysql.master` to point to your MySQL server.
 
 After compilation, an executable named `osu-performance` is placed in the _bin_ folder. You can use it via the command line as follows:
 
