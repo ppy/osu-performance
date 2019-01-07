@@ -28,10 +28,6 @@ OsuScore::OsuScore(
 }
 
 
-f32 accLogistic(f32 x) {
-	return 1.0f / (1.0f + exp(-x));
-}
-
 f32 OsuScore::TotalValue() const
 {
 	return _totalValue;
@@ -163,12 +159,10 @@ void OsuScore::computeSpeedValue(const Beatmap& beatmap)
 	if ((_mods & EMods::Hidden) > 0)
 		_speedValue *= 1.18f;
 
-	// Scale the speed value with accuracy and OD.
-	_speedValue *= (accLogistic(20.0f * (Accuracy() +
-					     pow(beatmap.DifficultyAttribute(_mods, Beatmap::OD), 2.0f) / 2310.0f
-					     - 0.8733f))
-			/ 1.89f + pow(beatmap.DifficultyAttribute(_mods, Beatmap::OD), 2.0f) / 5000.0f + 0.49f);
-
+	// Scale the speed value with accuracy _slightly_
+	_speedValue *= 0.02f + Accuracy() * 0.98f;
+	// It is important to also consider accuracy difficulty when doing that
+	_speedValue *= 0.96f + (pow(beatmap.DifficultyAttribute(_mods, Beatmap::OD), 2) / 1600);
 }
 
 void OsuScore::computeAccValue(const Beatmap& beatmap)
