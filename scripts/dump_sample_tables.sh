@@ -5,7 +5,7 @@ TOP_USER_COUNT=10000
 RANDOM_USER_COUNT=10000
 
 DATABASE_HOST=db_delayed
-DATABASE_USER=pp-export
+DATABASE_USER=performance-export
 
 OUTPUT_PATH=/var/www/html/
 
@@ -89,10 +89,12 @@ echo
 dump "${sample_users_table}"
 dump "osu_scores${table_suffix}_high"   "user_id IN (SELECT user_id FROM ${sample_users_table})"
 dump "osu_user_stats${table_suffix}"    "user_id IN (SELECT user_id FROM ${sample_users_table})"
+dump "osu_user_beatmap_playcount"       "user_id IN (SELECT user_id FROM ${sample_users_table}) AND beatmap_id IN (SELECT beatmap_id FROM ${sample_beatmaps_table})"
 
 # beatmap tables (we only care about ranked/approved/loved beatmaps)
 dump "osu_beatmapsets"                  "beatmapset_id IN (SELECT beatmapset_id FROM ${sample_beatmapsets_table})"
 dump "osu_beatmaps"                     "beatmap_id IN (SELECT beatmap_id FROM ${sample_beatmaps_table})"
+dump "osu_beatmap_failtimes"			"beatmap_id IN (SELECT beatmap_id FROM ${sample_beatmaps_table})"
 
 # beatmap difficulty tables (following same ranked/approved/loved rule as above, plus only for the intended game mode)
 dump "osu_beatmap_difficulty"           "mode = $mode_index AND beatmap_id IN (SELECT beatmap_id FROM ${sample_beatmaps_table})"
