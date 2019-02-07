@@ -65,6 +65,8 @@ private:
 		std::string UserPPColumnName;
 		std::string UserMetadataTableName;
 
+		bool WriteAllPPChanges;
+
 		std::string SlackHookHost;
 		std::string SlackHookKey;
 		std::string SlackHookChannel;

@@ -436,6 +436,8 @@ void Processor::readConfig(const std::string& filename)
 		_config.UserPPColumnName =      j.value("mysql.user-pp-column-name",      "rank_score");
 		_config.UserMetadataTableName = j.value("mysql.user-metadata-table-name", "sample_users");
 
+		_config.WriteAllPPChanges = j.value("write-all-pp", true);
+
 		_config.DifficultyUpdateInterval = j.value("poll.interval.difficulties", 10000);
 		_config.ScoreUpdateInterval =      j.value("poll.interval.scores",       50);
 
@@ -866,7 +868,7 @@ User Processor::processSingleUserGeneric(
 
 			// Column 12 is the pp value of the score from the database.
 			// Only update score if it differs a lot!
-			if (res.IsNull(12) || fabs((f32)res[12] - score.TotalValue()) > 0.001f)
+			if (res.IsNull(12) || (_config.WriteAllPPChanges && fabs((f32)res[12] - score.TotalValue()) > 0.001f))
 			{
 				// Ensure the selected score is in the front if it exists
 				if (selectedScoreId == scoreId)
