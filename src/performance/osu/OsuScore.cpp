@@ -196,10 +196,10 @@ void OsuScore::computeAccValue(const Beatmap& beatmap)
 
 	// Lots of arbitrary values from testing.
 	// Considering to use derivation from perfect accuracy in a probabilistic manner - assume normal distribution
-	_accValue =
-		pow(1.52163f, beatmap.DifficultyAttribute(_mods, Beatmap::OD)) * pow(betterAccuracyPercentage, 24) *
-		2.83f;
-
+	if ((_mods & EMods::TouchDevice) > 0)
+		_accValue = pow(1.52163f, beatmap.DifficultyAttribute(_mods, Beatmap::OD)) * pow(betterAccuracyPercentage, 24) * 2.83f;
+	else
+		_accValue = pow(1.6f, beatmap.DifficultyAttribute(_mods, Beatmap::OD)) * pow(betterAccuracyPercentage, 12) * 2.83f;
 	// Bonus for many hitcircles - it's harder to keep good accuracy up for longer
 	_accValue *= std::min(1.15f, static_cast<f32>(pow(numHitObjectsWithAccuracy / 1000.0f, 0.3f)));
 
