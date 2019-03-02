@@ -72,6 +72,13 @@ void OsuScore::computeTotalValue()
 
 	if ((_mods & EMods::SpunOut) > 0)
 		multiplier *= 0.95f;
+	// This exists as a value for a play that is assumed to be done without touchscreen
+	double dummyTotal =
+		std::pow(
+			std::pow(dummyAimValue(beatmap), 1.1f) +
+			std::pow(dummySpeedValue(beatmap), 1.1f) +
+			std::pow(dummyAccValue(beatmap), 1.1f), 1.0f / 1.1f
+		) * multiplier;
 
 	_totalValue =
 		std::pow(
@@ -79,6 +86,9 @@ void OsuScore::computeTotalValue()
 			std::pow(_speedValue, 1.1f) +
 			std::pow(_accValue, 1.1f), 1.0f / 1.1f
 		) * multiplier;
+	// Ensuring that touchscreen pp values never exceed non-touchscreen values
+	if ((_mods & EMods::TouchDevice) > 0 && _totalValue > dummyTotal)
+		_totalValue = dummyTotal;
 }
 
 void OsuScore::computeAimValue(const Beatmap& beatmap)
@@ -86,7 +96,7 @@ void OsuScore::computeAimValue(const Beatmap& beatmap)
 	f32 rawAim = beatmap.DifficultyAttribute(_mods, Beatmap::Aim);
 
 	if ((_mods & EMods::TouchDevice) > 0)
-		rawAim = pow(rawAim, 0.8f);
+		rawAim = pow(beatmap.DifficultyAttribute(_mods, Beatmap:TouchAim), 0.86f);
 
 	_aimValue = pow(5.0f * std::max(1.0f, rawAim / 0.0675f) - 4.0f, 3.0f) / 100000.0f;
 
@@ -123,9 +133,14 @@ void OsuScore::computeAimValue(const Beatmap& beatmap)
 	
 	if ((_mods & EMods::Flashlight) > 0)
 		// Apply object-based bonus for flashlight.
-		_aimValue *= 1.0f + 0.35f * std::min(1.0f, static_cast<f32>(numTotalHits) / 200.0f) +
-         		(numTotalHits > 200 ? 0.3f * std::min(1.0f, static_cast<f32>(numTotalHits - 200) / 300.0f) +
-         		(numTotalHits > 500 ? static_cast<f32>(numTotalHits - 500) / 1200.0f : 0.0f) : 0.0f);
+		if ((_mods & EMods::TouchDevice) > 0)
+			_aimValue *= 1.0f + 0.30f * std::min(1.0f, static_cast<f32>(numTotalHits) / 95.0f) +
+					(numTotalHits > 95 ? 0.45f * std::min(1.0f, static_cast<f32>(numTotalHits - 95) / 205.0f) +
+					(numTotalHits > 300 ? static_cast<f32>(numTotalHits - 300) / 550.0f : 0.0f) : 0.0f);
+		else
+			_aimValue *= 1.0f + 0.35f * std::min(1.0f, static_cast<f32>(numTotalHits) / 200.0f) +
+         			(numTotalHits > 200 ? 0.3f * std::min(1.0f, static_cast<f32>(numTotalHits - 200) / 300.0f) +
+         			(numTotalHits > 500 ? static_cast<f32>(numTotalHits - 500) / 1200.0f : 0.0f) : 0.0f);
 
 	// Scale the aim value with accuracy _slightly_
 	_aimValue *= 0.5f + Accuracy() / 2.0f;
@@ -133,9 +148,65 @@ void OsuScore::computeAimValue(const Beatmap& beatmap)
 	_aimValue *= 0.98f + (pow(beatmap.DifficultyAttribute(_mods, Beatmap::OD), 2) / 2500);
 }
 
+double OsuScore::dummyAimValue(const Beatmap& beatmap)
+{
+	f32 rawAim = beatmap.DifficultyAttribute(_mods, Beatmap::Aim);
+
+	double dummyAim = pow(5.0f * std::max(1.0f, rawAim / 0.0675f) - 4.0f, 3.0f) / 100000.0f;
+
+	int numTotalHits = TotalHits();
+
+	// Longer maps are worth more
+	f32 LengthBonus = 0.95f + 0.4f * std::min(1.0f, static_cast<f32>(numTotalHits) / 2000.0f) +
+		(numTotalHits > 2000 ? log10(static_cast<f32>(numTotalHits) / 2000.0f) * 0.5f : 0.0f);
+
+	dummyAim *= LengthBonus;
+
+	// Penalize misses exponentially. This mainly fixes tag4 maps and the likes until a per-hitobject solution is available
+	dummyAim *= pow(0.97f, _numMiss);
+
+	// Combo scaling
+	float maxCombo = beatmap.DifficultyAttribute(_mods, Beatmap::MaxCombo);
+	if (maxCombo > 0)
+		dummyAim *= std::min(static_cast<f32>(pow(_maxCombo, 0.8f) / pow(maxCombo, 0.8f)), 1.0f);
+
+	f32 approachRate = beatmap.DifficultyAttribute(_mods, Beatmap::AR);
+	f32 approachRateFactor = 1.0f;
+	if (approachRate > 10.33f)
+		approachRateFactor += 0.3f * (approachRate - 10.33f);
+	else if (approachRate < 8.0f)
+	{
+		approachRateFactor += 0.01f * (8.0f - approachRate);
+	}
+
+	dummyAim *= approachRateFactor;
+
+	// We want to give more reward for lower AR when it comes to aim and HD. This nerfs high AR and buffs lower AR.
+	if ((_mods & EMods::Hidden) > 0)
+		dummyAim *= 1.0f + 0.04f * (12.0f - approachRate);
+
+	if ((_mods & EMods::Flashlight) > 0)
+		// Apply object-based bonus for flashlight.
+		dummyAim *= 1.0f + 0.35f * std::min(1.0f, static_cast<f32>(numTotalHits) / 200.0f) +
+		(numTotalHits > 200 ? 0.3f * std::min(1.0f, static_cast<f32>(numTotalHits - 200) / 300.0f) +
+		(numTotalHits > 500 ? static_cast<f32>(numTotalHits - 500) / 1200.0f : 0.0f) : 0.0f);
+
+	// Scale the aim value with accuracy _slightly_
+	dummyAim *= 0.5f + Accuracy() / 2.0f;
+	// It is important to also consider accuracy difficulty when doing that
+	dummyAim *= 0.98f + (pow(beatmap.DifficultyAttribute(_mods, Beatmap::OD), 2) / 2500);
+
+	return dummyAim;
+}
+
 void OsuScore::computeSpeedValue(const Beatmap& beatmap)
 {
-	_speedValue = pow(5.0f * std::max(1.0f, beatmap.DifficultyAttribute(_mods, Beatmap::Speed) / 0.0675f) - 4.0f, 3.0f) / 100000.0f;
+	double rawSpeed = beatmap.DifficultyAttribute(_mods, Beatmap::Speed);
+
+	if ((_mods & EMods::TouchDevice) > 0)
+		rawSpeed = beatmap.DifficultyAttribute(_mods, Beatmap:TouchSpeed);
+
+	_speedValue = pow(5.0f * std::max(1.0f, rawSpeed / 0.0675f) - 4.0f, 3.0f) / 100000.0f;
 
 	int numTotalHits = TotalHits();
 
@@ -169,6 +240,44 @@ void OsuScore::computeSpeedValue(const Beatmap& beatmap)
 	_speedValue *= 0.96f + (pow(beatmap.DifficultyAttribute(_mods, Beatmap::OD), 2) / 1600);
 }
 
+double OsuScore::dummySpeedValue(const Beatmap& beatmap)
+{
+	dummySpeed = pow(5.0f * std::max(1.0f, beatmap.DifficultyAttribute(_mods, Beatmap::Speed) / 0.0675f) - 4.0f, 3.0f) / 100000.0f;
+
+	int numTotalHits = TotalHits();
+
+	f32 approachRate = beatmap.DifficultyAttribute(_mods, Beatmap::AR);
+	f32 approachRateFactor = 1.0f;
+	if (approachRate > 10.33f)
+		approachRateFactor += 0.3f * (approachRate - 10.33f);
+
+	dummySpeed *= approachRateFactor;
+
+	// Longer maps are worth more
+	dummySpeed *=
+		0.95f + 0.4f * std::min(1.0f, static_cast<f32>(numTotalHits) / 2000.0f) +
+		(numTotalHits > 2000 ? log10(static_cast<f32>(numTotalHits) / 2000.0f) * 0.5f : 0.0f);
+
+	// Penalize misses exponentially. This mainly fixes tag4 maps and the likes until a per-hitobject solution is available
+	dummySpeed *= pow(0.97f, _numMiss);
+
+	// Combo scaling
+	float maxCombo = beatmap.DifficultyAttribute(_mods, Beatmap::MaxCombo);
+	if (maxCombo > 0)
+		dummySpeed *= std::min(static_cast<f32>(pow(_maxCombo, 0.8f) / pow(maxCombo, 0.8f)), 1.0f);
+
+	// We want to give more reward for lower AR when it comes to speed and HD. This nerfs high AR and buffs lower AR.
+	if ((_mods & EMods::Hidden) > 0)
+		dummySpeed *= 1.0f + 0.04f * (12.0f - approachRate);
+
+	// Scale the speed value with accuracy _slightly_
+	dummySpeed *= 0.02f + Accuracy();
+	// It is important to also consider accuracy difficulty when doing that
+	dummySpeed *= 0.96f + (pow(beatmap.DifficultyAttribute(_mods, Beatmap::OD), 2) / 1600);
+
+	return dummySpeed;
+}
+
 void OsuScore::computeAccValue(const Beatmap& beatmap)
 {
 	// This percentage only considers HitCircles of any value - in this part of the calculation we focus on hitting the timing hit window
@@ -200,6 +309,11 @@ void OsuScore::computeAccValue(const Beatmap& beatmap)
 		pow(1.52163f, beatmap.DifficultyAttribute(_mods, Beatmap::OD)) * pow(betterAccuracyPercentage, 24) *
 		2.83f;
 
+	if ((_mods & EMods::TouchDevice) > 0)
+		_accValue =
+			pow(1.58f, beatmap.DifficultyAttribute(_mods, Beatmap::OD)) * pow(betterAccuracyPercentage, 12) *
+			2.83f;
+
 	// Bonus for many hitcircles - it's harder to keep good accuracy up for longer
 	_accValue *= std::min(1.15f, static_cast<f32>(pow(numHitObjectsWithAccuracy / 1000.0f, 0.3f)));
 
@@ -208,6 +322,49 @@ void OsuScore::computeAccValue(const Beatmap& beatmap)
 
 	if ((_mods & EMods::Flashlight) > 0)
 		_accValue *= 1.02f;
+}
+
+double OsuScore::dummyAccValue(const Beatmap& beatmap)
+{
+	// This percentage only considers HitCircles of any value - in this part of the calculation we focus on hitting the timing hit window
+	f32 betterAccuracyPercentage;
+
+	s32 numHitObjectsWithAccuracy;
+	if (beatmap.ScoreVersion() == Beatmap::EScoreVersion::ScoreV2)
+	{
+		numHitObjectsWithAccuracy = TotalHits();
+		betterAccuracyPercentage = Accuracy();
+	}
+	// Either ScoreV1 or some unknown value. Let's default to previous behavior.
+	else
+	{
+		numHitObjectsWithAccuracy = beatmap.NumHitCircles();
+		if (numHitObjectsWithAccuracy > 0)
+			betterAccuracyPercentage = static_cast<f32>((_num300 - (TotalHits() - numHitObjectsWithAccuracy)) * 6 + _num100 * 2 + _num50) / (numHitObjectsWithAccuracy * 6);
+		else
+			betterAccuracyPercentage = 0;
+
+		// It is possible to reach a negative accuracy with this formula. Cap it at zero - zero points
+		if (betterAccuracyPercentage < 0)
+			betterAccuracyPercentage = 0;
+	}
+
+	// Lots of arbitrary values from testing.
+	// Considering to use derivation from perfect accuracy in a probabilistic manner - assume normal distribution
+	dummyAcc =
+		pow(1.52163f, beatmap.DifficultyAttribute(_mods, Beatmap::OD)) * pow(betterAccuracyPercentage, 24) *
+		2.83f;
+
+	// Bonus for many hitcircles - it's harder to keep good accuracy up for longer
+	dummyAcc *= std::min(1.15f, static_cast<f32>(pow(numHitObjectsWithAccuracy / 1000.0f, 0.3f)));
+
+	if ((_mods & EMods::Hidden) > 0)
+		dummyAcc *= 1.08f;
+
+	if ((_mods & EMods::Flashlight) > 0)
+		dummyAcc *= 1.02f;
+
+	return dummyAcc;
 }
 
 PP_NAMESPACE_END
