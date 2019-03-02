@@ -23,6 +23,8 @@ public:
 		Strain,
 		HitWindow300,
 		ScoreMultiplier,
+		TouchAim = 0,
+		TouchSpeed,
 
 		NumTypes,
 	};
