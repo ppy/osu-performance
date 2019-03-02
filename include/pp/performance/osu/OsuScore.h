@@ -45,6 +45,9 @@ private:
 	void computeAimValue(const Beatmap& beatmap);
 	void computeSpeedValue(const Beatmap& beatmap);
 	void computeAccValue(const Beatmap& beatmap);
+	void dummyAimValue(const Beatmap& beatmap);
+	void dummySpeedValue(const Beatmap& beatmap);
+	void dummyAccValue(const Beatmap& beatmap);
 };
 
 PP_NAMESPACE_END
