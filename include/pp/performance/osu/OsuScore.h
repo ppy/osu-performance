@@ -35,6 +35,9 @@ private:
 	f32 _aimValue;
 	f32 _speedValue;
 	f32 _accValue;
+	f32 _dummyAimValue;
+	f32 _dummySpeedValue;
+	f32 _dummyAccValue;
 
 	void computeTotalValue();
 	f32 _totalValue;
