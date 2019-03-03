@@ -137,7 +137,7 @@ void OsuScore::computeAimValue(const Beatmap& beatmap)
 	if ((_mods & EMods::Flashlight) > 0)
 		// Apply object-based bonus for flashlight.
 		if ((_mods & EMods::TouchDevice) > 0)
-			_aimValue *= 1.0f + 0.30f * std::min(1.0f, static_cast<f32>(numTotalHits) / 95.0f) +
+			_aimValue *= 1.0f + 0.40f * std::min(1.0f, static_cast<f32>(numTotalHits) / 95.0f) +
 					(numTotalHits > 95 ? 0.45f * std::min(1.0f, static_cast<f32>(numTotalHits - 95) / 205.0f) +
 					(numTotalHits > 300 ? static_cast<f32>(numTotalHits - 300) / 550.0f : 0.0f) : 0.0f);
 		else
