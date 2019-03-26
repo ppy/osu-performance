@@ -140,6 +140,7 @@ private:
 	std::string retrieveBeatmapName(s32 beatmapId, DatabaseConnection& db) const;
 
 	EGamemode _gamemode;
+	bool _isDocker;
 
 	RWMutex _beatmapMutex;
 	bool _shallShutdown = false;
