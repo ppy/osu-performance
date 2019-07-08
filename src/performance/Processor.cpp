@@ -46,11 +46,11 @@ Processor::Processor(EGamemode gamemode, const std::string& configFile)
 				if (retrieveCount(*_pDB, "docker_db_step") >= 2)
 					break;
 			}
-			catch (const DatabaseException& dbe)
+			catch (const DatabaseException&)
 			{
 				// Will occur if the database fails to connect (container not initialised)
 			}
-			catch (const ProcessorException& pe)
+			catch (const ProcessorException&)
 			{
 				// Will occur if the retrieval of the docker step fails (tables not initialised)
 			}
