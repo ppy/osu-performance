@@ -37,6 +37,8 @@ private:
 	void computeStrainValue(const Beatmap& beatmap);
 	void computeAccValue(const Beatmap& beatmap);
 
+	f32 predictedHitWindow(const Beatmap &beatmap) const;
+
 	f32 _strainValue;
 	f32 _accValue;
 };
