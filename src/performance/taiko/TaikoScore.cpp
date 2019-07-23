@@ -60,29 +60,37 @@ void TaikoScore::computeTotalValue()
 
 void TaikoScore::computeStrainValue(const Beatmap& beatmap)
 {
-	_strainValue = pow(5.0f * std::max(1.0f, beatmap.DifficultyAttribute(_mods, Beatmap::Strain) / 0.0075f) - 4.0f, 2.0f) / 100000.0f;
+	_strainValue = pow(std::max(1.0f, beatmap.DifficultyAttribute(_mods, Beatmap::Strain) / 0.0075f) - 4.0f, 2.53f) / 100000.0f;
 
 	// Longer maps are worth more
-	f32 lengthBonus = 1 + 0.1f * std::min(1.0f, static_cast<f32>(TotalHits()) / 1500.0f);
-	_strainValue *= lengthBonus;
+	f32 lengthMultiplier = (0.8f + pow(beatmap.DifficultyAttribute(_mods, Beatmap::LengthBonus), 0.5f)) * 0.65f;
+	_strainValue *= lengthMultiplier;
 
-	// Penalize misses exponentially. This mainly fixes tag4 maps and the likes until a per-hitobject solution is available
-	_strainValue *= pow(0.985f, _numMiss);
-
-	// Combo scaling
-	float maxCombo = beatmap.DifficultyAttribute(_mods, Beatmap::MaxCombo);
-	if (maxCombo > 0)
-		_strainValue *= std::min(static_cast<f32>(pow(_maxCombo, 0.5f) / pow(maxCombo, 0.5f)), 1.0f);
-
-	if ((_mods & EMods::Hidden) > 0)
-		_strainValue *= 1.025f;
+	// Penalize misses. The shorter the map, the bigger miss penalty.
+	_strainValue *= pow(0.96f / pow(1.0f / beatmap.DifficultyAttribute(_mods, Beatmap::LengthBonus), 0.03f), _numMiss);
 
 	if ((_mods & EMods::Flashlight) > 0)
+	{
 		// Apply length bonus again if flashlight is on simply because it becomes a lot harder on longer maps.
-		_strainValue *= 1.05f * lengthBonus;
+		if ((_mods & EMods::Hidden) > 0)
+			_strainValue *= 1.07f * lengthMultiplier;
+		else
+			_strainValue *= 1.05f * lengthMultiplier;
+	}
+	else if ((_mods & EMods::Hidden) > 0)
+	{
+		if ((_mods & EMods::Easy) > 0)
+			_strainValue *= 1.015f;
+		else if ((_mods & EMods::HardRock) > 0)
+			_strainValue *= 1.05f;
+		else
+			_strainValue *= 1.025f;
+	}
 
 	// Scale the speed value with accuracy _slightly_
 	_strainValue *= Accuracy();
+	// It is important to also consider accuracy difficulty when doing that
+	_strainValue *= pow(predictedHitWindow(beatmap) / beatmap.DifficultyAttribute(_mods, Beatmap::HitWindow300), 0.1f);
 }
 
 void TaikoScore::computeAccValue(const Beatmap& beatmap)
@@ -96,10 +104,18 @@ void TaikoScore::computeAccValue(const Beatmap& beatmap)
 
 	// Lots of arbitrary values from testing.
 	// Considering to use derivation from perfect accuracy in a probabilistic manner - assume normal distribution
-	_accValue = pow(150.0f / hitWindow300, 1.1f) * pow(Accuracy(), 15) * 22.0f;
+	_accValue = pow(predictedHitWindow(beatmap) / beatmap.DifficultyAttribute(_mods, Beatmap::HitWindow300), 0.5f) * pow(150.0f / beatmap.DifficultyAttribute(_mods, Beatmap::HitWindow300), 1.1f) * pow(Accuracy(), 15) * 22.0f;
 
 	// Bonus for many hitcircles - it's harder to keep good accuracy up for longer
-	_accValue *= std::min<f32>(1.15f, pow(static_cast<f32>(TotalHits()) / 1500.0f, 0.3f));
+	_accValue *= pow(beatmap.DifficultyAttribute(_mods, Beatmap::LengthBonus) + 1, 0.3f);
+
+	// Scale with difficulty to tie better into std's pp system
+	_accValue *= pow(1.3f, beatmap.DifficultyAttribute(_mods, Beatmap::Strain)) / 10.0f;
+}
+
+f32 TaikoScore::predictedHitWindow(const Beatmap &beatmap) const
+{
+	return pow(0.9f, beatmap.DifficultyAttribute(_mods, Beatmap::Strain)) * 55;
 }
 
 f32 TaikoScore::Accuracy() const
