@@ -21,7 +21,7 @@ jobs:
         with:
           submodules: recursive
       - name: Install dependencies
-        run: sudo apt-get install libmariadbclient-dev curl
+        run: sudo apt-get install libmysqlclient-dev libcurl4-openssl-dev
       - name: CMake
         run: cmake .
       - name: Build
