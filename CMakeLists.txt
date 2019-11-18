@@ -37,7 +37,11 @@ include_directories(${EXTERNAL}/StrFormat)
 include_directories(${EXTERNAL}/tinylogger)
 
 # External library directories
-link_directories(${EXTERNAL}/curl/lib)
-link_directories(${EXTERNAL}/MySQL/lib)
+if (WIN32)
+	link_directories(${EXTERNAL}/curl/lib)
+	link_directories(${EXTERNAL}/MySQL/lib)
+elseif(APPLE)
+	link_directories(/usr/local/lib)
+endif()
 
 add_subdirectory(src)
