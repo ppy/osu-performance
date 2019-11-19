@@ -869,7 +869,10 @@ User Processor::processSingleUserGeneric(
 
 			// Column 12 is the pp value of the score from the database.
 			// Only update score if it differs a lot!
-			if (res.IsNull(12) || (_config.WriteAllPPChanges && fabs((f32)res[12] - score.TotalValue()) > 0.001f))
+
+			// always write selected scores to ensure the queue is updated.
+			// TODO: properly use queue_id or return a bool asserting whether we performed an update, rather than doing this.
+			if (res.IsNull(12) || (_config.WriteAllPPChanges && fabs((f32)res[12] - score.TotalValue()) > 0.001f) || selectedScoreId == scoreId)
 			{
 				// Ensure the selected score is in the front if it exists
 				if (selectedScoreId == scoreId)
