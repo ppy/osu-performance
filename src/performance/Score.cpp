@@ -48,7 +48,7 @@ void Score::AppendToUpdateBatch(UpdateBatch& batch) const
 		_scoreId
 	));
 
-	batch.AppendAndCommitNonThreadsafe(StrFormat("UPDATE score_process_queue SET status = 1 WHERE mode = {0} AND score_id = {1};", static_cast<int>(_mode), _scoreId));
+	batch.AppendAndCommitNonThreadsafe(StrFormat("UPDATE `score_process_queue` SET `status` = 1 WHERE `mode` = {0} AND `score_id` = {1};", static_cast<int>(_mode), _scoreId));
 }
 
 PP_NAMESPACE_END

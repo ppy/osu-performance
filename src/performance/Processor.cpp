@@ -611,8 +611,8 @@ void Processor::pollAndProcessNewScores()
 	// Obtain all new scores since the last poll and process them
 	auto res = _pDBSlave->Query(StrFormat(
 		"SELECT `score_id`,`user_id`,`pp` "
-		"FROM `osu_scores{0}_high` JOIN score_process_queue USING (score_id) "
-		"WHERE `status` = 0 AND mode = {4} ORDER BY `queue_id` ASC LIMIT {3}",
+		"FROM `osu_scores{0}_high` JOIN `score_process_queue` USING (`score_id`) "
+		"WHERE `status` = 0 AND `mode` = {4} ORDER BY `queue_id` ASC LIMIT {3}",
 		GamemodeSuffix(_gamemode), _currentScoreId, _config.UserMetadataTableName, s_maxNumScores, static_cast<int>(_gamemode)
 	));
 
@@ -648,7 +648,7 @@ void Processor::pollAndProcessNewScores()
 			tlog::warning() << StrFormat("Could not find score ID {0} in result set.", scoreId);
 
 			// even though the score wasn't processed, we still want to mark the queue as completed.
-			_pDB->NonQuery(StrFormat("UPDATE score_process_queue SET status = 1 WHERE mode = {0} AND score_id = {1};", static_cast<int>(_gamemode), _scoreId));
+			_pDB->NonQuery(StrFormat("UPDATE `score_process_queue` SET `status` = 1 WHERE `mode` = {0} AND `score_id` = {1}", static_cast<int>(_gamemode), _scoreId));
 
 			continue;
 		}
