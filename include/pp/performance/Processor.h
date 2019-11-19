@@ -103,6 +103,7 @@ private:
 	std::chrono::steady_clock::time_point _lastBeatmapSetPollTime;
 
 	s64 _currentScoreId;
+	s64 _currentQueueId;
 	s64 _numScoresProcessedSinceLastStore = 0;
 	void pollAndProcessNewScores();
 	void pollAndProcessNewBeatmapSets(DatabaseConnection& dbSlave);

@@ -610,10 +610,10 @@ void Processor::pollAndProcessNewScores()
 
 	// Obtain all new scores since the last poll and process them
 	auto res = _pDBSlave->Query(StrFormat(
-		"SELECT `score_id`,`user_id`,`pp` "
+		"SELECT `score_id`,`user_id`,`pp`, `queue_id` "
 		"FROM `osu_scores{0}_high` JOIN `score_process_queue` USING (`score_id`) "
-		"WHERE `status` = 0 AND `mode` = {4} ORDER BY `queue_id` ASC LIMIT {3}",
-		GamemodeSuffix(_gamemode), _currentScoreId, _config.UserMetadataTableName, s_maxNumScores, static_cast<int>(_gamemode)
+		"WHERE `status` = 0 AND `mode` = {4} AND `queue_id` > {5} ORDER BY `queue_id` ASC LIMIT {3}",
+		GamemodeSuffix(_gamemode), _currentScoreId, _config.UserMetadataTableName, s_maxNumScores, static_cast<int>(_gamemode), _currentQueueId
 	));
 
 	// Only reset the poll timer when we find nothing. Otherwise we want to directly keep going
@@ -626,8 +626,10 @@ void Processor::pollAndProcessNewScores()
 	{
 		s64 scoreId = res[0];
 		s64 userId = res[1];
+		s64 queueId = res[3];
 
 		_currentScoreId = std::max(_currentScoreId, scoreId);
+		_currentQueueId = std::max(_currentQueueId, queueId);
 
 		User user = processSingleUser(
 			scoreId, // Only update the new score, old ones are caught by the background processor anyways
@@ -654,10 +656,10 @@ void Processor::pollAndProcessNewScores()
 		}
 
 		tlog::info() << StrFormat(
-			"Score={0w10ar} {1p1w6ar}pp {2p2w6ar}% | User={3w8ar} {4p1w7ar}pp {5p2w6ar}% | Beatmap={6w7ar}",
+			"{7w10ar} Score={0w10ar} {1p1w6ar}pp {2p2w6ar}% | User={3w8ar} {4p1w7ar}pp {5p2w6ar}% | Beatmap={6w7ar}",
 			scoreId, scoreIt->Value, scoreIt->Accuracy * 100,
 			userId, user.GetPPRecord().Value, user.GetPPRecord().Accuracy,
-			scoreIt->BeatmapId
+			scoreIt->BeatmapId, queueId
 		);
 
 		++_numScoresProcessedSinceLastStore;
