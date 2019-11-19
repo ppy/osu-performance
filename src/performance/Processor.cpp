@@ -611,9 +611,9 @@ void Processor::pollAndProcessNewScores()
 	// Obtain all new scores since the last poll and process them
 	auto res = _pDBSlave->Query(StrFormat(
 		"SELECT `score_id`,`user_id`,`pp` "
-		"FROM `osu_scores{0}_high` "
-		"WHERE `score_id` > {1} ORDER BY `score_id` ASC LIMIT {3}",
-		GamemodeSuffix(_gamemode), _currentScoreId, _config.UserMetadataTableName, s_maxNumScores
+		"FROM `osu_scores{0}_high` JOIN score_process_queue USING (score_id) "
+		"WHERE `status` = 0 AND mode = {4} ORDER BY `queue_id` ASC LIMIT {3}",
+		GamemodeSuffix(_gamemode), _currentScoreId, _config.UserMetadataTableName, s_maxNumScores, static_cast<int>(_gamemode)
 	));
 
 	// Only reset the poll timer when we find nothing. Otherwise we want to directly keep going
@@ -624,11 +624,6 @@ void Processor::pollAndProcessNewScores()
 
 	while (res.NextRow())
 	{
-		// Only process scores where pp is still null.
-		if (!res.IsNull(2))
-			continue;
-
-
 		s64 scoreId = res[0];
 		s64 userId = res[1];
 
@@ -651,6 +646,10 @@ void Processor::pollAndProcessNewScores()
 		if (scoreIt == std::end(user.Scores()))
 		{
 			tlog::warning() << StrFormat("Could not find score ID {0} in result set.", scoreId);
+
+			// even though the score wasn't processed, we still want to mark the queue as completed.
+			_pDB.NonQuery(StrFormat("UPDATE score_process_queue SET status = 1 WHERE mode = {0} AND score_id = {1};", static_cast<int>(_gamemode), _scoreId));
+
 			continue;
 		}
 
