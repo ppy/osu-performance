@@ -626,7 +626,7 @@ void Processor::pollAndProcessNewScores()
 	{
 		s64 queueId = res[3];
 
-		if (res.IsNull(0))
+		if (res.IsNull(1))
 		{
 			// even though the score wasn't processed, we still want to mark the queue as completed.
 			_pDB->NonQuery(StrFormat("UPDATE `score_process_queue` SET `status` = 1 WHERE `queue_id` = {0}", queueId));
