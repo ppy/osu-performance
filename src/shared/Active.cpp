@@ -6,11 +6,10 @@ PP_NAMESPACE_BEGIN
 Active::~Active()
 {
 	if (!_isDone)
-	{
 		send(std::bind(&Active::doDone, this), false);
-		if (_thread.joinable())
-			_thread.join();
-	}
+
+	if (_thread.joinable())
+		_thread.join();
 }
 
 void Active::Send(std::function<void()> callback)

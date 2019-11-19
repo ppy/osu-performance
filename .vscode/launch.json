@@ -1,0 +1,36 @@
+{
+	// Use IntelliSense to learn about possible attributes.
+	// Hover to view descriptions of existing attributes.
+	// For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+	"version": "0.2.0",
+	"configurations": [{
+		"name": "Debug",
+		"type": "cppdbg",
+		"request": "launch",
+		"preLaunchTask": "Build",
+		"program": "${workspaceFolder}/bin/osu-performance",
+		"args": [
+			"${input:pickCommand}",
+			"-m",
+			"${input:pickMode}"
+		],
+		"stopAtEntry": false,
+		"cwd": "${workspaceFolder}/bin",
+		"environment": [],
+		"externalConsole": false,
+		"MIMode": "lldb"
+	}],
+	"inputs": [{
+			"id": "pickCommand",
+			"description": "Enter the command (all, new, scores, users)",
+			"default": "all",
+			"type": "promptString"
+		},
+		{
+			"id": "pickMode",
+			"description": "Enter the ruleset (osu, taiko, catch, mania)",
+			"default": "osu",
+			"type": "promptString"
+		}
+	]
+}

@@ -58,4 +58,3 @@ osu!.userprefs
 packages/*
 !packages/repositories.config
 .vs/*
-/.vscode
