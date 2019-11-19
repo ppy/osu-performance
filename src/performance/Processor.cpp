@@ -485,7 +485,7 @@ std::shared_ptr<DatabaseConnection> Processor::newDBConnectionSlave()
 
 void Processor::queryAllBeatmapDifficulties(u32 numThreads)
 {
-	static const s32 step = 10000;
+	static const s32 step = 1000;
 
 	auto res = _pDBSlave->Query(StrFormat(
 		"SELECT MAX(`beatmap_id`),COUNT(*) FROM `osu_beatmaps` WHERE `approved` BETWEEN {0} AND {1} AND (`playmode`=0 OR `playmode`={2})",
@@ -624,16 +624,17 @@ void Processor::pollAndProcessNewScores()
 
 	while (res.NextRow())
 	{
-		s64 scoreId = res[0];
-		s64 userId = res[1];
 		s64 queueId = res[3];
 
-		if (scoreId == 0)
+		if (res.IsNull(0))
 		{
 			// even though the score wasn't processed, we still want to mark the queue as completed.
 			_pDB->NonQuery(StrFormat("UPDATE `score_process_queue` SET `status` = 1 WHERE `queue_id` = {0}", queueId));
 			continue;
 		}
+
+		s64 scoreId = res[0];
+		s64 userId = res[1];
 
 		_currentScoreId = std::max(_currentScoreId, scoreId);
 		_currentQueueId = std::max(_currentQueueId, queueId);
