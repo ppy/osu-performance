@@ -648,7 +648,7 @@ void Processor::pollAndProcessNewScores()
 			tlog::warning() << StrFormat("Could not find score ID {0} in result set.", scoreId);
 
 			// even though the score wasn't processed, we still want to mark the queue as completed.
-			_pDB.NonQuery(StrFormat("UPDATE score_process_queue SET status = 1 WHERE mode = {0} AND score_id = {1};", static_cast<int>(_gamemode), _scoreId));
+			_pDB->NonQuery(StrFormat("UPDATE score_process_queue SET status = 1 WHERE mode = {0} AND score_id = {1};", static_cast<int>(_gamemode), _scoreId));
 
 			continue;
 		}
