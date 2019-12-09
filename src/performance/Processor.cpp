@@ -28,12 +28,12 @@ Processor::Processor(EGamemode gamemode, const std::string& configFile)
 
 	readConfig(configFile);
 
+	_isDocker = std::getenv("DOCKER") != NULL;
+
 	_pDataDog = std::make_unique<DDog>(_config.DataDogHost, _config.DataDogPort);
 	_pDataDog->Increment("osu.pp.startups", 1, {StrFormat("mode:{0}", GamemodeTag(_gamemode))});
 
-	bool isDocker = std::getenv("DOCKER") != NULL;
-
-	if (isDocker)
+	if (_isDocker)
 	{
 		tlog::info() << "Waiting for database...";
 
@@ -66,13 +66,13 @@ Processor::Processor(EGamemode gamemode, const std::string& configFile)
 	queryBeatmapBlacklist();
 	queryBeatmapDifficultyAttributes();
 	queryAllBeatmapDifficulties(16);
-
-	if (isDocker)
-		storeCount(*_pDB, "docker_db_step", 3);
 }
 
 Processor::~Processor()
 {
+	if (_isDocker)
+		storeCount(*_pDB, "docker_db_step", 3);
+
 	tlog::info() << "Shutting down.";
 }
 
