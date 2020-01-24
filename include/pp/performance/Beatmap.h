@@ -46,11 +46,13 @@ public:
 	ERankedStatus RankedStatus() const { return _rankedStatus; }
 	EScoreVersion ScoreVersion() const { return _scoreVersion; }
 	s32 NumHitCircles() const { return _numHitCircles; }
+	s32 NumSpinners() const { return _numHitCircles; }
 	f32 DifficultyAttribute(EMods mods, EDifficultyAttributeType type) const;
 
 	void SetRankedStatus(ERankedStatus rankedStatus) { _rankedStatus = rankedStatus; }
 	void SetScoreVersion(EScoreVersion scoreVersion) { _scoreVersion = scoreVersion; }
 	void SetNumHitCircles(s32 numHitCircles) { _numHitCircles = numHitCircles; }
+	void SetNumSpinners(s32 numSpinners) { _numSpinners = numSpinners; }
 	void SetDifficultyAttribute(EMods mods, EDifficultyAttributeType type, f32 value);
 
 	static EDifficultyAttributeType DifficultyAttributeFromName(const std::string& difficultyAttributeName)
@@ -77,6 +79,7 @@ private:
 	ERankedStatus _rankedStatus;
 	EScoreVersion _scoreVersion;
 	s32 _numHitCircles = 0;
+	s32 _numSpinners = 0;
 };
 
 PP_NAMESPACE_END
