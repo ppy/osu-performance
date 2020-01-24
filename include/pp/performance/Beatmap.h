@@ -46,7 +46,7 @@ public:
 	ERankedStatus RankedStatus() const { return _rankedStatus; }
 	EScoreVersion ScoreVersion() const { return _scoreVersion; }
 	s32 NumHitCircles() const { return _numHitCircles; }
-	s32 NumSpinners() const { return _numHitCircles; }
+	s32 NumSpinners() const { return _numSpinners; }
 	f32 DifficultyAttribute(EMods mods, EDifficultyAttributeType type) const;
 
 	void SetRankedStatus(ERankedStatus rankedStatus) { _rankedStatus = rankedStatus; }
