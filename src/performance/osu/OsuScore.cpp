@@ -70,9 +70,9 @@ void OsuScore::computeTotalValue(const Beatmap& beatmap)
 	if ((_mods & EMods::NoFail) > 0)
 		multiplier *= 0.90f;
 
-	float maxCombo = beatmap.DifficultyAttribute(_mods, Beatmap::MaxCombo);
-	if ((_mods & EMods::SpunOut) > 0 && maxCombo > 0)
-		multiplier *= 1.0f - std::pow(beatmap.NumSpinners() / maxCombo, 0.85f);
+	int numTotalHits = TotalHits();
+	if ((_mods & EMods::SpunOut) > 0)
+		multiplier *= 1.0f - std::pow(beatmap.NumSpinners() / static_cast<f32>(numTotalHits), 0.85f);
 
 	_totalValue =
 		std::pow(
