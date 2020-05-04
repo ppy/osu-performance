@@ -37,8 +37,8 @@ CatchScore::CatchScore(
 
 	// Longer maps are worth more
 	f32 lengthBonus =
-		0.95f + 0.4f * std::min<f32>(1.0f, static_cast<f32>(numTotalHits) / 3000.0f) +
-		(numTotalHits > 3000 ? log10(static_cast<f32>(numTotalHits) / 3000.0f) * 0.5f : 0.0f);
+		0.95f + 0.3f * std::min<f32>(1.0f, static_cast<f32>(numTotalHits) / 2500.0f) +
+		(numTotalHits > 2500 ? log10(static_cast<f32>(numTotalHits) / 2500.0f) * 0.475f : 0.0f);
 
 	// Longer maps are worth more
 	_value *= lengthBonus;
@@ -55,14 +55,21 @@ CatchScore::CatchScore(
 	f32 approachRateFactor = 1.0f;
 	if (approachRate > 9.0f)
 		approachRateFactor += 0.1f * (approachRate - 9.0f); // 10% for each AR above 9
+	if (approachRate > 10.0f)
+		approachRateFactor += 0.1f * (approachRate - 10.0f); // Additional 10% at AR 11, 30% total
 	else if (approachRate < 8.0f)
 		approachRateFactor += 0.025f * (8.0f - approachRate); // 2.5% for each AR below 8
 
 	_value *= approachRateFactor;
 
 	if ((_mods & EMods::Hidden) > 0)
-		// Hiddens gives nothing on max approach rate, and more the lower it is
-		_value *= 1.05f + 0.075f * (10.0f - std::min(10.0f, approachRate)); // 7.5% for each AR below 10
+	{
+		// Hiddens gives almost nothing on max approach rate, and more the lower it is
+		if (approachRate <= 10.0f)
+			_value *= 1.05f + 0.075f * (10.0f - approachRate); // 7.5% for each AR below 10
+		else if (approachRate > 10.0f)
+			_value *= 1.01f + 0.04f * (11.0f - std::min(11.0f, approachRate)); // 5% at AR 10, 1% at AR 11
+	}
 
 	if ((_mods & EMods::Flashlight) > 0)
 		// Apply length bonus again if flashlight is on simply because it becomes a lot harder on longer maps.
