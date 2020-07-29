@@ -35,10 +35,10 @@ CatchScore::CatchScore(
 	// Longer maps are worth more. "Longer" means how many hits there are which can contribute to combo
 	int numTotalHits = totalComboHits();
 
-	// Longer maps are worth more
-	f32 lengthBonus =
-		0.95f + 0.3f * std::min<f32>(1.0f, static_cast<f32>(numTotalHits) / 2500.0f) +
-		(numTotalHits > 2500 ? log10(static_cast<f32>(numTotalHits) / 2500.0f) * 0.475f : 0.0f);
+	// Longer maps with more movements are worth more
+	f32 lengthBonusFactor = static_cast<f32>(numTotalHits) * 0.75f + beatmap.DifficultyAttribute(_mods, Beatmap::DirectionChangeCount);
+
+	f32 lengthBonus = log10(lengthBonusFactor + 100.0f) * 0.75f - 1.3f;
 
 	// Longer maps are worth more
 	_value *= lengthBonus;
@@ -58,25 +58,36 @@ CatchScore::CatchScore(
 	if (approachRate > 10.0f)
 		approachRateFactor += 0.1f * (approachRate - 10.0f); // Additional 10% at AR 11, 30% total
 	else if (approachRate < 8.0f)
-		approachRateFactor += 0.025f * (8.0f - approachRate); // 2.5% for each AR below 8
+		approachRateFactor += 0.04f * (8.0f - approachRate); // 4% for each AR below 8
 
 	_value *= approachRateFactor;
 
 	if ((_mods & EMods::Hidden) > 0)
 	{
-		// Hiddens gives almost nothing on max approach rate, and more the lower it is
-		if (approachRate <= 10.0f)
-			_value *= 1.05f + 0.075f * (10.0f - approachRate); // 7.5% for each AR below 10
-		else if (approachRate > 10.0f)
-			_value *= 1.01f + 0.04f * (11.0f - std::min(11.0f, approachRate)); // 5% at AR 10, 1% at AR 11
+		_value *= 1.0f + 0.175f * (9.8f - std::min(9.8f, approachRate)); // 20% for each AR below 9.8
 	}
 
 	if ((_mods & EMods::Flashlight) > 0)
+	{
 		// Apply length bonus again if flashlight is on simply because it becomes a lot harder on longer maps.
 		_value *= 1.35f * lengthBonus;
 
+		if (approachRate > 8.0f)
+			approachRateFactor += 0.1f * (approachRateFactor - 8.0f); // 10% for each AR above 8
+		if (approachRateFactor < 8.0f)
+			approachRateFactor -= 0.07f * (approachRateFactor - 8.0f); // -7% for each AR below 8
+	}
+
 	// Scale the aim value with accuracy _slightly_
-	_value *= pow(Accuracy(), 5.5f);
+	_value *= pow(Accuracy(), 7.5f);
+
+	// Custom multiplier for HalfTime -> slower catcher = easier to control
+	if ((_mods & EMods::HalfTime) > 0)
+		_value *= 0.85f;
+
+	// Custom multiplier for DoubleTime -> faster catcher = harder to control
+	if ((_mods & EMods::DoubleTime) > 0)
+		_value *= 1.10f;
 
 	// Custom multipliers for NoFail and SpunOut.
 	if ((_mods & EMods::NoFail) > 0)
