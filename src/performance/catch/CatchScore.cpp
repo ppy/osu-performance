@@ -36,7 +36,7 @@ CatchScore::CatchScore(
 	int numTotalHits = totalComboHits();
 
 	// Longer maps with more movements are worth more
-	f32 lengthBonusFactor = static_cast<f32>(numTotalHits) * 0.75f + beatmap.DifficultyAttribute(_mods, Beatmap::DirectionChangeCount);
+	f32 lengthBonusFactor = static_cast<f32>(numTotalHits) * 0.75f + beatmap.DifficultyAttribute(_mods, Beatmap::DirectionChangeCount) / 1.8f;
 
 	f32 lengthBonus = log10(lengthBonusFactor + 100.0f) * 0.75f - 1.3f;
 
