@@ -64,7 +64,7 @@ CatchScore::CatchScore(
 
 	if ((_mods & EMods::Hidden) > 0)
 	{
-		_value *= 1.05f + 0.17f * (10f - std::min(10f, approachRate)); // 20% for each AR below 10
+		_value *= 1.05f + 0.17f * (10.0f - std::min(10.0f, approachRate)); // 20% for each AR below 10
 	}
 
 	if ((_mods & EMods::Flashlight) > 0)
@@ -73,9 +73,9 @@ CatchScore::CatchScore(
 		_value *= 1.35f * lengthBonus;
 
 		if (approachRate > 8.0f)
-			value *= 0.1f * (approachRate - 8.0f); // 10% for each AR above 8
+			_value *= 0.1f * (approachRate - 8.0f); // 10% for each AR above 8
 		if (approachRate < 8.0f)
-			value *= 0.07f * (approachRate - 8.0f); // -7% for each AR below 8
+			_value *= 0.07f * (approachRate - 8.0f); // -7% for each AR below 8
 	}
 
 	// Scale the aim value with accuracy _slightly_
