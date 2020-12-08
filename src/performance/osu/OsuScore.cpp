@@ -95,7 +95,7 @@ void OsuScore::computeAimValue(const Beatmap& beatmap)
 
 	// Longer maps are worth more
 	f32 LengthBonus = 0.95f + 0.4f * std::min(1.0f, static_cast<f32>(numTotalHits) / 2000.0f) +
-		(numTotalHits > 2000 ? log10(static_cast<f32>(numTotalHits) / 2000.0f) * 0.5f : 0.0f);
+					  (numTotalHits > 2000 ? log10(static_cast<f32>(numTotalHits) / 2000.0f) * 0.5f : 0.0f);
 
 	_aimValue *= LengthBonus;
 
@@ -108,20 +108,18 @@ void OsuScore::computeAimValue(const Beatmap& beatmap)
 		_aimValue *= std::min(static_cast<f32>(pow(_maxCombo, 0.8f) / pow(maxCombo, 0.8f)), 1.0f);
 
 	f32 approachRate = beatmap.DifficultyAttribute(_mods, Beatmap::AR);
-	f32 approachRateFactor = 1.0f;
+	f32 approachRateFactor = 0.0f;
 	if (approachRate > 10.33f)
-		approachRateFactor += 0.3f * (approachRate - 10.33f);
+		approachRateFactor += 0.4f * (approachRate - 10.33f);
 	else if (approachRate < 8.0f)
-	{
-		approachRateFactor += 0.01f * (8.0f - approachRate);
-	}
+		approachRateFactor += 0.1f * (8.0f - approachRate);
 
-	_aimValue *= approachRateFactor;
+	_aimValue *= 1.0f + std::min(approachRateFactor, approachRateFactor * (static_cast<f32>(numTotalHits) / 1000.0f));
 
 	// We want to give more reward for lower AR when it comes to aim and HD. This nerfs high AR and buffs lower AR.
 	if ((_mods & EMods::Hidden) > 0)
 		_aimValue *= 1.0f + 0.04f * (12.0f - approachRate);
-	
+
 	if ((_mods & EMods::Flashlight) > 0)
 		// Apply object-based bonus for flashlight.
 		_aimValue *= 1.0f + 0.35f * std::min(1.0f, static_cast<f32>(numTotalHits) / 200.0f) +
@@ -140,17 +138,10 @@ void OsuScore::computeSpeedValue(const Beatmap& beatmap)
 
 	int numTotalHits = TotalHits();
 
-	f32 approachRate = beatmap.DifficultyAttribute(_mods, Beatmap::AR);
-	f32 approachRateFactor = 1.0f;
-	if (approachRate > 10.33f)
-		approachRateFactor += 0.3f * (approachRate - 10.33f);
-
-	_speedValue *= approachRateFactor;
-	
 	// Longer maps are worth more
-	_speedValue *=
-		0.95f + 0.4f * std::min(1.0f, static_cast<f32>(numTotalHits) / 2000.0f) +
-		(numTotalHits > 2000 ? log10(static_cast<f32>(numTotalHits) / 2000.0f) * 0.5f : 0.0f);
+	f32 lengthBonus = 0.95f + 0.4f * std::min(1.0f, static_cast<f32>(numTotalHits) / 2000.0f) +
+					  (numTotalHits > 2000 ? log10(static_cast<f32>(numTotalHits) / 2000.0f) * 0.5f : 0.0f);
+	_speedValue *= lengthBonus;
 
 	// Penalize misses exponentially. This mainly fixes tag4 maps and the likes until a per-hitobject solution is available
 	_speedValue *= pow(0.97f, _numMiss);
@@ -159,6 +150,13 @@ void OsuScore::computeSpeedValue(const Beatmap& beatmap)
 	float maxCombo = beatmap.DifficultyAttribute(_mods, Beatmap::MaxCombo);
 	if (maxCombo > 0)
 		_speedValue *= std::min(static_cast<f32>(pow(_maxCombo, 0.8f) / pow(maxCombo, 0.8f)), 1.0f);
+
+	f32 approachRate = beatmap.DifficultyAttribute(_mods, Beatmap::AR);
+	f32 approachRateFactor = 0.0f;
+	if (approachRate > 10.33f)
+		approachRateFactor += 0.4f * (approachRate - 10.33f);
+
+	_speedValue *= 1.0f + std::min(approachRateFactor, approachRateFactor * (static_cast<f32>(numTotalHits) / 1000.0f));
 
 	// We want to give more reward for lower AR when it comes to speed and HD. This nerfs high AR and buffs lower AR.
 	if ((_mods & EMods::Hidden) > 0)

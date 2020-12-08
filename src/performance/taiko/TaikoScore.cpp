@@ -69,11 +69,6 @@ void TaikoScore::computeStrainValue(const Beatmap& beatmap)
 	// Penalize misses exponentially. This mainly fixes tag4 maps and the likes until a per-hitobject solution is available
 	_strainValue *= pow(0.985f, _numMiss);
 
-	// Combo scaling
-	float maxCombo = beatmap.DifficultyAttribute(_mods, Beatmap::MaxCombo);
-	if (maxCombo > 0)
-		_strainValue *= std::min(static_cast<f32>(pow(_maxCombo, 0.5f) / pow(maxCombo, 0.5f)), 1.0f);
-
 	if ((_mods & EMods::Hidden) > 0)
 		_strainValue *= 1.025f;
 

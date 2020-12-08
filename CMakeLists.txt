@@ -41,7 +41,7 @@ if (WIN32)
 	link_directories(${EXTERNAL}/curl/lib)
 	link_directories(${EXTERNAL}/MySQL/lib)
 elseif(APPLE)
-	link_directories(/usr/local/lib)
+	link_directories(/usr/local/opt/mysql-client/lib)
 endif()
 
 add_subdirectory(src)
