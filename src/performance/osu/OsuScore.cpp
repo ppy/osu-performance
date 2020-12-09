@@ -24,7 +24,7 @@ OsuScore::OsuScore(
 	computeSpeedValue(beatmap);
 	computeAccValue(beatmap);
 
-	computeTotalValue();
+	computeTotalValue(beatmap);
 }
 
 
@@ -53,7 +53,7 @@ s32 OsuScore::TotalSuccessfulHits() const
 	return _num50 + _num100 + _num300;
 }
 
-void OsuScore::computeTotalValue()
+void OsuScore::computeTotalValue(const Beatmap& beatmap)
 {
 	// Don't count scores made with supposedly unranked mods
 	if ((_mods & EMods::Relax) > 0 ||
@@ -70,8 +70,9 @@ void OsuScore::computeTotalValue()
 	if ((_mods & EMods::NoFail) > 0)
 		multiplier *= 0.90f;
 
+	int numTotalHits = TotalHits();
 	if ((_mods & EMods::SpunOut) > 0)
-		multiplier *= 0.95f;
+		multiplier *= 1.0f - std::pow(beatmap.NumSpinners() / static_cast<f32>(numTotalHits), 0.85f);
 
 	_totalValue =
 		std::pow(

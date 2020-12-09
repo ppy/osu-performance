@@ -535,7 +535,7 @@ void Processor::queryAllBeatmapDifficulties(u32 numThreads)
 bool Processor::queryBeatmapDifficulty(DatabaseConnection& dbSlave, s32 startId, s32 endId)
 {
 	std::string query = StrFormat(
-		"SELECT `osu_beatmaps`.`beatmap_id`,`countNormal`,`mods`,`attrib_id`,`value`,`approved`,`score_version` "
+		"SELECT `osu_beatmaps`.`beatmap_id`,`countNormal`,`mods`,`attrib_id`,`value`,`approved`,`score_version`, `countSpinner` "
 		"FROM `osu_beatmaps` "
 		"JOIN `osu_beatmap_difficulty_attribs` ON `osu_beatmaps`.`beatmap_id` = `osu_beatmap_difficulty_attribs`.`beatmap_id` "
 		"WHERE (`osu_beatmaps`.`playmode`=0 OR `osu_beatmaps`.`playmode`={0}) AND `osu_beatmap_difficulty_attribs`.`mode`={0} AND `approved` BETWEEN {1} AND {2}",
@@ -565,6 +565,7 @@ bool Processor::queryBeatmapDifficulty(DatabaseConnection& dbSlave, s32 startId,
 		beatmap.SetRankedStatus(res[5]);
 		beatmap.SetScoreVersion(res[6]);
 		beatmap.SetNumHitCircles(res.IsNull(1) ? 0 : (s32)res[1]);
+		beatmap.SetNumSpinners(res.IsNull(7) ? 0 : (s32)res[7]);
 		beatmap.SetDifficultyAttribute(res[2], _difficultyAttributes[(s32)res[3]], res[4]);
 	}
 
