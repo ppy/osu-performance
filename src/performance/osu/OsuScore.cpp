@@ -99,8 +99,9 @@ void OsuScore::computeAimValue(const Beatmap& beatmap)
 
 	_aimValue *= LengthBonus;
 
-	// Penalize misses exponentially. This mainly fixes tag4 maps and the likes until a per-hitobject solution is available
-	_aimValue *= pow(0.97f, _numMiss);
+	// Penalize misses by assessing # of misses relative to the total # of objects. Default a 3% reduction for any # of misses.
+	if (_numMiss > 0)
+		_aimValue *= 0.97f * std::pow(1.0f - std::pow(_numMiss / static_cast<f32>(numTotalHits), 0.775f), _numMiss);
 
 	// Combo scaling
 	float maxCombo = beatmap.DifficultyAttribute(_mods, Beatmap::MaxCombo);
@@ -143,8 +144,9 @@ void OsuScore::computeSpeedValue(const Beatmap& beatmap)
 					  (numTotalHits > 2000 ? log10(static_cast<f32>(numTotalHits) / 2000.0f) * 0.5f : 0.0f);
 	_speedValue *= lengthBonus;
 
-	// Penalize misses exponentially. This mainly fixes tag4 maps and the likes until a per-hitobject solution is available
-	_speedValue *= pow(0.97f, _numMiss);
+	// Penalize misses by assessing # of misses relative to the total # of objects. Default a 3% reduction for any # of misses.
+	if (_numMiss > 0)
+		_speedValue *= 0.97f * std::pow(1.0f - std::pow(_numMiss / static_cast<f32>(numTotalHits), 0.775f), _numMiss);
 
 	// Combo scaling
 	float maxCombo = beatmap.DifficultyAttribute(_mods, Beatmap::MaxCombo);
