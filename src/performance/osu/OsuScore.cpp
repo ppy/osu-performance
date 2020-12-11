@@ -162,10 +162,10 @@ void OsuScore::computeSpeedValue(const Beatmap& beatmap)
 	if ((_mods & EMods::Hidden) > 0)
 		_speedValue *= 1.0f + 0.04f * (12.0f - approachRate);
 
-	// Scale the speed value with accuracy _slightly_
-	_speedValue *= 0.02f + Accuracy();
-	// It is important to also consider accuracy difficulty when doing that
-	_speedValue *= 0.96f + (pow(beatmap.DifficultyAttribute(_mods, Beatmap::OD), 2) / 1600);
+	// Scale the speed value with accuracy and OD
+	_speedValue *= (0.95f + std::pow(beatmap.DifficultyAttribute(_mods, Beatmap::OD), 2) / 750) * std::pow(Accuracy(), (14.5f - std::max(beatmap.DifficultyAttribute(_mods, Beatmap::OD), 8.0f)) / 2);
+	// Scale the speed value with # of 50s to punish doubletapping.
+	_speedValue *= std::pow(0.98f, _num50 < numTotalHits / 500.0f ? 0.5f * _num50 : _num50 - numTotalHits / 500.0f * 0.5f);
 }
 
 void OsuScore::computeAccValue(const Beatmap& beatmap)
