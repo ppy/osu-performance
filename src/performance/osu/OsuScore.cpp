@@ -146,7 +146,7 @@ void OsuScore::computeSpeedValue(const Beatmap& beatmap)
 
 	// Penalize misses by assessing # of misses relative to the total # of objects. Default a 3% reduction for any # of misses.
 	if (_numMiss > 0)
-		_speedValue *= 0.97f * std::pow(1.0f - std::pow(_numMiss / static_cast<f32>(numTotalHits), 0.775f), std::pow(static_cast<f32>(_numMiss), 0.75f));
+		_speedValue *= 0.97f * std::pow(1.0f - std::pow(_numMiss / static_cast<f32>(numTotalHits), 0.775f), std::pow(static_cast<f32>(_numMiss), 0.875f));
 
 	// Combo scaling
 	float maxCombo = beatmap.DifficultyAttribute(_mods, Beatmap::MaxCombo);
