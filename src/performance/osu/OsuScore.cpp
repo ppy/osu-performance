@@ -68,7 +68,7 @@ void OsuScore::computeTotalValue(const Beatmap& beatmap)
 	f32 multiplier = 1.12f; // This is being adjusted to keep the final pp value scaled around what it used to be when changing things
 
 	if ((_mods & EMods::NoFail) > 0)
-		multiplier *= 0.90f;
+		multiplier *= std::max(0.9f, 1.0f - 0.02f * _numMiss);
 
 	int numTotalHits = TotalHits();
 	if ((_mods & EMods::SpunOut) > 0)
