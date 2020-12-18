@@ -75,7 +75,7 @@ void OsuScore::computeTotalValue(const Beatmap& beatmap)
 		else
 			comboBasedMissCount = std::pow((beatmapMaxCombo - _maxCombo) / (0.1f * beatmap.NumSliders()), 3.0f);
 	}
-	_effectiveMissCount = static_cast<s32>(std::max(_numMiss, std::floor(comboBasedMissCount)));
+	_effectiveMissCount = std::max(_numMiss, static_cast<s32>(std::floor(comboBasedMissCount)));
 
 	// Custom multipliers for NoFail and SpunOut.
 	f32 multiplier = 1.12f; // This is being adjusted to keep the final pp value scaled around what it used to be when changing things
