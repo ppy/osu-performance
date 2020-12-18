@@ -35,6 +35,7 @@ private:
 	f32 _aimValue;
 	f32 _speedValue;
 	f32 _accValue;
+	s32 _effectiveMissCount;
 
 	void computeTotalValue(const Beatmap& beatmap);
 	f32 _totalValue;
