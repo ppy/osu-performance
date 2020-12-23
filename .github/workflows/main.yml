@@ -1,6 +1,6 @@
 name: CI
 
-on: 
+on:
   push:
     branches:
       - master
@@ -21,7 +21,7 @@ jobs:
         with:
           submodules: recursive
       - name: Install dependencies
-        run: sudo apt-get install libmysqlclient-dev libcurl4-openssl-dev
+        run: sudo apt-get update && sudo apt-get install libmysqlclient-dev libcurl4-openssl-dev
       - name: CMake
         run: cmake .
       - name: Build
@@ -52,7 +52,7 @@ jobs:
           submodules: recursive
 
       - name: Setup MSBuild.exe
-        uses: warrenbuckley/Setup-MSBuild@v1
+        uses: microsoft/setup-msbuild@v1.0.2
 
       - name: CMake
         run: cmake .

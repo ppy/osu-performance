@@ -36,7 +36,7 @@ private:
 	f32 _speedValue;
 	f32 _accValue;
 
-	void computeTotalValue();
+	void computeTotalValue(const Beatmap& beatmap);
 	f32 _totalValue;
 
 	void computeAimValue(const Beatmap& beatmap);
