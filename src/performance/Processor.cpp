@@ -328,6 +328,7 @@ void Processor::ProcessSQL(u32 numThreads, std::string sql)
 		tlog::durationToString(progress.duration()));
 }
 
+void Processor::ProcessUsers(const std::vector<std::string> &userNames)
 {
 	std::vector<s64> userIds;
 	for (const auto& name : userNames)
