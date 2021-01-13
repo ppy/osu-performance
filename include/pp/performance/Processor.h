@@ -29,6 +29,7 @@ public:
 	void ProcessUsers(const std::vector<std::string>& userNames);
 	void ProcessUsers(const std::vector<s64>& userIds);
 	void ProcessScores(const std::vector<s64>& scoreIds);
+	void ProcessSQL(u32 numThreads, std::string sql);
 
 private:
 	static const Beatmap::ERankedStatus s_minRankedStatus;
