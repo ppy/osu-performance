@@ -243,7 +243,92 @@ void Processor::ProcessAllUsers(bool reProcess, u32 numThreads)
 	);
 }
 
-void Processor::ProcessUsers(const std::vector<std::string>& userNames)
+void Processor::ProcessSQL(u32 numThreads, std::string sql)
+{
+	ThreadPool threadPool{numThreads};
+	std::vector<std::shared_ptr<DatabaseConnection>> dbConnections;
+	std::vector<std::shared_ptr<DatabaseConnection>> dbSlaveConnections;
+	std::vector<UpdateBatch> newUsersBatches;
+	std::vector<UpdateBatch> newScoresBatches;
+
+	for (u32 i = 0; i < numThreads; ++i)
+	{
+		dbConnections.push_back(newDBConnectionMaster());
+		dbSlaveConnections.push_back(newDBConnectionSlave());
+
+		newUsersBatches.emplace_back(dbConnections[i], 10000);
+		newScoresBatches.emplace_back(dbConnections[i], 10000);
+	}
+
+	auto res = _pDBSlave->Query(sql);
+
+	if (res.NumRows() == 0)
+		throw ProcessorException(SRC_POS, "SQL query returned 0 users to process.");
+
+	const s64 numUsers = res.NumRows();
+
+	tlog::info() << StrFormat("Processing {0} users.", numUsers);
+	auto progress = tlog::progress(numUsers);
+
+	std::atomic<s64> numUsersProcessed{0};
+	u32 currentConnection = 0;
+	auto lastProgressUpdate = steady_clock::now();
+
+	while (res.NextRow())
+	{
+		s64 userId = res[0];
+
+		threadPool.EnqueueTask(
+			[&, userId, currentConnection]() {
+				processSingleUser(
+					0, // We want to update _all_ scores
+					*dbConnections[currentConnection],
+					*dbSlaveConnections[currentConnection],
+					newUsersBatches[currentConnection],
+					newScoresBatches[currentConnection],
+					userId);
+
+				++numUsersProcessed;
+			});
+
+		currentConnection = (currentConnection + 1) % numThreads;
+
+		// Shut down when requested!
+		if (_shallShutdown)
+			return;
+	}
+
+	u32 numPendingQueries = 0;
+
+	do
+	{
+		u32 numPendingQueries = 0;
+		for (auto &pDBConn : dbConnections)
+			numPendingQueries += (u32)pDBConn->NumPendingQueries();
+
+		_pDataDog->Gauge("osu.pp.db.pending_queries", numPendingQueries,
+						 {
+							 StrFormat("mode:{0}", GamemodeTag(_gamemode)),
+							 "connection:background",
+						 },
+						 0.01f);
+
+		if (steady_clock::now() - lastProgressUpdate > milliseconds{100})
+		{
+			progress.update(numUsersProcessed);
+			lastProgressUpdate += milliseconds{100};
+		}
+
+		std::this_thread::sleep_for(milliseconds{10});
+	} while (threadPool.GetNumTasksInSystem() > 0 || numPendingQueries > 0);
+
+	tlog::success() << StrFormat(
+		"Processed all {0} users for {1}.",
+		numUsers,
+		tlog::durationToString(progress.duration()));
+}
+
+void Processor::ProcessUsers(const std::vector<std::string> &userNames)
 {
 	std::vector<s64> userIds;
 	for (const auto& name : userNames)
