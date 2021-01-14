@@ -68,7 +68,7 @@ void OsuScore::computeTotalValue(const Beatmap& beatmap)
 	f32 multiplier = 1.12f; // This is being adjusted to keep the final pp value scaled around what it used to be when changing things
 
 	if ((_mods & EMods::NoFail) > 0)
-		multiplier *= 0.90f;
+		multiplier *= std::max(0.9f, 1.0f - 0.02f * _numMiss);
 
 	int numTotalHits = TotalHits();
 	if ((_mods & EMods::SpunOut) > 0)
@@ -99,8 +99,9 @@ void OsuScore::computeAimValue(const Beatmap& beatmap)
 
 	_aimValue *= LengthBonus;
 
-	// Penalize misses exponentially. This mainly fixes tag4 maps and the likes until a per-hitobject solution is available
-	_aimValue *= pow(0.97f, _numMiss);
+	// Penalize misses by assessing # of misses relative to the total # of objects. Default a 3% reduction for any # of misses.
+	if (_numMiss > 0)
+		_aimValue *= 0.97f * std::pow(1.0f - std::pow(_numMiss / static_cast<f32>(numTotalHits), 0.775f), _numMiss);
 
 	// Combo scaling
 	float maxCombo = beatmap.DifficultyAttribute(_mods, Beatmap::MaxCombo);
@@ -112,7 +113,7 @@ void OsuScore::computeAimValue(const Beatmap& beatmap)
 	if (approachRate > 10.33f)
 		approachRateFactor += 0.4f * (approachRate - 10.33f);
 	else if (approachRate < 8.0f)
-		approachRateFactor += 0.1f * (8.0f - approachRate);
+		approachRateFactor += 0.01f * (8.0f - approachRate);
 
 	_aimValue *= 1.0f + std::min(approachRateFactor, approachRateFactor * (static_cast<f32>(numTotalHits) / 1000.0f));
 
@@ -143,8 +144,9 @@ void OsuScore::computeSpeedValue(const Beatmap& beatmap)
 					  (numTotalHits > 2000 ? log10(static_cast<f32>(numTotalHits) / 2000.0f) * 0.5f : 0.0f);
 	_speedValue *= lengthBonus;
 
-	// Penalize misses exponentially. This mainly fixes tag4 maps and the likes until a per-hitobject solution is available
-	_speedValue *= pow(0.97f, _numMiss);
+	// Penalize misses by assessing # of misses relative to the total # of objects. Default a 3% reduction for any # of misses.
+	if (_numMiss > 0)
+		_speedValue *= 0.97f * std::pow(1.0f - std::pow(_numMiss / static_cast<f32>(numTotalHits), 0.775f), std::pow(static_cast<f32>(_numMiss), 0.875f));
 
 	// Combo scaling
 	float maxCombo = beatmap.DifficultyAttribute(_mods, Beatmap::MaxCombo);
@@ -162,10 +164,10 @@ void OsuScore::computeSpeedValue(const Beatmap& beatmap)
 	if ((_mods & EMods::Hidden) > 0)
 		_speedValue *= 1.0f + 0.04f * (12.0f - approachRate);
 
-	// Scale the speed value with accuracy _slightly_
-	_speedValue *= 0.02f + Accuracy();
-	// It is important to also consider accuracy difficulty when doing that
-	_speedValue *= 0.96f + (pow(beatmap.DifficultyAttribute(_mods, Beatmap::OD), 2) / 1600);
+	// Scale the speed value with accuracy and OD
+	_speedValue *= (0.95f + std::pow(beatmap.DifficultyAttribute(_mods, Beatmap::OD), 2) / 750) * std::pow(Accuracy(), (14.5f - std::max(beatmap.DifficultyAttribute(_mods, Beatmap::OD), 8.0f)) / 2);
+	// Scale the speed value with # of 50s to punish doubletapping.
+	_speedValue *= std::pow(0.98f, _num50 < numTotalHits / 500.0f ? 0.0f : _num50 - numTotalHits / 500.0f);
 }
 
 void OsuScore::computeAccValue(const Beatmap& beatmap)
