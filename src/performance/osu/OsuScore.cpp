@@ -113,7 +113,7 @@ void OsuScore::computeAimValue(const Beatmap& beatmap)
 	if (approachRate > 10.33f)
 		approachRateFactor += 0.4f * (approachRate - 10.33f);
 	else if (approachRate < 8.0f)
-		approachRateFactor += 0.1f * (8.0f - approachRate);
+		approachRateFactor += 0.01f * (8.0f - approachRate);
 
 	_aimValue *= 1.0f + std::min(approachRateFactor, approachRateFactor * (static_cast<f32>(numTotalHits) / 1000.0f));
 
