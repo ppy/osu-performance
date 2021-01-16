@@ -87,8 +87,33 @@ int main(s32 argc, char* argv[])
 			processor.ProcessAllUsers(!continueFlag, numThreads);
 		});
 
-		args::Command usersCommand(commands, "users", "Compute pp of specific users", [&](args::Subparser& parser)
-		{
+		args::Command sqlCommand(commands, "sql", "Compute pp of users given by a SQL select statement", [&](args::Subparser &parser) {
+			args::Positional<std::string> statementPositional{
+				parser,
+				"statement",
+				"The SQL statement selecting the user ids to compute.",
+			};
+
+			args::ValueFlag<u32> threadsFlag{
+				parser,
+				"THREADS",
+				"Number of threads to use. Can be useful even if the processor itself has no "
+				"parallelism due to additional connections to the database.\n"
+				"Default: 1",
+				{'t', "threads"},
+				1,
+			};
+
+			parser.Parse();
+
+			std::string sqlString = args::get(statementPositional);
+			u32 numThreads = args::get(threadsFlag);
+
+			Processor processor{ToGamemode(args::get(modePositional)), args::get(configFlag)};
+			processor.ProcessSQL(numThreads, sqlString);
+		});
+
+		args::Command usersCommand(commands, "users", "Compute pp of specific users", [&](args::Subparser &parser) {
 			args::PositionalList<std::string> usersPositional{
 				parser,
 				"users",
