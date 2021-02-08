@@ -218,8 +218,8 @@ f32 OsuScore::comboScaling(s32 scoreMaxCombo, s32 beatmapMaxCombo)
 	f32 truncateMax = std::exp(-std::exp((comboDistributionLocation - beatmapMaxCombo) / comboDistributionScale));
 
 	// Truncate distribution support to [0, beatmapMaxCombo].
-	cumulativeProbability -= comboTruncateMin();
-	cumulativeProbability /= truncateMax - comboTruncateMin();
+	cumulativeProbability -= comboTruncateMin;
+	cumulativeProbability /= truncateMax - comboTruncateMin;
 
 	return cumulativeProbability;
 }
