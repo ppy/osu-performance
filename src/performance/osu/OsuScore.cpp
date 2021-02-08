@@ -106,7 +106,7 @@ void OsuScore::computeAimValue(const Beatmap& beatmap)
 	// Combo scaling
 	float maxCombo = beatmap.DifficultyAttribute(_mods, Beatmap::MaxCombo);
 	if (maxCombo > 0)
-		_aimValue *= std::min(static_cast<f32>(pow(_maxCombo, 0.8f) / pow(maxCombo, 0.8f)), 1.0f);
+		_aimValue *= comboScaling(_maxCombo, maxCombo);
 
 	f32 approachRate = beatmap.DifficultyAttribute(_mods, Beatmap::AR);
 	f32 approachRateFactor = 0.0f;
@@ -151,7 +151,7 @@ void OsuScore::computeSpeedValue(const Beatmap& beatmap)
 	// Combo scaling
 	float maxCombo = beatmap.DifficultyAttribute(_mods, Beatmap::MaxCombo);
 	if (maxCombo > 0)
-		_speedValue *= std::min(static_cast<f32>(pow(_maxCombo, 0.8f) / pow(maxCombo, 0.8f)), 1.0f);
+		_speedValue *= comboScaling(_maxCombo, maxCombo);
 
 	f32 approachRate = beatmap.DifficultyAttribute(_mods, Beatmap::AR);
 	f32 approachRateFactor = 0.0f;
@@ -209,6 +209,19 @@ void OsuScore::computeAccValue(const Beatmap& beatmap)
 
 	if ((_mods & EMods::Flashlight) > 0)
 		_accValue *= 1.02f;
+}
+
+f32 OsuScore::comboScaling(s32 scoreMaxCombo, s32 beatmapMaxCombo)
+{
+	f32 cumulativeProbability = std::exp(-std::exp((comboDistributionLocation - scoreMaxCombo) / comboDistributionScale));
+
+	f32 truncateMax = std::exp(-std::exp((comboDistributionLocation - beatmapMaxCombo) / comboDistributionScale));
+
+	// Truncate distribution support to [0, beatmapMaxCombo].
+	cumulativeProbability -= comboTruncateMin();
+	cumulativeProbability /= truncateMax - comboTruncateMin();
+
+	return cumulativeProbability;
 }
 
 PP_NAMESPACE_END
