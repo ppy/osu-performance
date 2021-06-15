@@ -115,17 +115,20 @@ void OsuScore::computeAimValue(const Beatmap& beatmap)
 	else if (approachRate < 8.0f)
 		approachRateFactor += 0.01f * (8.0f - approachRate);
 
-	_aimValue *= 1.0f + std::min(approachRateFactor, approachRateFactor * (static_cast<f32>(numTotalHits) / 1000.0f));
+	approachRateFactor = 1.0f + std::min(approachRateFactor, approachRateFactor * (static_cast<f32>(numTotalHits) / 1000.0f));
 
 	// We want to give more reward for lower AR when it comes to aim and HD. This nerfs high AR and buffs lower AR.
 	if ((_mods & EMods::Hidden) > 0)
 		_aimValue *= 1.0f + 0.04f * (12.0f - approachRate);
 
+	f32 flashlightBonus = 1.0;
 	if ((_mods & EMods::Flashlight) > 0)
 		// Apply object-based bonus for flashlight.
-		_aimValue *= 1.0f + 0.35f * std::min(1.0f, static_cast<f32>(numTotalHits) / 200.0f) +
+		flashlightBonus = 1.0f + 0.35f * std::min(1.0f, static_cast<f32>(numTotalHits) / 200.0f) +
          		(numTotalHits > 200 ? 0.3f * std::min(1.0f, static_cast<f32>(numTotalHits - 200) / 300.0f) +
          		(numTotalHits > 500 ? static_cast<f32>(numTotalHits - 500) / 1200.0f : 0.0f) : 0.0f);
+
+	_aimValue *= std::max(flashlightBonus, approachRateFactor);
 
 	// Scale the aim value with accuracy _slightly_
 	_aimValue *= 0.5f + Accuracy() / 2.0f;
