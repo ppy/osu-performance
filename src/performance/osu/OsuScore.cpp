@@ -111,11 +111,13 @@ void OsuScore::computeAimValue(const Beatmap& beatmap)
 	f32 approachRate = beatmap.DifficultyAttribute(_mods, Beatmap::AR);
 	f32 approachRateFactor = 0.0f;
 	if (approachRate > 10.33f)
-		approachRateFactor += 0.4f * (approachRate - 10.33f);
+		approachRateFactor = approachRate - 10.33f;
 	else if (approachRate < 8.0f)
-		approachRateFactor += 0.01f * (8.0f - approachRate);
+		approachRateFactor = 0.025f * (8.0f - approachRate);
 
-	_aimValue *= 1.0f + std::min(approachRateFactor, approachRateFactor * (static_cast<f32>(numTotalHits) / 1000.0f));
+	f32 approachRateTotalHitsFactor = 1.0f / (1.0f + std::exp(-(0.007f * (static_cast<f32>(numTotalHits) - 400))));
+
+	_aimValue *= 1.0f + (0.03f + 0.37f * approachRateTotalHitsFactor) * approachRateFactor;
 
 	// We want to give more reward for lower AR when it comes to aim and HD. This nerfs high AR and buffs lower AR.
 	if ((_mods & EMods::Hidden) > 0)
@@ -156,9 +158,11 @@ void OsuScore::computeSpeedValue(const Beatmap& beatmap)
 	f32 approachRate = beatmap.DifficultyAttribute(_mods, Beatmap::AR);
 	f32 approachRateFactor = 0.0f;
 	if (approachRate > 10.33f)
-		approachRateFactor += 0.4f * (approachRate - 10.33f);
+		approachRateFactor = approachRate - 10.33f;
 
-	_speedValue *= 1.0f + std::min(approachRateFactor, approachRateFactor * (static_cast<f32>(numTotalHits) / 1000.0f));
+	f32 approachRateTotalHitsFactor = 1.0f / (1.0f + std::exp(-(0.007f * (static_cast<f32>(numTotalHits) - 400))));
+
+	_speedValue *= 1.0f + (0.03f + 0.37f * approachRateTotalHitsFactor) * approachRateFactor;
 
 	// We want to give more reward for lower AR when it comes to speed and HD. This nerfs high AR and buffs lower AR.
 	if ((_mods & EMods::Hidden) > 0)
