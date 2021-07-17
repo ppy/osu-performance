@@ -42,6 +42,11 @@ private:
 	void computeAimValue(const Beatmap& beatmap);
 	void computeSpeedValue(const Beatmap& beatmap);
 	void computeAccValue(const Beatmap& beatmap);
+
+	static constexpr f32 comboDistributionLocation = 930.58f;
+	static constexpr f32 comboDistributionScale = 969.16f;
+	static constexpr f32 comboTruncateMin = 0.073373031198542646f; // == std::exp(-std::exp(comboDistributionLocation / comboDistributionScale))
+	f32 comboScaling(s32 scoreMaxCombo, s32 beatmapMaxCombo);
 };
 
 PP_NAMESPACE_END
