@@ -79,6 +79,34 @@ and further options specific to the chosen command can be queried via
 
 Configuration options beyond these parameters, such as various API hooks, can be adjusted in _bin/config.json_.
 
+# Docker
+
+osu!performance can also be run in Docker.
+
+Configuration is provided via environment variables _or_ by mounting the config file at _/srv/config.json_.  
+Availables environment variables:
+```
+MYSQL_HOST
+MYSQL_PORT
+MYSQL_USER
+MYSQL_PASSWORD
+MYSQL_DATABASE
+```
+
+Example:
+```sh
+docker build -t osu-performance .
+docker run --rm -it \        
+  -e MYSQL_HOST=172.17.0.1 \
+  -e MYSQL_USER=osu \
+  -e MYSQL_PASSWORD=changeme \
+  -e MYSQL_DATABASE=osu \
+  osu-performance all -m osu
+```
+
+A `docker-compose.yml` file is also provided, with a built-in MySQL and phpMyAdmin server provided for convenience.  
+It supports having *.sql files in a dump folder, such as those found at https://data.ppy.sh, for import at first start.
+
 # Licence
 osu!performance is licensed under AGPL version 3 or later. Please see [the licence file](LICENCE) for more information. [tl;dr](https://tldrlegal.com/license/gnu-affero-general-public-license-v3-(agpl-3.0)) if you want to use any code, design or artwork from this project, attribute it and make your project open source under the same licence.
 

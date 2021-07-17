@@ -1,0 +1,25 @@
+version: '3'
+volumes:
+  mysql-data:
+    driver: local
+
+services:
+  osu-performance:
+    build: .
+    env_file: .env
+    command: all
+  db:
+    image: mysql:8
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./dump:/docker-entrypoint-initdb.d
+    env_file: .env
+    ports:
+      - 127.0.0.1:3306:3306/tcp
+  phpmyadmin:
+    image: phpmyadmin
+    ports:
+      - 127.0.0.1:3380:80/tcp
+    environment:
+      - PMA_USER=osu
+      - PMA_PASSWORD=osu
