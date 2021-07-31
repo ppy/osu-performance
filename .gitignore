@@ -58,3 +58,6 @@ osu!.userprefs
 packages/*
 !packages/repositories.config
 .vs/*
+
+# Database dump (for use with Docker Compose)
+dump/
