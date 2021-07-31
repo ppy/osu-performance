@@ -35,10 +35,13 @@ protected:
 	std::string _description;
 };
 
-#define DEFINE_EXCEPTION(x) \
-	class x : public Exception \
-	{ public: x(const std::string& file, s32 line, const std::string& description) \
-	: Exception{file, line, description} {} }
+#define DEFINE_EXCEPTION(x)                                                  \
+	class x : public Exception                                               \
+	{                                                                        \
+	public:                                                                  \
+		x(const std::string &file, s32 line, const std::string &description) \
+			: Exception{file, line, description} { Log(); }                  \
+	}
 
 #define SRC_POS __FILE__,__LINE__
 
