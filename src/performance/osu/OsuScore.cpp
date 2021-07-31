@@ -17,8 +17,7 @@ OsuScore::OsuScore(
 	s32 numGeki,
 	s32 numKatu,
 	EMods mods,
-	const Beatmap& beatmap
-) : Score{scoreId, mode, userId, beatmapId, score, maxCombo, num300, num100, num50, numMiss, numGeki, numKatu, mods}
+	const Beatmap &beatmap) : Score{scoreId, mode, userId, beatmapId, score, maxCombo, num300, num100, num50, numMiss, numGeki, numKatu, mods}
 {
 	computeAimValue(beatmap);
 	computeSpeedValue(beatmap);
@@ -26,7 +25,6 @@ OsuScore::OsuScore(
 
 	computeTotalValue(beatmap);
 }
-
 
 f32 OsuScore::TotalValue() const
 {
@@ -39,8 +37,7 @@ f32 OsuScore::Accuracy() const
 		return 0;
 
 	return Clamp(
-		static_cast<f32>(_num50 * 50 + _num100 * 100 + _num300 * 300) / (TotalHits() * 300), 0.0f, 1.0f
-	);
+		static_cast<f32>(_num50 * 50 + _num100 * 100 + _num300 * 300) / (TotalHits() * 300), 0.0f, 1.0f);
 }
 
 s32 OsuScore::TotalHits() const
@@ -53,7 +50,7 @@ s32 OsuScore::TotalSuccessfulHits() const
 	return _num50 + _num100 + _num300;
 }
 
-void OsuScore::computeTotalValue(const Beatmap& beatmap)
+void OsuScore::computeTotalValue(const Beatmap &beatmap)
 {
 	// Don't count scores made with supposedly unranked mods
 	if ((_mods & EMods::Relax) > 0 ||
@@ -77,12 +74,13 @@ void OsuScore::computeTotalValue(const Beatmap& beatmap)
 	_totalValue =
 		std::pow(
 			std::pow(_aimValue, 1.1f) +
-			std::pow(_speedValue, 1.1f) +
-			std::pow(_accValue, 1.1f), 1.0f / 1.1f
-		) * multiplier;
+				std::pow(_speedValue, 1.1f) +
+				std::pow(_accValue, 1.1f),
+			1.0f / 1.1f) *
+		multiplier;
 }
 
-void OsuScore::computeAimValue(const Beatmap& beatmap)
+void OsuScore::computeAimValue(const Beatmap &beatmap)
 {
 	f32 rawAim = beatmap.DifficultyAttribute(_mods, Beatmap::Aim);
 
@@ -111,21 +109,27 @@ void OsuScore::computeAimValue(const Beatmap& beatmap)
 	f32 approachRate = beatmap.DifficultyAttribute(_mods, Beatmap::AR);
 	f32 approachRateFactor = 0.0f;
 	if (approachRate > 10.33f)
-		approachRateFactor += 0.4f * (approachRate - 10.33f);
+		approachRateFactor = approachRate - 10.33f;
 	else if (approachRate < 8.0f)
-		approachRateFactor += 0.01f * (8.0f - approachRate);
+		approachRateFactor = 0.025f * (8.0f - approachRate);
 
-	_aimValue *= 1.0f + std::min(approachRateFactor, approachRateFactor * (static_cast<f32>(numTotalHits) / 1000.0f));
+	f32 approachRateTotalHitsFactor = 1.0f / (1.0f + std::exp(-(0.007f * (static_cast<f32>(numTotalHits) - 400))));
+
+	f32 approachRateBonus = 1.0f + (0.03f + 0.37f * approachRateTotalHitsFactor) * approachRateFactor;
 
 	// We want to give more reward for lower AR when it comes to aim and HD. This nerfs high AR and buffs lower AR.
 	if ((_mods & EMods::Hidden) > 0)
 		_aimValue *= 1.0f + 0.04f * (12.0f - approachRate);
 
+	f32 flashlightBonus = 1.0;
 	if ((_mods & EMods::Flashlight) > 0)
 		// Apply object-based bonus for flashlight.
-		_aimValue *= 1.0f + 0.35f * std::min(1.0f, static_cast<f32>(numTotalHits) / 200.0f) +
-         		(numTotalHits > 200 ? 0.3f * std::min(1.0f, static_cast<f32>(numTotalHits - 200) / 300.0f) +
-         		(numTotalHits > 500 ? static_cast<f32>(numTotalHits - 500) / 1200.0f : 0.0f) : 0.0f);
+		flashlightBonus = 1.0f + 0.35f * std::min(1.0f, static_cast<f32>(numTotalHits) / 200.0f) +
+						  (numTotalHits > 200 ? 0.3f * std::min(1.0f, static_cast<f32>(numTotalHits - 200) / 300.0f) +
+													(numTotalHits > 500 ? static_cast<f32>(numTotalHits - 500) / 1200.0f : 0.0f)
+											  : 0.0f);
+
+	_aimValue *= std::max(flashlightBonus, approachRateBonus);
 
 	// Scale the aim value with accuracy _slightly_
 	_aimValue *= 0.5f + Accuracy() / 2.0f;
@@ -133,7 +137,7 @@ void OsuScore::computeAimValue(const Beatmap& beatmap)
 	_aimValue *= 0.98f + (pow(beatmap.DifficultyAttribute(_mods, Beatmap::OD), 2) / 2500);
 }
 
-void OsuScore::computeSpeedValue(const Beatmap& beatmap)
+void OsuScore::computeSpeedValue(const Beatmap &beatmap)
 {
 	_speedValue = pow(5.0f * std::max(1.0f, beatmap.DifficultyAttribute(_mods, Beatmap::Speed) / 0.0675f) - 4.0f, 3.0f) / 100000.0f;
 
@@ -156,9 +160,11 @@ void OsuScore::computeSpeedValue(const Beatmap& beatmap)
 	f32 approachRate = beatmap.DifficultyAttribute(_mods, Beatmap::AR);
 	f32 approachRateFactor = 0.0f;
 	if (approachRate > 10.33f)
-		approachRateFactor += 0.4f * (approachRate - 10.33f);
+		approachRateFactor = approachRate - 10.33f;
 
-	_speedValue *= 1.0f + std::min(approachRateFactor, approachRateFactor * (static_cast<f32>(numTotalHits) / 1000.0f));
+	f32 approachRateTotalHitsFactor = 1.0f / (1.0f + std::exp(-(0.007f * (static_cast<f32>(numTotalHits) - 400))));
+
+	_speedValue *= 1.0f + (0.03f + 0.37f * approachRateTotalHitsFactor) * approachRateFactor;
 
 	// We want to give more reward for lower AR when it comes to speed and HD. This nerfs high AR and buffs lower AR.
 	if ((_mods & EMods::Hidden) > 0)
@@ -170,7 +176,7 @@ void OsuScore::computeSpeedValue(const Beatmap& beatmap)
 	_speedValue *= std::pow(0.98f, _num50 < numTotalHits / 500.0f ? 0.0f : _num50 - numTotalHits / 500.0f);
 }
 
-void OsuScore::computeAccValue(const Beatmap& beatmap)
+void OsuScore::computeAccValue(const Beatmap &beatmap)
 {
 	// This percentage only considers HitCircles of any value - in this part of the calculation we focus on hitting the timing hit window
 	f32 betterAccuracyPercentage;
