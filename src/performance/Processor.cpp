@@ -84,6 +84,7 @@ void Processor::MonitorNewScores()
 	tlog::info() << "Monitoring new scores.";
 
 	_currentScoreId = retrieveCount(*_pDB, lastScoreIdKey());
+	_currentQueueId = 0;
 
 	auto res = _pDBSlave->Query("SELECT MAX(`approved_date`) FROM `osu_beatmapsets` WHERE 1");
 
