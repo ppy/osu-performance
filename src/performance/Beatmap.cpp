@@ -16,7 +16,7 @@ const std::unordered_map<std::string, Beatmap::EDifficultyAttributeType> Beatmap
 };
 
 Beatmap::Beatmap(s32 id)
-: _id{id}
+	: _id{id}
 {
 }
 
