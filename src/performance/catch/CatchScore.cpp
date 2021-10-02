@@ -84,7 +84,7 @@ CatchScore::CatchScore(
             value *= 0.1f * (approachRate - 8.0f) + 1.0f; // 10% for each AR above 8
 
 		if (approachRate < 8.0f)
-			value *= 0.06f * (8.0f - approachRate) + 1; // -6% for each AR below 8
+			value *= 0.06f * (8.0f - approachRate) + 1.0f; // -6% for each AR below 8
 	}
 
 	// Scale the aim value with accuracy _slightly_
