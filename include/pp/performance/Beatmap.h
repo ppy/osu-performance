@@ -23,6 +23,7 @@ public:
 		Strain,
 		HitWindow300,
 		ScoreMultiplier,
+		DirectionChangeCount,
 
 		NumTypes,
 	};

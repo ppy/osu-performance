@@ -12,6 +12,7 @@ const std::unordered_map<std::string, Beatmap::EDifficultyAttributeType> Beatmap
 	{"Strain",           Strain},
 	{"Hit window 300",   HitWindow300},
 	{"Score multiplier", ScoreMultiplier},
+	{"DirectionChangeCount", DirectionChangeCount},
 };
 
 Beatmap::Beatmap(s32 id)
