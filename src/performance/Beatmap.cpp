@@ -4,18 +4,19 @@
 PP_NAMESPACE_BEGIN
 
 const std::unordered_map<std::string, Beatmap::EDifficultyAttributeType> Beatmap::s_difficultyAttributes{
-	{"Aim",              Aim},
-	{"Speed",            Speed},
-	{"OD",               OD},
-	{"AR",               AR},
-	{"Max combo",        MaxCombo},
-	{"Strain",           Strain},
-	{"Hit window 300",   HitWindow300},
+	{"Aim", Aim},
+	{"Speed", Speed},
+	{"OD", OD},
+	{"AR", AR},
+	{"Max combo", MaxCombo},
+	{"Strain", Strain},
+	{"Hit window 300", HitWindow300},
 	{"Score multiplier", ScoreMultiplier},
+	{"Flashlight", Flashlight},
 };
 
 Beatmap::Beatmap(s32 id)
-: _id{id}
+	: _id{id}
 {
 }
 
