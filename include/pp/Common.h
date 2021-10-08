@@ -100,7 +100,7 @@ enum EMods : u32
 
 inline EMods MaskRelevantDifficultyMods(EMods mods)
 {
-	return static_cast<EMods>(mods & (DoubleTime | HalfTime | HardRock | Easy | keyMod));
+	return static_cast<EMods>(mods & (DoubleTime | HalfTime | HardRock | Easy | Flashlight | keyMod));
 }
 
 std::string ToString(EMods mods);
