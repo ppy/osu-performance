@@ -23,6 +23,7 @@ public:
 		Strain,
 		HitWindow300,
 		ScoreMultiplier,
+		Flashlight,
 
 		NumTypes,
 	};
@@ -57,7 +58,7 @@ public:
 	void SetNumSpinners(s32 numSpinners) { _numSpinners = numSpinners; }
 	void SetDifficultyAttribute(EMods mods, EDifficultyAttributeType type, f32 value);
 
-	static EDifficultyAttributeType DifficultyAttributeFromName(const std::string& difficultyAttributeName)
+	static EDifficultyAttributeType DifficultyAttributeFromName(const std::string &difficultyAttributeName)
 	{
 		return s_difficultyAttributes.at(difficultyAttributeName);
 	}
@@ -72,8 +73,7 @@ private:
 	// Calculated difficulty
 	using difficulty_t = std::unordered_map<
 		std::underlying_type_t<EMods>,
-		std::array<f32, NumTypes>
-	>;
+		std::array<f32, NumTypes>>;
 
 	difficulty_t _difficulty;
 

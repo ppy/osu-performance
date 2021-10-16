@@ -8,7 +8,6 @@ PP_NAMESPACE_BEGIN
 class OsuScore : public Score
 {
 public:
-
 	OsuScore(
 		s64 scoreId,
 		EGamemode mode,
@@ -23,8 +22,7 @@ public:
 		s32 numGeki,
 		s32 numKatu,
 		EMods mods,
-		const Beatmap& beatmap
-	);
+		const Beatmap &beatmap);
 
 	f32 TotalValue() const override;
 	f32 Accuracy() const override;
@@ -35,14 +33,16 @@ private:
 	f32 _aimValue;
 	f32 _speedValue;
 	f32 _accValue;
+	f32 _flashlightValue;
 	s32 _effectiveMissCount;
 
-	void computeTotalValue(const Beatmap& beatmap);
+	void computeTotalValue(const Beatmap &beatmap);
 	f32 _totalValue;
 
-	void computeAimValue(const Beatmap& beatmap);
-	void computeSpeedValue(const Beatmap& beatmap);
-	void computeAccValue(const Beatmap& beatmap);
+	void computeAimValue(const Beatmap &beatmap);
+	void computeSpeedValue(const Beatmap &beatmap);
+	void computeAccValue(const Beatmap &beatmap);
+	void computeFlashlightValue(const Beatmap &beatmap);
 };
 
 PP_NAMESPACE_END

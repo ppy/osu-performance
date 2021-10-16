@@ -35,10 +35,13 @@ protected:
 	std::string _description;
 };
 
-#define DEFINE_EXCEPTION(x) \
-	class x : public Exception \
-	{ public: x(const std::string& file, s32 line, const std::string& description) \
-	: Exception{file, line, description} {} }
+#define DEFINE_EXCEPTION(x)                                                  \
+	class x : public Exception                                               \
+	{                                                                        \
+	public:                                                                  \
+		x(const std::string &file, s32 line, const std::string &description) \
+			: Exception{file, line, description} { Log(); }                  \
+	}
 
 #define SRC_POS __FILE__,__LINE__
 
@@ -97,7 +100,7 @@ enum EMods : u32
 
 inline EMods MaskRelevantDifficultyMods(EMods mods)
 {
-	return static_cast<EMods>(mods & (DoubleTime | HalfTime | HardRock | Easy | keyMod));
+	return static_cast<EMods>(mods & (DoubleTime | HalfTime | HardRock | Easy | Flashlight | keyMod));
 }
 
 std::string ToString(EMods mods);
