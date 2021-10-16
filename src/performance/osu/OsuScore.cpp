@@ -62,9 +62,7 @@ void OsuScore::computeEffectiveMissCount(const Beatmap &beatmap)
 	{
 		f32 fullComboThreshold = beatmapMaxCombo - 0.1f * beatmap.NumSliders();
 		if (_maxCombo < fullComboThreshold)
-			comboBasedMissCount = fullComboThreshold / _maxCombo;
-		else
-			comboBasedMissCount = std::pow((beatmapMaxCombo - _maxCombo) / (0.1f * beatmap.NumSliders()), 3.0f);
+			comboBasedMissCount = fullComboThreshold / std::max(1, _maxCombo);
 	}
 
 	_effectiveMissCount = std::max(_numMiss, static_cast<s32>(std::floor(comboBasedMissCount)));
