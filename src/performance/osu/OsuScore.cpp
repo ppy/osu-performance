@@ -19,6 +19,8 @@ OsuScore::OsuScore(
 	EMods mods,
 	const Beatmap &beatmap) : Score{scoreId, mode, userId, beatmapId, score, maxCombo, num300, num100, num50, numMiss, numGeki, numKatu, mods}
 {
+	computeEffectiveMissCount(beatmap);
+
 	computeAimValue(beatmap);
 	computeSpeedValue(beatmap);
 	computeAccValue(beatmap);
@@ -51,17 +53,8 @@ s32 OsuScore::TotalSuccessfulHits() const
 	return _num50 + _num100 + _num300;
 }
 
-void OsuScore::computeTotalValue(const Beatmap &beatmap)
+void OsuScore::computeEffectiveMissCount(const Beatmap &beatmap)
 {
-	// Don't count scores made with supposedly unranked mods
-	if ((_mods & EMods::Relax) > 0 ||
-		(_mods & EMods::Relax2) > 0 ||
-		(_mods & EMods::Autoplay) > 0)
-	{
-		_totalValue = 0;
-		return;
-	}
-
 	// guess the number of misses + slider breaks from combo
 	f32 comboBasedMissCount = 0.0f;
 	f32 beatmapMaxCombo = beatmap.DifficultyAttribute(_mods, Beatmap::MaxCombo);
@@ -73,7 +66,20 @@ void OsuScore::computeTotalValue(const Beatmap &beatmap)
 		else
 			comboBasedMissCount = std::pow((beatmapMaxCombo - _maxCombo) / (0.1f * beatmap.NumSliders()), 3.0f);
 	}
+
 	_effectiveMissCount = std::max(_numMiss, static_cast<s32>(std::floor(comboBasedMissCount)));
+}
+
+void OsuScore::computeTotalValue(const Beatmap &beatmap)
+{
+	// Don't count scores made with supposedly unranked mods
+	if ((_mods & EMods::Relax) > 0 ||
+		(_mods & EMods::Relax2) > 0 ||
+		(_mods & EMods::Autoplay) > 0)
+	{
+		_totalValue = 0;
+		return;
+	}
 
 	// Custom multipliers for NoFail and SpunOut.
 	f32 multiplier = 1.12f; // This is being adjusted to keep the final pp value scaled around what it used to be when changing things.
