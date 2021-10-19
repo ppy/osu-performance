@@ -145,8 +145,8 @@ void OsuScore::computeAimValue(const Beatmap &beatmap)
 
 	_aimValue *= approachRateBonus;
 
-	// Scale the aim value with accuracy _slightly_.
-	_aimValue *= 0.5f + Accuracy() / 2.0f;
+	// Scale the aim value with accuracy.
+	_aimValue *= Accuracy();
 	// It is important to also consider accuracy difficulty when doing that.
 	_aimValue *= 0.98f + (pow(beatmap.DifficultyAttribute(_mods, Beatmap::OD), 2) / 2500);
 }
