@@ -57,6 +57,7 @@ public:
 	void SetNumSliders(s32 numSliders) { _numSliders = numSliders; }
 	void SetNumSpinners(s32 numSpinners) { _numSpinners = numSpinners; }
 	void SetDifficultyAttribute(EMods mods, EDifficultyAttributeType type, f32 value);
+	void SetMode(EGamemode mode) { _mode = mode; }
 
 	static EDifficultyAttributeType DifficultyAttributeFromName(const std::string &difficultyAttributeName)
 	{

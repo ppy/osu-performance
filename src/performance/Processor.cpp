@@ -654,6 +654,7 @@ bool Processor::queryBeatmapDifficulty(DatabaseConnection& dbSlave, s32 startId,
 		beatmap.SetNumSliders(res.IsNull(8) ? 0 : (s32)res[8]);
 		beatmap.SetNumSpinners(res.IsNull(7) ? 0 : (s32)res[7]);
 		beatmap.SetDifficultyAttribute(res[2], _difficultyAttributes[(s32)res[3]], res[4]);
+		beatmap.SetMode(_gamemode);
 	}
 
 	if (endId != 0) {
