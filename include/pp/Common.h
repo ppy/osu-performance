@@ -118,7 +118,7 @@ inline EMods MaskRelevantDifficultyMods(EGamemode mode, EMods mods)
 		return static_cast<EMods>(mods & (DoubleTime | HalfTime | HardRock | Easy));
 
 	case EGamemode::Mania:
-		return static_cast<EMods>(mods & (DoubleTime | HalfTime | HardRock | Easy | Flashlight | keyMod));
+		return static_cast<EMods>(mods & (DoubleTime | HalfTime | HardRock | Easy | keyMod));
 
 	default:
 		throw std::runtime_error("Invalid mode provided."); // Should never occur
