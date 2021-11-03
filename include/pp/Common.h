@@ -98,13 +98,6 @@ enum EMods : u32
 	ScoreIncreaseMods = Hidden | HardRock | DoubleTime | Flashlight | FadeIn
 };
 
-inline EMods MaskRelevantDifficultyMods(EMods mods)
-{
-	return static_cast<EMods>(mods & (DoubleTime | HalfTime | HardRock | Easy | Flashlight | keyMod));
-}
-
-std::string ToString(EMods mods);
-
 enum class EGamemode
 {
 	Osu,
@@ -112,6 +105,28 @@ enum class EGamemode
 	Catch,
 	Mania,
 };
+
+inline EMods MaskRelevantDifficultyMods(EGamemode mode, EMods mods)
+{
+	switch (mode)
+	{
+	case EGamemode::Osu:
+		return static_cast<EMods>(mods & (DoubleTime | HalfTime | HardRock | Easy | Flashlight));
+
+	case EGamemode::Taiko:
+	case EGamemode::Catch:
+		return static_cast<EMods>(mods & (DoubleTime | HalfTime | HardRock | Easy));
+		return static_cast<EMods>(mods & (DoubleTime | HalfTime | HardRock | Easy));
+
+	case EGamemode::Mania:
+		return static_cast<EMods>(mods & (DoubleTime | HalfTime | HardRock | Easy | keyMod));
+
+	default:
+		throw std::runtime_error("Invalid mode provided."); // Should never occur
+	}
+}
+
+std::string ToString(EMods mods);
 
 std::string GamemodeSuffix(EGamemode gamemode);
 std::string GamemodeName(EGamemode gamemode);
