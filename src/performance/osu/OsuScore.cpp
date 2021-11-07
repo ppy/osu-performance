@@ -141,7 +141,6 @@ void OsuScore::computeAimValue(const Beatmap &beatmap)
 	if ((_mods & EMods::Hidden) > 0)
 		_aimValue *= 1.0f + 0.04f * (12.0f - approachRate);
 
-	// Scale the aim value with accuracy
 	_aimValue *= Accuracy();
 	// It is important to also consider accuracy difficulty when doing that.
 	_aimValue *= 0.98f + (pow(beatmap.DifficultyAttribute(_mods, Beatmap::OD), 2) / 2500);
