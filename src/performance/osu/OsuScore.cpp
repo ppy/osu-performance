@@ -169,7 +169,7 @@ void OsuScore::computeSpeedValue(const Beatmap &beatmap)
 	f32 approachRate = beatmap.DifficultyAttribute(_mods, Beatmap::AR);
 	f32 approachRateFactor = 0.0f;
 	if (approachRate > 10.33f)
-		approachRateFactor = 0.3 * (approachRate - 10.33f);
+		approachRateFactor = 0.3f * (approachRate - 10.33f);
 
 	_speedValue *= 1.0f + approachRateFactor * lengthBonus; // Buff for longer maps with high AR.
 
