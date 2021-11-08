@@ -114,10 +114,10 @@ void OsuScore::computeAimValue(const Beatmap &beatmap)
 	int numTotalHits = TotalHits();
 
 	// Longer maps are worth more.
-	f32 LengthBonus = 0.95f + 0.4f * std::min(1.0f, static_cast<f32>(numTotalHits) / 2000.0f) +
+	f32 lengthBonus = 0.95f + 0.4f * std::min(1.0f, static_cast<f32>(numTotalHits) / 2000.0f) +
 					  (numTotalHits > 2000 ? log10(static_cast<f32>(numTotalHits) / 2000.0f) * 0.5f : 0.0f);
 
-	_aimValue *= LengthBonus;
+	_aimValue *= lengthBonus;
 
 	// Penalize misses by assessing # of misses relative to the total # of objects. Default a 3% reduction for any # of misses.
 	if (_effectiveMissCount > 0)
@@ -131,22 +131,17 @@ void OsuScore::computeAimValue(const Beatmap &beatmap)
 	f32 approachRate = beatmap.DifficultyAttribute(_mods, Beatmap::AR);
 	f32 approachRateFactor = 0.0f;
 	if (approachRate > 10.33f)
-		approachRateFactor = approachRate - 10.33f;
+		approachRateFactor = 0.3f * (approachRate - 10.33f);
 	else if (approachRate < 8.0f)
-		approachRateFactor = 0.025f * (8.0f - approachRate);
+		approachRateFactor = 0.1f * (8.0f - approachRate);
 
-	f32 approachRateTotalHitsFactor = 1.0f / (1.0f + std::exp(-(0.007f * (static_cast<f32>(numTotalHits) - 400))));
-
-	f32 approachRateBonus = 1.0f + (0.03f + 0.37f * approachRateTotalHitsFactor) * approachRateFactor;
+	_aimValue *= 1.0f + approachRateFactor * lengthBonus;
 
 	// We want to give more reward for lower AR when it comes to aim and HD. This nerfs high AR and buffs lower AR.
 	if ((_mods & EMods::Hidden) > 0)
 		_aimValue *= 1.0f + 0.04f * (12.0f - approachRate);
 
-	_aimValue *= approachRateBonus;
-
-	// Scale the aim value with accuracy _slightly_.
-	_aimValue *= 0.5f + Accuracy() / 2.0f;
+	_aimValue *= Accuracy();
 	// It is important to also consider accuracy difficulty when doing that.
 	_aimValue *= 0.98f + (pow(beatmap.DifficultyAttribute(_mods, Beatmap::OD), 2) / 2500);
 }
@@ -174,11 +169,9 @@ void OsuScore::computeSpeedValue(const Beatmap &beatmap)
 	f32 approachRate = beatmap.DifficultyAttribute(_mods, Beatmap::AR);
 	f32 approachRateFactor = 0.0f;
 	if (approachRate > 10.33f)
-		approachRateFactor = approachRate - 10.33f;
+		approachRateFactor = 0.3f * (approachRate - 10.33f);
 
-	f32 approachRateTotalHitsFactor = 1.0f / (1.0f + std::exp(-(0.007f * (static_cast<f32>(numTotalHits) - 400))));
-
-	_speedValue *= 1.0f + (0.03f + 0.37f * approachRateTotalHitsFactor) * approachRateFactor;
+	_speedValue *= 1.0f + approachRateFactor * lengthBonus; // Buff for longer maps with high AR.
 
 	// We want to give more reward for lower AR when it comes to speed and HD. This nerfs high AR and buffs lower AR.
 	if ((_mods & EMods::Hidden) > 0)
