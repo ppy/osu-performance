@@ -828,7 +828,7 @@ void Processor::queryBeatmapDifficultyAttributes()
 
 		if (!Beatmap::ContainsAttribute(res[1]))
 		{
-			tlog::warning() << StrFormat("Unsupported attribute '{0}', skipping.", res[1]);
+			tlog::warning() << StrFormat("Unsupported attribute '{0}', skipping.", std::string(res[1]));
 			continue;
 		}
 
