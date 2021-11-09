@@ -59,6 +59,11 @@ public:
 	void SetDifficultyAttribute(EMods mods, EDifficultyAttributeType type, f32 value);
 	void SetMode(EGamemode mode) { _mode = mode; }
 
+	static bool ContainsAttribute(const std::string &difficultyAttributeName)
+	{
+		return s_difficultyAttributes.find(difficultyAttributeName) != s_difficultyAttributes.end();
+	}
+
 	static EDifficultyAttributeType DifficultyAttributeFromName(const std::string &difficultyAttributeName)
 	{
 		return s_difficultyAttributes.at(difficultyAttributeName);
