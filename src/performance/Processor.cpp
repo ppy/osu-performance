@@ -825,6 +825,13 @@ void Processor::queryBeatmapDifficultyAttributes()
 	while (res.NextRow())
 	{
 		u32 id = res[0];
+
+		if (!Beatmap::ContainsAttribute(res[1]))
+		{
+			tlog::warning() << StrFormat("Unsupported attribute '{0}', skipping.", res[1]);
+			continue;
+		}
+
 		if (_difficultyAttributes.size() < id + 1)
 			_difficultyAttributes.resize(id + 1);
 
