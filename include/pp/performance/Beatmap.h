@@ -23,6 +23,7 @@ public:
 		Strain,
 		HitWindow300,
 		ScoreMultiplier,
+		Flashlight,
 
 		NumTypes,
 	};
@@ -46,16 +47,24 @@ public:
 	ERankedStatus RankedStatus() const { return _rankedStatus; }
 	EScoreVersion ScoreVersion() const { return _scoreVersion; }
 	s32 NumHitCircles() const { return _numHitCircles; }
+	s32 NumSliders() const { return _numSliders; }
 	s32 NumSpinners() const { return _numSpinners; }
 	f32 DifficultyAttribute(EMods mods, EDifficultyAttributeType type) const;
 
 	void SetRankedStatus(ERankedStatus rankedStatus) { _rankedStatus = rankedStatus; }
 	void SetScoreVersion(EScoreVersion scoreVersion) { _scoreVersion = scoreVersion; }
 	void SetNumHitCircles(s32 numHitCircles) { _numHitCircles = numHitCircles; }
+	void SetNumSliders(s32 numSliders) { _numSliders = numSliders; }
 	void SetNumSpinners(s32 numSpinners) { _numSpinners = numSpinners; }
 	void SetDifficultyAttribute(EMods mods, EDifficultyAttributeType type, f32 value);
+	void SetMode(EGamemode mode) { _mode = mode; }
 
-	static EDifficultyAttributeType DifficultyAttributeFromName(const std::string& difficultyAttributeName)
+	static bool ContainsAttribute(const std::string &difficultyAttributeName)
+	{
+		return s_difficultyAttributes.find(difficultyAttributeName) != s_difficultyAttributes.end();
+	}
+
+	static EDifficultyAttributeType DifficultyAttributeFromName(const std::string &difficultyAttributeName)
 	{
 		return s_difficultyAttributes.at(difficultyAttributeName);
 	}
@@ -70,8 +79,7 @@ private:
 	// Calculated difficulty
 	using difficulty_t = std::unordered_map<
 		std::underlying_type_t<EMods>,
-		std::array<f32, NumTypes>
-	>;
+		std::array<f32, NumTypes>>;
 
 	difficulty_t _difficulty;
 
@@ -79,6 +87,7 @@ private:
 	ERankedStatus _rankedStatus;
 	EScoreVersion _scoreVersion;
 	s32 _numHitCircles = 0;
+	s32 _numSliders = 0;
 	s32 _numSpinners = 0;
 };
 
