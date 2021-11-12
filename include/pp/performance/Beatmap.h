@@ -24,6 +24,7 @@ public:
 		HitWindow300,
 		ScoreMultiplier,
 		Flashlight,
+		SliderFactor,
 
 		NumTypes,
 	};

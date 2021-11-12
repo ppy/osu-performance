@@ -141,6 +141,17 @@ void OsuScore::computeAimValue(const Beatmap &beatmap)
 	if ((_mods & EMods::Hidden) > 0)
 		_aimValue *= 1.0f + 0.04f * (12.0f - approachRate);
 
+	// We assume 15% of sliders in a map are difficult since there's no way to tell from the performance calculator.
+	f32 estimateDifficultSliders = beatmap.NumSliders() * 0.15f;
+
+	if (beatmap.NumSliders() > 0)
+	{
+		f32 estimateSliderEndsDropped = std::min(std::max(std::min(static_cast<f32>(_num100 + _num50 + _numMiss), maxCombo - _maxCombo), 0.0f), estimateDifficultSliders);
+		f32 sliderFactor = beatmap.DifficultyAttribute(_mods, Beatmap::SliderFactor);
+		f32 sliderNerfFactor = (1.0f - sliderFactor) * std::pow(1.0f - estimateSliderEndsDropped / estimateDifficultSliders, 3) + sliderFactor;
+		_aimValue *= sliderNerfFactor;
+	}
+
 	_aimValue *= Accuracy();
 	// It is important to also consider accuracy difficulty when doing that.
 	_aimValue *= 0.98f + (pow(beatmap.DifficultyAttribute(_mods, Beatmap::OD), 2) / 2500);
