@@ -111,7 +111,10 @@ inline EMods MaskRelevantDifficultyMods(EGamemode mode, EMods mods)
 	switch (mode)
 	{
 	case EGamemode::Osu:
-		return static_cast<EMods>(mods & (DoubleTime | HalfTime | HardRock | Easy | Flashlight | Hidden));
+		if ((mods & Flashlight) > 0)
+			return static_cast<EMods>(mods & (DoubleTime | HalfTime | HardRock | Easy | Flashlight | Hidden));
+		else
+			return static_cast<EMods>(mods & (DoubleTime | HalfTime | HardRock | Easy | Flashlight));
 
 	case EGamemode::Taiko:
 	case EGamemode::Catch:
