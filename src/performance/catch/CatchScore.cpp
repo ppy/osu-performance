@@ -17,8 +17,7 @@ CatchScore::CatchScore(
 	s32 numGeki,
 	s32 numKatu,
 	EMods mods,
-	const Beatmap& beatmap
-) : Score{scoreId, mode, userId, beatmapId, score, maxCombo, num300, num100, num50, numMiss, numGeki, numKatu, mods}
+	const Beatmap &beatmap) : Score{scoreId, mode, userId, beatmapId, score, maxCombo, num300, num100, num50, numMiss, numGeki, numKatu, mods}
 {
 	// Don't count scores made with supposedly unranked mods
 	if ((_mods & EMods::Relax) > 0 ||
@@ -35,15 +34,11 @@ CatchScore::CatchScore(
 	// Longer maps are worth more. "Longer" means how many hits there are which can contribute to combo
 	int numTotalHits = totalComboHits();
 
-	// Longer maps are worth more
 	f32 lengthBonus =
 		0.95f + 0.3f * std::min<f32>(1.0f, static_cast<f32>(numTotalHits) / 2500.0f) +
 		(numTotalHits > 2500 ? log10(static_cast<f32>(numTotalHits) / 2500.0f) * 0.475f : 0.0f);
-
-	// Longer maps are worth more
 	_value *= lengthBonus;
 
-	// Penalize misses exponentially. This mainly fixes tag4 maps and the likes until a per-hitobject solution is available
 	_value *= pow(0.97f, _numMiss);
 
 	// Combo scaling
@@ -72,13 +67,10 @@ CatchScore::CatchScore(
 	}
 
 	if ((_mods & EMods::Flashlight) > 0)
-		// Apply length bonus again if flashlight is on simply because it becomes a lot harder on longer maps.
 		_value *= 1.35f * lengthBonus;
 
-	// Scale the aim value with accuracy _slightly_
 	_value *= pow(Accuracy(), 5.5f);
 
-	// Custom multipliers for NoFail and SpunOut.
 	if ((_mods & EMods::NoFail) > 0)
 		_value *= 0.90f;
 
