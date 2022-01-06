@@ -45,6 +45,7 @@ private:
 	void computeAccuracyValue(const Beatmap &beatmap);
 	void computeFlashlightValue(const Beatmap &beatmap);
 
+	f32 calculateMissPenalty(f32 missCount, f32 strainCount);
 	f32 getComboScalingFactor(const Beatmap &beatmap);
 };
 

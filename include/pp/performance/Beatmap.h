@@ -25,6 +25,8 @@ public:
 		ScoreMultiplier,
 		Flashlight,
 		SliderFactor,
+		AimDifficultStrainCount,
+		SpeedDifficultStrainCount,
 
 		NumTypes,
 	};
