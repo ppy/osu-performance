@@ -99,7 +99,7 @@ void OsuScore::computeAimValue(const Beatmap& beatmap)
 	_aimValue *= LengthBonus;
 
 	// Penalize misses exponentially. This mainly fixes tag4 maps and the likes until a per-hitobject solution is available
-	_aimValue *= pow(0.97f, _numMiss);
+	_aimValue *= pow(0.97f, static_cast<f32>(_numMiss));
 
 	// Combo scaling
 	float maxCombo = beatmap.DifficultyAttribute(_mods, Beatmap::MaxCombo);
@@ -130,7 +130,7 @@ void OsuScore::computeAimValue(const Beatmap& beatmap)
 	// Scale the aim value with accuracy _slightly_
 	_aimValue *= 0.5f + Accuracy() / 2.0f;
 	// It is important to also consider accuracy difficulty when doing that
-	_aimValue *= 0.98f + (pow(beatmap.DifficultyAttribute(_mods, Beatmap::OD), 2) / 2500);
+	_aimValue *= 0.98f + (pow(beatmap.DifficultyAttribute(_mods, Beatmap::OD), 2.f) / 2500.f);
 }
 
 void OsuScore::computeSpeedValue(const Beatmap& beatmap)
@@ -152,7 +152,7 @@ void OsuScore::computeSpeedValue(const Beatmap& beatmap)
 		(numTotalHits > 2000 ? log10(static_cast<f32>(numTotalHits) / 2000.0f) * 0.5f : 0.0f);
 
 	// Penalize misses exponentially. This mainly fixes tag4 maps and the likes until a per-hitobject solution is available
-	_speedValue *= pow(0.97f, _numMiss);
+	_speedValue *= pow(0.97f, static_cast<f32>(_numMiss));
 
 	// Combo scaling
 	float maxCombo = beatmap.DifficultyAttribute(_mods, Beatmap::MaxCombo);
@@ -166,7 +166,7 @@ void OsuScore::computeSpeedValue(const Beatmap& beatmap)
 	// Scale the speed value with accuracy _slightly_
 	_speedValue *= 0.02f + Accuracy();
 	// It is important to also consider accuracy difficulty when doing that
-	_speedValue *= 0.96f + (pow(beatmap.DifficultyAttribute(_mods, Beatmap::OD), 2) / 1600);
+	_speedValue *= 0.96f + (pow(beatmap.DifficultyAttribute(_mods, Beatmap::OD), 2.f) / 1600.f);
 }
 
 void OsuScore::computeAccValue(const Beatmap& beatmap)
@@ -197,7 +197,7 @@ void OsuScore::computeAccValue(const Beatmap& beatmap)
 	// Lots of arbitrary values from testing.
 	// Considering to use derivation from perfect accuracy in a probabilistic manner - assume normal distribution
 	_accValue =
-		pow(1.52163f, beatmap.DifficultyAttribute(_mods, Beatmap::OD)) * pow(betterAccuracyPercentage, 24) *
+		pow(1.52163f, beatmap.DifficultyAttribute(_mods, Beatmap::OD)) * pow(betterAccuracyPercentage, 24.f) *
 		2.83f;
 
 	// Bonus for many hitcircles - it's harder to keep good accuracy up for longer

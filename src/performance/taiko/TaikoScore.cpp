@@ -67,7 +67,7 @@ void TaikoScore::computeStrainValue(const Beatmap& beatmap)
 	_strainValue *= lengthBonus;
 
 	// Penalize misses exponentially. This mainly fixes tag4 maps and the likes until a per-hitobject solution is available
-	_strainValue *= pow(0.985f, _numMiss);
+	_strainValue *= pow(0.985f, static_cast<f32>(_numMiss));
 
 	// Combo scaling
 	float maxCombo = beatmap.DifficultyAttribute(_mods, Beatmap::MaxCombo);
@@ -96,7 +96,7 @@ void TaikoScore::computeAccValue(const Beatmap& beatmap)
 
 	// Lots of arbitrary values from testing.
 	// Considering to use derivation from perfect accuracy in a probabilistic manner - assume normal distribution
-	_accValue = pow(150.0f / hitWindow300, 1.1f) * pow(Accuracy(), 15) * 22.0f;
+	_accValue = pow(150.0f / hitWindow300, 1.1f) * pow(Accuracy(), 15.f) * 22.0f;
 
 	// Bonus for many hitcircles - it's harder to keep good accuracy up for longer
 	_accValue *= std::min<f32>(1.15f, pow(static_cast<f32>(TotalHits()) / 1500.0f, 0.3f));

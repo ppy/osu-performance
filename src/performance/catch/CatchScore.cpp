@@ -44,7 +44,7 @@ CatchScore::CatchScore(
 	_value *= lengthBonus;
 
 	// Penalize misses exponentially. This mainly fixes tag4 maps and the likes until a per-hitobject solution is available
-	_value *= pow(0.97f, _numMiss);
+	_value *= pow(0.97f, static_cast<f32>(_numMiss));
 
 	// Combo scaling
 	float beatmapMaxCombo = beatmap.DifficultyAttribute(_mods, Beatmap::MaxCombo);
