@@ -65,10 +65,10 @@ void OsuScore::computeEffectiveMissCount(const Beatmap &beatmap)
 			comboBasedMissCount = fullComboThreshold / std::max(1, _maxCombo);
 	}
 
-	// we're clamping misscount because since its derived from combo it can be higher than total hits and that breaks some calculations
+	// we're clamping miss count because since its derived from combo it can be higher than total hits and that breaks some calculations
 	comboBasedMissCount = std::min(comboBasedMissCount, static_cast<f32>(TotalHits()));
 
-	_effectiveMissCount = std::max(_numMiss, static_cast<s32>(std::floor(comboBasedMissCount)));
+	_effectiveMissCount = std::max(static_cast<f32>(_numMiss), comboBasedMissCount);
 }
 
 void OsuScore::computeTotalValue(const Beatmap &beatmap)
@@ -164,7 +164,7 @@ void OsuScore::computeSpeedValue(const Beatmap &beatmap)
 
 	// Penalize misses by assessing # of misses relative to the total # of objects. Default a 3% reduction for any # of misses.
 	if (_effectiveMissCount > 0)
-		_speedValue *= 0.97f * std::pow(1.0f - std::pow(_effectiveMissCount / static_cast<f32>(numTotalHits), 0.775f), std::pow(static_cast<f32>(_effectiveMissCount), 0.875f));
+		_speedValue *= 0.97f * std::pow(1.0f - std::pow(_effectiveMissCount / static_cast<f32>(numTotalHits), 0.775f), std::pow(_effectiveMissCount, 0.875f));
 
 	_speedValue *= getComboScalingFactor(beatmap);
 
@@ -247,7 +247,7 @@ void OsuScore::computeFlashlightValue(const Beatmap &beatmap)
 
 	// Penalize misses by assessing # of misses relative to the total # of objects. Default a 3% reduction for any # of misses.
 	if (_effectiveMissCount > 0)
-		_flashlightValue *= 0.97f * std::pow(1 - std::pow(_effectiveMissCount / static_cast<f32>(numTotalHits), 0.775f), std::pow(static_cast<f32>(_effectiveMissCount), 0.875f));
+		_flashlightValue *= 0.97f * std::pow(1 - std::pow(_effectiveMissCount / static_cast<f32>(numTotalHits), 0.775f), std::pow(_effectiveMissCount, 0.875f));
 
 	_flashlightValue *= getComboScalingFactor(beatmap);
 
