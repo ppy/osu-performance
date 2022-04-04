@@ -29,31 +29,34 @@ CatchScore::CatchScore(
 	}
 
 	// We are heavily relying on aim in catch the beat
-	_value = pow(5.0f * std::max(1.0f, beatmap.DifficultyAttribute(_mods, Beatmap::Aim) / 0.0049f) - 4.0f, 2.0f) / 100000.0f;
+	_value = pow(5.0f * std::max(1.0f, beatmap.DifficultyAttribute(_mods, Beatmap::Aim) / 0.0049f) - 4.0f, 2.0f) / 150000.0f;
 
 	// Longer maps are worth more. "Longer" means how many hits there are which can contribute to combo
 	int numTotalHits = totalComboHits();
 
-	f32 lengthBonus =
-		0.95f + 0.3f * std::min<f32>(1.0f, static_cast<f32>(numTotalHits) / 2500.0f) +
-		(numTotalHits > 2500 ? log10(static_cast<f32>(numTotalHits) / 2500.0f) * 0.475f : 0.0f);
+	// Longer maps are worth more
+	f32 lengthFactor = static_cast<f32>(numTotalHits) * 0.5f * static_cast<f32>(beatmap.DifficultyAttribute(_mods, Beatmap::DirectionChangeCount));
+	f32 lengthBonus = std::log10(lengthFactor + 315.0f) - 1.5f - 0.08f * std::min(1.0f, lengthFactor / 2000.0f);
+
+	// Longer maps are worth more
 	_value *= lengthBonus;
 
-	_value *= pow(0.97f, _numMiss);
+	// Penalize misses exponentially. This mainly fixes tag4 maps and the likes until a per-hitobject solution is available
+	_value *= pow(0.96f, _numMiss);
 
 	// Combo scaling
 	float beatmapMaxCombo = beatmap.DifficultyAttribute(_mods, Beatmap::MaxCombo);
 	if (beatmapMaxCombo > 0)
-		_value *= std::min<f32>(pow(static_cast<f32>(_maxCombo), 0.8f) / pow(beatmapMaxCombo, 0.8f), 1.0f);
+		_value *= std::min<f32>(pow(static_cast<f32>(_maxCombo), 0.45f) / pow(beatmapMaxCombo, 0.45f), 1.0f);
 
 	f32 approachRate = beatmap.DifficultyAttribute(_mods, Beatmap::AR);
 	f32 approachRateFactor = 1.0f;
 	if (approachRate > 9.0f)
-		approachRateFactor += 0.1f * (approachRate - 9.0f); // 10% for each AR above 9
+		approachRateFactor += 0.08f * (approachRate - 9.0f); // 8% for each AR above 9
 	if (approachRate > 10.0f)
-		approachRateFactor += 0.1f * (approachRate - 10.0f); // Additional 10% at AR 11, 30% total
+		approachRateFactor += 0.30f * (approachRate - 10.0f); // Additional 30% at AR 11
 	else if (approachRate < 8.0f)
-		approachRateFactor += 0.025f * (8.0f - approachRate); // 2.5% for each AR below 8
+		approachRateFactor += 0.02f * (8.0f - approachRate); // 2% for each AR below 8
 
 	_value *= approachRateFactor;
 
@@ -61,18 +64,31 @@ CatchScore::CatchScore(
 	{
 		// Hiddens gives almost nothing on max approach rate, and more the lower it is
 		if (approachRate <= 10.0f)
-			_value *= 1.05f + 0.075f * (10.0f - approachRate); // 7.5% for each AR below 10
+			_value *= 1.06f + 0.06f * (10.0f - std::min(10.0f, approachRate)); // 6% for each AR below 10
 		else if (approachRate > 10.0f)
-			_value *= 1.01f + 0.04f * (11.0f - std::min(11.0f, approachRate)); // 5% at AR 10, 1% at AR 11
+			_value *= 1.0f + 0.04f * (11.0f - std::min(11.0f, approachRate)); // 4% at AR 10, 1% at AR 11
+
+		if (approachRate < 9.0f)
+			_value *= 1.0f + 0.02f * (9.0f - approachRate); // Additional 2% for each AR below 9
 	}
 
 	if ((_mods & EMods::Flashlight) > 0)
-		_value *= 1.35f * lengthBonus;
+	{
+		// Apply length bonus again if flashlight is on simply because it becomes a lot harder on longer maps.
+		_value *= std::pow(lengthBonus, 0.7f);
 
-	_value *= pow(Accuracy(), 5.5f);
+		if (approachRate > 8.0f)
+			_value *= 0.18f * (approachRate - 8.0f) + 1.0f; // 18% for each AR above 8
+
+		if (approachRate <= 8.0f)
+			_value *= (0.019f * approachRate) + 0.85f; // Dreasing by a few percentages below AR 8
+	}
+
+	// Scale the aim value with accuracy _slightly_
+	_value *= pow(Accuracy(), 5.9f);
 
 	if ((_mods & EMods::NoFail) > 0)
-		_value *= 0.90f;
+		_value *= std::max(0.90f, 1.0f - 0.02f * static_cast<f32>(_numMiss));
 
 	if ((_mods & EMods::SpunOut) > 0)
 		_value *= 0.95f;
