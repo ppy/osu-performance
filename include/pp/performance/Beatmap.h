@@ -25,6 +25,7 @@ public:
 		ScoreMultiplier,
 		Flashlight,
 		SliderFactor,
+		DirectionChangeCount,
 
 		NumTypes,
 	};
