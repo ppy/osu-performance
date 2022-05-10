@@ -32,9 +32,9 @@ public:
 private:
 	f32 _aimValue;
 	f32 _speedValue;
-	f32 _accValue;
+	f32 _accuracyValue;
 	f32 _flashlightValue;
-	s32 _effectiveMissCount;
+	f32 _effectiveMissCount;
 
 	void computeTotalValue(const Beatmap &beatmap);
 	f32 _totalValue;
@@ -42,8 +42,10 @@ private:
 	void computeEffectiveMissCount(const Beatmap &beatmap);
 	void computeAimValue(const Beatmap &beatmap);
 	void computeSpeedValue(const Beatmap &beatmap);
-	void computeAccValue(const Beatmap &beatmap);
+	void computeAccuracyValue(const Beatmap &beatmap);
 	void computeFlashlightValue(const Beatmap &beatmap);
+
+	f32 getComboScalingFactor(const Beatmap &beatmap);
 };
 
 PP_NAMESPACE_END

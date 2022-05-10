@@ -22,8 +22,7 @@ public:
 		s32 numGeki,
 		s32 numKatu,
 		EMods mods,
-		const Beatmap& beatmap
-	);
+		const Beatmap &beatmap);
 
 	f32 TotalValue() const override;
 	f32 Accuracy() const override;
@@ -34,11 +33,11 @@ private:
 	void computeTotalValue();
 	f32 _totalValue;
 
-	void computeStrainValue(const Beatmap& beatmap);
-	void computeAccValue(const Beatmap& beatmap);
+	void computeDifficultyValue(const Beatmap &beatmap);
+	void computeAccuracyValue(const Beatmap &beatmap);
 
-	f32 _strainValue;
-	f32 _accValue;
+	f32 _difficultyValue;
+	f32 _accuracyValue;
 };
 
 PP_NAMESPACE_END

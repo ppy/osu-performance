@@ -23,7 +23,7 @@ OsuScore::OsuScore(
 
 	computeAimValue(beatmap);
 	computeSpeedValue(beatmap);
-	computeAccValue(beatmap);
+	computeAccuracyValue(beatmap);
 	computeFlashlightValue(beatmap);
 
 	computeTotalValue(beatmap);
@@ -65,10 +65,10 @@ void OsuScore::computeEffectiveMissCount(const Beatmap &beatmap)
 			comboBasedMissCount = fullComboThreshold / std::max(1, _maxCombo);
 	}
 
-	// we're clamping misscount because since its derived from combo it can be higher than total hits and that breaks some calculations
+	// we're clamping miss count because since its derived from combo it can be higher than total hits and that breaks some calculations
 	comboBasedMissCount = std::min(comboBasedMissCount, static_cast<f32>(TotalHits()));
 
-	_effectiveMissCount = std::max(_numMiss, static_cast<s32>(std::floor(comboBasedMissCount)));
+	_effectiveMissCount = std::max(static_cast<f32>(_numMiss), comboBasedMissCount);
 }
 
 void OsuScore::computeTotalValue(const Beatmap &beatmap)
@@ -82,7 +82,6 @@ void OsuScore::computeTotalValue(const Beatmap &beatmap)
 		return;
 	}
 
-	// Custom multipliers for NoFail and SpunOut.
 	f32 multiplier = 1.12f; // This is being adjusted to keep the final pp value scaled around what it used to be when changing things.
 
 	if ((_mods & EMods::NoFail) > 0)
@@ -96,7 +95,7 @@ void OsuScore::computeTotalValue(const Beatmap &beatmap)
 		std::pow(
 			std::pow(_aimValue, 1.1f) +
 				std::pow(_speedValue, 1.1f) +
-				std::pow(_accValue, 1.1f) +
+				std::pow(_accuracyValue, 1.1f) +
 				std::pow(_flashlightValue, 1.1),
 			1.0f / 1.1f) *
 		multiplier;
@@ -113,20 +112,15 @@ void OsuScore::computeAimValue(const Beatmap &beatmap)
 
 	int numTotalHits = TotalHits();
 
-	// Longer maps are worth more.
 	f32 lengthBonus = 0.95f + 0.4f * std::min(1.0f, static_cast<f32>(numTotalHits) / 2000.0f) +
 					  (numTotalHits > 2000 ? log10(static_cast<f32>(numTotalHits) / 2000.0f) * 0.5f : 0.0f);
-
 	_aimValue *= lengthBonus;
 
 	// Penalize misses by assessing # of misses relative to the total # of objects. Default a 3% reduction for any # of misses.
 	if (_effectiveMissCount > 0)
 		_aimValue *= 0.97f * std::pow(1.0f - std::pow(_effectiveMissCount / static_cast<f32>(numTotalHits), 0.775f), _effectiveMissCount);
 
-	// Combo scaling.
-	float maxCombo = beatmap.DifficultyAttribute(_mods, Beatmap::MaxCombo);
-	if (maxCombo > 0)
-		_aimValue *= std::min(static_cast<f32>(pow(_maxCombo, 0.8f) / pow(maxCombo, 0.8f)), 1.0f);
+	_aimValue *= getComboScalingFactor(beatmap);
 
 	f32 approachRate = beatmap.DifficultyAttribute(_mods, Beatmap::AR);
 	f32 approachRateFactor = 0.0f;
@@ -146,6 +140,7 @@ void OsuScore::computeAimValue(const Beatmap &beatmap)
 
 	if (beatmap.NumSliders() > 0)
 	{
+		float maxCombo = beatmap.DifficultyAttribute(_mods, Beatmap::MaxCombo);
 		f32 estimateSliderEndsDropped = std::min(std::max(std::min(static_cast<f32>(_num100 + _num50 + _numMiss), maxCombo - _maxCombo), 0.0f), estimateDifficultSliders);
 		f32 sliderFactor = beatmap.DifficultyAttribute(_mods, Beatmap::SliderFactor);
 		f32 sliderNerfFactor = (1.0f - sliderFactor) * std::pow(1.0f - estimateSliderEndsDropped / estimateDifficultSliders, 3) + sliderFactor;
@@ -153,7 +148,7 @@ void OsuScore::computeAimValue(const Beatmap &beatmap)
 	}
 
 	_aimValue *= Accuracy();
-	// It is important to also consider accuracy difficulty when doing that.
+	// It is important to consider accuracy difficulty when scaling with accuracy.
 	_aimValue *= 0.98f + (pow(beatmap.DifficultyAttribute(_mods, Beatmap::OD), 2) / 2500);
 }
 
@@ -163,19 +158,15 @@ void OsuScore::computeSpeedValue(const Beatmap &beatmap)
 
 	int numTotalHits = TotalHits();
 
-	// Longer maps are worth more.
 	f32 lengthBonus = 0.95f + 0.4f * std::min(1.0f, static_cast<f32>(numTotalHits) / 2000.0f) +
 					  (numTotalHits > 2000 ? log10(static_cast<f32>(numTotalHits) / 2000.0f) * 0.5f : 0.0f);
 	_speedValue *= lengthBonus;
 
 	// Penalize misses by assessing # of misses relative to the total # of objects. Default a 3% reduction for any # of misses.
 	if (_effectiveMissCount > 0)
-		_speedValue *= 0.97f * std::pow(1.0f - std::pow(_effectiveMissCount / static_cast<f32>(numTotalHits), 0.775f), std::pow(static_cast<f32>(_effectiveMissCount), 0.875f));
+		_speedValue *= 0.97f * std::pow(1.0f - std::pow(_effectiveMissCount / static_cast<f32>(numTotalHits), 0.775f), std::pow(_effectiveMissCount, 0.875f));
 
-	// Combo scaling.
-	float maxCombo = beatmap.DifficultyAttribute(_mods, Beatmap::MaxCombo);
-	if (maxCombo > 0)
-		_speedValue *= std::min(static_cast<f32>(pow(_maxCombo, 0.8f) / pow(maxCombo, 0.8f)), 1.0f);
+	_speedValue *= getComboScalingFactor(beatmap);
 
 	f32 approachRate = beatmap.DifficultyAttribute(_mods, Beatmap::AR);
 	f32 approachRateFactor = 0.0f;
@@ -194,7 +185,7 @@ void OsuScore::computeSpeedValue(const Beatmap &beatmap)
 	_speedValue *= std::pow(0.98f, _num50 < numTotalHits / 500.0f ? 0.0f : _num50 - numTotalHits / 500.0f);
 }
 
-void OsuScore::computeAccValue(const Beatmap &beatmap)
+void OsuScore::computeAccuracyValue(const Beatmap &beatmap)
 {
 	// This percentage only considers HitCircles of any value - in this part of the calculation we focus on hitting the timing hit window.
 	f32 betterAccuracyPercentage;
@@ -221,18 +212,18 @@ void OsuScore::computeAccValue(const Beatmap &beatmap)
 
 	// Lots of arbitrary values from testing.
 	// Considering to use derivation from perfect accuracy in a probabilistic manner - assume normal distribution.
-	_accValue =
+	_accuracyValue =
 		pow(1.52163f, beatmap.DifficultyAttribute(_mods, Beatmap::OD)) * pow(betterAccuracyPercentage, 24) *
 		2.83f;
 
 	// Bonus for many hitcircles - it's harder to keep good accuracy up for longer.
-	_accValue *= std::min(1.15f, static_cast<f32>(pow(numHitObjectsWithAccuracy / 1000.0f, 0.3f)));
+	_accuracyValue *= std::min(1.15f, static_cast<f32>(pow(numHitObjectsWithAccuracy / 1000.0f, 0.3f)));
 
 	if ((_mods & EMods::Hidden) > 0)
-		_accValue *= 1.08f;
+		_accuracyValue *= 1.08f;
 
 	if ((_mods & EMods::Flashlight) > 0)
-		_accValue *= 1.02f;
+		_accuracyValue *= 1.02f;
 }
 
 void OsuScore::computeFlashlightValue(const Beatmap &beatmap)
@@ -252,13 +243,10 @@ void OsuScore::computeFlashlightValue(const Beatmap &beatmap)
 	int numTotalHits = TotalHits();
 
 	// Penalize misses by assessing # of misses relative to the total # of objects. Default a 3% reduction for any # of misses.
-	if (_numMiss > 0)
-		_flashlightValue *= 0.97f * std::pow(1 - std::pow(_numMiss / static_cast<f32>(numTotalHits), 0.775f), std::pow(_numMiss, 0.875f));
+	if (_effectiveMissCount > 0)
+		_flashlightValue *= 0.97f * std::pow(1 - std::pow(_effectiveMissCount / static_cast<f32>(numTotalHits), 0.775f), std::pow(_effectiveMissCount, 0.875f));
 
-	// Combo scaling.
-	float maxCombo = beatmap.DifficultyAttribute(_mods, Beatmap::MaxCombo);
-	if (maxCombo > 0)
-		_flashlightValue *= std::min(static_cast<f32>(pow(_maxCombo, 0.8f) / pow(maxCombo, 0.8f)), 1.0f);
+	_flashlightValue *= getComboScalingFactor(beatmap);
 
 	// Account for shorter maps having a higher ratio of 0 combo/100 combo flashlight radius.
 	_flashlightValue *= 0.7f + 0.1f * std::min(1.0f, static_cast<f32>(numTotalHits) / 200.0f) +
@@ -270,4 +258,11 @@ void OsuScore::computeFlashlightValue(const Beatmap &beatmap)
 	_flashlightValue *= 0.98f + std::pow(beatmap.DifficultyAttribute(_mods, Beatmap::OD), 2.0f) / 2500.0f;
 }
 
+f32 OsuScore::getComboScalingFactor(const Beatmap &beatmap)
+{
+	float maxCombo = beatmap.DifficultyAttribute(_mods, Beatmap::MaxCombo);
+	if (maxCombo > 0)
+		return std::min(static_cast<f32>(pow(_maxCombo, 0.8f) / pow(maxCombo, 0.8f)), 1.0f);
+	return 1.0f;
+}
 PP_NAMESPACE_END
