@@ -240,9 +240,6 @@ void OsuScore::computeFlashlightValue(const Beatmap &beatmap)
 
 	_flashlightValue = std::pow(rawFlashlight, 2.0f) * 25.0f;
 
-	if ((_mods & EMods::Hidden) > 0)
-		_flashlightValue *= 1.3f;
-
 	int numTotalHits = TotalHits();
 
 	// Penalize misses by assessing # of misses relative to the total # of objects. Default a 3% reduction for any # of misses.
