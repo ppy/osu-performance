@@ -59,7 +59,7 @@ void TaikoScore::computeTotalValue()
 
 void TaikoScore::computeDifficultyValue(const Beatmap &beatmap)
 {
-	_difficultyValue = pow(5.0f * std::max(1.0f, beatmap.DifficultyAttribute(_mods, Beatmap::Strain) / 0.0075f) - 4.0f, 2.0f) / 100000.0f;
+	_difficultyValue = pow(5.0f * std::max(1.0f, beatmap.DifficultyAttribute(_mods, Beatmap::Strain) / 0.175f) - 4.0f, 2.25f) / 450.0f;
 
 	f32 lengthBonus = 1 + 0.1f * std::min(1.0f, static_cast<f32>(TotalHits()) / 1500.0f);
 	_difficultyValue *= lengthBonus;
