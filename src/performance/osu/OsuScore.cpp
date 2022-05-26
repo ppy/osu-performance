@@ -116,11 +116,8 @@ void OsuScore::computeAimValue(const Beatmap &beatmap)
 					  (numTotalHits > 2000 ? log10(static_cast<f32>(numTotalHits) / 2000.0f) * 0.5f : 0.0f);
 	_aimValue *= lengthBonus;
 
-	// Penalize misses by assessing # of misses relative to the total # of objects. Default a 3% reduction for any # of misses.
 	if (_effectiveMissCount > 0)
-		_aimValue *= 0.97f * std::pow(1.0f - std::pow(_effectiveMissCount / static_cast<f32>(numTotalHits), 0.775f), _effectiveMissCount);
-
-	_aimValue *= getComboScalingFactor(beatmap);
+		_aimValue *= calculateMissPenalty(_effectiveMissCount, beatmap.DifficultyAttribute(_mods, Beatmap::AimDifficultStrainCount));
 
 	f32 approachRate = beatmap.DifficultyAttribute(_mods, Beatmap::AR);
 	f32 approachRateFactor = 0.0f;
@@ -162,11 +159,8 @@ void OsuScore::computeSpeedValue(const Beatmap &beatmap)
 					  (numTotalHits > 2000 ? log10(static_cast<f32>(numTotalHits) / 2000.0f) * 0.5f : 0.0f);
 	_speedValue *= lengthBonus;
 
-	// Penalize misses by assessing # of misses relative to the total # of objects. Default a 3% reduction for any # of misses.
 	if (_effectiveMissCount > 0)
-		_speedValue *= 0.97f * std::pow(1.0f - std::pow(_effectiveMissCount / static_cast<f32>(numTotalHits), 0.775f), std::pow(_effectiveMissCount, 0.875f));
-
-	_speedValue *= getComboScalingFactor(beatmap);
+		_speedValue *= calculateMissPenalty(_effectiveMissCount, beatmap.DifficultyAttribute(_mods, Beatmap::SpeedDifficultStrainCount));
 
 	f32 approachRate = beatmap.DifficultyAttribute(_mods, Beatmap::AR);
 	f32 approachRateFactor = 0.0f;
@@ -256,6 +250,11 @@ void OsuScore::computeFlashlightValue(const Beatmap &beatmap)
 	_flashlightValue *= 0.5f + Accuracy() / 2.0f;
 	// It is important to also consider accuracy difficulty when doing that.
 	_flashlightValue *= 0.98f + std::pow(beatmap.DifficultyAttribute(_mods, Beatmap::OD), 2.0f) / 2500.0f;
+}
+
+f32 OsuScore::calculateMissPenalty(f32 missCount, f32 strainCount)
+{
+	return 0.94f / ((missCount / (2.0f * std::sqrt(strainCount))) + 1.0f);
 }
 
 f32 OsuScore::getComboScalingFactor(const Beatmap &beatmap)
