@@ -34,10 +34,9 @@ private:
 	f32 _totalValue;
 
 	void computeDifficultyValue(const Beatmap &beatmap);
-	void computeAccuracyValue(const Beatmap &beatmap);
 
+	f32 customAccuracy() const;
 	f32 _difficultyValue;
-	f32 _accuracyValue;
 };
 
 PP_NAMESPACE_END
