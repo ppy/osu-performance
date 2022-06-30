@@ -47,7 +47,7 @@ void ManiaScore::computeTotalValue()
 	f32 multiplier = 8.0f;
 
 	if ((_mods & EMods::NoFail) > 0)
-		multiplier *= 0.90f;
+		multiplier *= 0.75f;
 
 	if ((_mods & EMods::SpunOut) > 0)
 		multiplier *= 0.95f;
