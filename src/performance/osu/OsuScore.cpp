@@ -179,8 +179,15 @@ void OsuScore::computeSpeedValue(const Beatmap &beatmap)
 	if ((_mods & EMods::Hidden) > 0)
 		_speedValue *= 1.0f + 0.04f * (12.0f - approachRate);
 
+	// Calculate accuracy assuming the worst case scenario
+	f32 relevantTotalDiff = static_cast<f32>(numTotalHits) - beatmap.DifficultyAttribute(_mods, Beatmap::SpeedNoteCount);
+	f32 relevantCountGreat = std::max(0.0f, _num300 - relevantTotalDiff);
+	f32 relevantCountOk = std::max(0.0f, _num100 - std::max(0.0f, relevantTotalDiff - _num300));
+	f32 relevantCountMeh = std::max(0.0f, _num50 - std::max(0.0f, relevantTotalDiff - _num300 - _num100));
+	f32 relevantAccuracy = beatmap.DifficultyAttribute(_mods, Beatmap::SpeedNoteCount) == 0.0f ? 0.0f : (relevantCountGreat * 6.0f + relevantCountOk * 2.0f + relevantCountMeh) / (beatmap.DifficultyAttribute(_mods, Beatmap::SpeedNoteCount) * 6.0f);
+
 	// Scale the speed value with accuracy and OD.
-	_speedValue *= (0.95f + std::pow(beatmap.DifficultyAttribute(_mods, Beatmap::OD), 2) / 750) * std::pow(Accuracy(), (14.5f - std::max(beatmap.DifficultyAttribute(_mods, Beatmap::OD), 8.0f)) / 2);
+	_speedValue *= (0.95f + std::pow(beatmap.DifficultyAttribute(_mods, Beatmap::OD), 2) / 750) * std::pow((Accuracy() + relevantAccuracy) / 2.0f, (14.5f - std::max(beatmap.DifficultyAttribute(_mods, Beatmap::OD), 8.0f)) / 2);
 	// Scale the speed value with # of 50s to punish doubletapping.
 	_speedValue *= std::pow(0.98f, _num50 < numTotalHits / 500.0f ? 0.0f : _num50 - numTotalHits / 500.0f);
 }

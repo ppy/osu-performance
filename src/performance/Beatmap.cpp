@@ -14,6 +14,7 @@ const std::unordered_map<std::string, Beatmap::EDifficultyAttributeType> Beatmap
 	{"Score multiplier", ScoreMultiplier},
 	{"Flashlight", Flashlight},
 	{"Slider factor", SliderFactor},
+	{"Speed note count", SpeedNoteCount},
 };
 
 Beatmap::Beatmap(s32 id)
