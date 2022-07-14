@@ -82,7 +82,7 @@ void OsuScore::computeTotalValue(const Beatmap &beatmap)
 		return;
 	}
 
-	f32 multiplier = 1.12f; // This is being adjusted to keep the final pp value scaled around what it used to be when changing things.
+	f32 multiplier = 1.14f; // This is being adjusted to keep the final pp value scaled around what it used to be when changing things.
 
 	if ((_mods & EMods::NoFail) > 0)
 		multiplier *= std::max(0.9f, 1.0f - 0.02f * _effectiveMissCount);
@@ -127,7 +127,7 @@ void OsuScore::computeAimValue(const Beatmap &beatmap)
 	if (approachRate > 10.33f)
 		approachRateFactor = 0.3f * (approachRate - 10.33f);
 	else if (approachRate < 8.0f)
-		approachRateFactor = 0.1f * (8.0f - approachRate);
+		approachRateFactor = 0.05f * (8.0f - approachRate);
 
 	_aimValue *= 1.0f + approachRateFactor * lengthBonus;
 
@@ -188,8 +188,9 @@ void OsuScore::computeSpeedValue(const Beatmap &beatmap)
 
 	// Scale the speed value with accuracy and OD.
 	_speedValue *= (0.95f + std::pow(beatmap.DifficultyAttribute(_mods, Beatmap::OD), 2) / 750) * std::pow((Accuracy() + relevantAccuracy) / 2.0f, (14.5f - std::max(beatmap.DifficultyAttribute(_mods, Beatmap::OD), 8.0f)) / 2);
+
 	// Scale the speed value with # of 50s to punish doubletapping.
-	_speedValue *= std::pow(0.98f, _num50 < numTotalHits / 500.0f ? 0.0f : _num50 - numTotalHits / 500.0f);
+	_speedValue *= std::pow(0.99f, _num50 < numTotalHits / 500.0f ? 0.0f : _num50 - numTotalHits / 500.0f);
 }
 
 void OsuScore::computeAccuracyValue(const Beatmap &beatmap)
