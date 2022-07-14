@@ -15,7 +15,7 @@ class DatabaseConnection
 public:
 	DatabaseConnection(
 		std::string host,
-		s16 port,
+		s32 port,
 		std::string username,
 		std::string password,
 		std::string database
@@ -48,7 +48,7 @@ private:
 	std::recursive_mutex _dbMutex;
 
 	std::string _host;
-	s16 _port;
+	s32 _port;
 	std::string _username;
 	std::string _password;
 	std::string _database;

@@ -7,7 +7,7 @@ PP_NAMESPACE_BEGIN
 
 DatabaseConnection::DatabaseConnection(
 	std::string host,
-	s16 port,
+	s32 port,
 	std::string username,
 	std::string password,
 	std::string database

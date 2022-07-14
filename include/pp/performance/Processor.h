@@ -48,14 +48,14 @@ private:
 	struct
 	{
 		std::string MySqlMasterHost;
-		s16 MySqlMasterPort;
+		s32 MySqlMasterPort;
 		std::string MySqlMasterUsername;
 		std::string MySqlMasterPassword;
 		std::string MySqlMasterDatabase;
 
 		// By default, use the same database as master and slave.
 		std::string MySqlSlaveHost;
-		s16 MySqlSlavePort;
+		s32 MySqlSlavePort;
 		std::string MySqlSlaveUsername;
 		std::string MySqlSlavePassword;
 		std::string MySqlSlaveDatabase;
