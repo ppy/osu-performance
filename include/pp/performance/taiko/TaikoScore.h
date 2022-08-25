@@ -32,6 +32,7 @@ public:
 private:
 	void computeTotalValue();
 	f32 _totalValue;
+	f32 _effectiveMissCount;
 
 	void computeDifficultyValue(const Beatmap &beatmap);
 	void computeAccuracyValue(const Beatmap &beatmap);
