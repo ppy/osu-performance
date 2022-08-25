@@ -19,6 +19,10 @@ TaikoScore::TaikoScore(
 	EMods mods,
 	const Beatmap &beatmap) : Score{scoreId, mode, userId, beatmapId, score, maxCombo, num300, num100, num50, numMiss, numGeki, numKatu, mods}
 {
+	// The effectiveMissCount is calculated by gaining a ratio for totalSuccessfulHits and increasing the miss penalty for shorter object counts lower than 1000.
+	if (TotalSuccessfulHits() > 0)
+		_effectiveMissCount = std::max(1.0f, 1000.0f / static_cast<f32>(TotalSuccessfulHits())) * static_cast<f32>(_numMiss);
+
 	computeDifficultyValue(beatmap);
 	computeAccuracyValue(beatmap);
 
@@ -41,7 +45,7 @@ void TaikoScore::computeTotalValue()
 		return;
 	}
 
-	f32 multiplier = 1.12f; // This is being adjusted to keep the final pp value scaled around what it used to be when changing things
+	f32 multiplier = 1.13f; // This is being adjusted to keep the final pp value scaled around what it used to be when changing things
 
 	if ((_mods & EMods::Hidden) > 0)
 		multiplier *= 1.075f;
@@ -64,18 +68,21 @@ void TaikoScore::computeDifficultyValue(const Beatmap &beatmap)
 	f32 lengthBonus = 1 + 0.1f * std::min(1.0f, static_cast<f32>(TotalHits()) / 1500.0f);
 	_difficultyValue *= lengthBonus;
 
-	_difficultyValue *= pow(0.986f, _numMiss);
+	_difficultyValue *= pow(0.986f, _effectiveMissCount);
 
 	if ((_mods & EMods::Easy) > 0)
-		_difficultyValue *= 0.980f;
+		_difficultyValue *= 0.985f;
 
 	if ((_mods & EMods::Hidden) > 0)
 		_difficultyValue *= 1.025f;
 
-	if ((_mods & EMods::Flashlight) > 0)
-		_difficultyValue *= 1.05f * lengthBonus;
+	if ((_mods & EMods::HardRock) > 0)
+		_difficultyValue *= 1.050f;
 
-	_difficultyValue *= std::pow(Accuracy(), 1.5f);
+	if ((_mods & EMods::Flashlight) > 0)
+		_difficultyValue *= 1.050f * lengthBonus;
+
+	_difficultyValue *= std::pow(Accuracy(), 2.0f);
 }
 
 void TaikoScore::computeAccuracyValue(const Beatmap &beatmap)
@@ -87,14 +94,14 @@ void TaikoScore::computeAccuracyValue(const Beatmap &beatmap)
 		return;
 	}
 
-	_accuracyValue = pow(140.0f / hitWindow300, 1.1f) * pow(Accuracy(), 12) * 27.0f;
+	_accuracyValue = pow(60.0f / hitWindow300, 1.1f) * pow(Accuracy(), 8.0f) * std::pow(beatmap.DifficultyAttribute(_mods, Beatmap::Strain), 0.4f) * 27.0f;
 
 	f32 lengthBonus = std::min(1.15f, std::pow(static_cast<f32>(TotalHits()) / 1500.0f, 0.3f));
 	_accuracyValue *= lengthBonus;
 
-	// Slight HDFL Bonus for accuracy.
+	// Slight HDFL Bonus for accuracy. A clamp is used to prevent against negative values
 	if ((_mods & (EMods::Hidden | EMods::Flashlight)) == (EMods::Hidden | EMods::Flashlight))
-		_accuracyValue *= 1.10f * lengthBonus;
+		_accuracyValue *= std::max(1.050f, 1.075f * lengthBonus);
 }
 
 f32 TaikoScore::Accuracy() const
