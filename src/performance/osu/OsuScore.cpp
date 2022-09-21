@@ -103,12 +103,7 @@ void OsuScore::computeTotalValue(const Beatmap &beatmap)
 
 void OsuScore::computeAimValue(const Beatmap &beatmap)
 {
-	f32 rawAim = beatmap.DifficultyAttribute(_mods, Beatmap::Aim);
-
-	if ((_mods & EMods::TouchDevice) > 0)
-		rawAim = pow(rawAim, 0.8f);
-
-	_aimValue = pow(5.0f * std::max(1.0f, rawAim / 0.0675f) - 4.0f, 3.0f) / 100000.0f;
+	_aimValue = pow(5.0f * std::max(1.0f, beatmap.DifficultyAttribute(_mods, Beatmap::Aim) / 0.0675f) - 4.0f, 3.0f) / 100000.0f;
 
 	int numTotalHits = TotalHits();
 
@@ -241,12 +236,7 @@ void OsuScore::computeFlashlightValue(const Beatmap &beatmap)
 	if ((_mods & EMods::Flashlight) == 0)
 		return;
 
-	f32 rawFlashlight = beatmap.DifficultyAttribute(_mods, Beatmap::Flashlight);
-
-	if ((_mods & EMods::TouchDevice) > 0)
-		rawFlashlight = std::pow(rawFlashlight, 0.8f);
-
-	_flashlightValue = std::pow(rawFlashlight, 2.0f) * 25.0f;
+	_flashlightValue = std::pow(beatmap.DifficultyAttribute(_mods, Beatmap::Flashlight), 2.0f) * 25.0f;
 
 	int numTotalHits = TotalHits();
 
