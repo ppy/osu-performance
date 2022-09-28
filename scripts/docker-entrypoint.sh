@@ -63,4 +63,4 @@ if [ ! -f config.json ]; then
   fi
 fi
 
-./osu-performance $@
+./osu-performance "$@"
