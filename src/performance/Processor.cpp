@@ -264,11 +264,11 @@ void Processor::ProcessSQL(u32 numThreads, std::string sql)
 	auto res = _pDBSlave->Query(sql);
 
 	if (res.NumRows() == 0)
-		throw ProcessorException(SRC_POS, "SQL query returned 0 users to process.");
+		throw ProcessorException(SRC_POS, "SQL query returned 0 beatmaps to process.");
 
 	const s64 numUsers = res.NumRows();
 
-	tlog::info() << StrFormat("Processing {0} users.", numUsers);
+	tlog::info() << StrFormat("Processing {0} beatmaps.", numUsers);
 	auto progress = tlog::progress(numUsers);
 
 	std::atomic<s64> numUsersProcessed{0};
@@ -903,7 +903,7 @@ User Processor::processSingleUserGeneric(
 		"`enabled_mods`,"
 		"`pp` "
 		"FROM `osu_scores{0}_high` "
-		"WHERE `user_id`={1}", GamemodeSuffix(_gamemode), userId
+		"WHERE `beatmap_id`={1}", GamemodeSuffix(_gamemode), userId
 	));
 
 	User user{userId};
@@ -973,8 +973,6 @@ User Processor::processSingleUserGeneric(
 				beatmap,
 			};
 
-			user.AddScorePPRecord(score.CreatePPRecord());
-
 			// Column 12 is the pp value of the score from the database.
 			// Only update score if it differs a lot!
 
@@ -999,70 +997,6 @@ User Processor::processSingleUserGeneric(
 	}
 
 	_pDataDog->Increment("osu.pp.score.updated", scoresThatNeedDBUpdate.size(), {StrFormat("mode:{0}", GamemodeTag(_gamemode))}, 0.01f);
-
-	user.ComputePPRecord();
-	auto userPPRecord = user.GetPPRecord();
-
-	// Check for notable event
-	if (!scoresThatNeedDBUpdate.empty() && scoresThatNeedDBUpdate.front().Id() == selectedScoreId && // Did the score actually get found (this _should_ never be false, but better make sure)
-		scoresThatNeedDBUpdate.front().TotalValue() > userPPRecord.Value * s_notableEventRatingThreshold)
-	{
-		_pDataDog->Increment("osu.pp.score.notable_events", 1, {StrFormat("mode:{0}", GamemodeTag(_gamemode))});
-
-		const auto& score = scoresThatNeedDBUpdate.front();
-
-		// Obtain user's previous pp rating for determining the difference
-		auto res = dbSlave.Query(StrFormat(
-			"SELECT `{0}` FROM `osu_user_stats{1}` WHERE `user_id`={2}",
-			_config.UserPPColumnName,
-			GamemodeSuffix(_gamemode),
-			userId
-		));
-
-		while (res.NextRow())
-		{
-			if (res.IsNull(0))
-				continue;
-
-			f64 ratingChange = userPPRecord.Value - (f64)res[0];
-
-			// We don't want to log scores, that give less than a mere 5 pp
-			if (ratingChange < s_notableEventRatingDifferenceMinimum)
-				continue;
-
-			tlog::info() << StrFormat("Notable event: s{0} u{1} b{2}", score.Id(), userId, score.BeatmapId());
-
-			db.NonQueryBackground(StrFormat(
-				"INSERT INTO "
-				"osu_user_performance_change(user_id, mode, beatmap_id, performance_change, `rank`) "
-				"VALUES({0},{1},{2},{3},null)",
-				userId,
-				_gamemode,
-				score.BeatmapId(),
-				ratingChange
-			));
-		}
-	}
-
-	newUsers.AppendAndCommit(StrFormat(
-		"UPDATE `osu_user_stats{0}` "
-		"SET `{1}`= CASE "
-			// Set pp to 0 if the user is inactive or restricted.
-			"WHEN (CURDATE() > DATE_ADD(`last_played`, INTERVAL 3 MONTH) OR (SELECT `user_warnings` FROM `{5}` WHERE `user_id`={4}) > 0) THEN 0 "
-			"ELSE {2} "
-		"END,"
-		"`accuracy_new`={3} "
-		"WHERE `user_id`={4} AND ABS(`{1}` - {2}) > 0.01;",
-		GamemodeSuffix(_gamemode),
-		_config.UserPPColumnName,
-		userPPRecord.Value,
-		userPPRecord.Accuracy,
-		userId,
-		_config.UserMetadataTableName
-	));
-
-	_pDataDog->Increment("osu.pp.user.amount_processed", 1, {StrFormat("mode:{0}", GamemodeTag(_gamemode))}, 0.01f);
-
 	return user;
 }
 
