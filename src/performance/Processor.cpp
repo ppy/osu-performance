@@ -909,6 +909,9 @@ User Processor::processSingleUserGeneric(
 	User user{userId};
 	std::vector<TScore> scoresThatNeedDBUpdate;
 
+	const s64 numUsers = res.NumRows();
+	tlog::info() << StrFormat("Processing {0} beatmap scores.", numUsers);
+
 	{
 		RWLock lock{&_beatmapMutex, false};
 
