@@ -52,6 +52,7 @@ public:
 	s32 NumSliders() const { return _numSliders; }
 	s32 NumSpinners() const { return _numSpinners; }
 	f32 DifficultyAttribute(EMods mods, EDifficultyAttributeType type) const;
+	EGamemode Mode() const { return _mode; }
 
 	void SetRankedStatus(ERankedStatus rankedStatus) { _rankedStatus = rankedStatus; }
 	void SetScoreVersion(EScoreVersion scoreVersion) { _scoreVersion = scoreVersion; }
