@@ -2,6 +2,10 @@
 
 This is the program computing "performance points" (__pp__), which are used as the official [player ranking metric](https://osu.ppy.sh/p/pp) in osu!.
 
+# Current Versions
+
+This is part of a group of projects which are used in live deployments where the deployed version is critical to producing correct results. The `master` branch tracks ongoing developments. If looking to use the correct version for matching live values, please [consult this wiki page](https://github.com/ppy/osu-infrastructure/wiki/Star-Rating-and-Performance-Points) for the latest information.
+
 # Compiling
 
 All that is required for building osu!performance is a C++11-compatible compiler. Begin by cloning this repository and all its submodules using the following command:
