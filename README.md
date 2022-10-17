@@ -2,6 +2,14 @@
 
 This is the program computing "performance points" (__pp__), which are used as the official [player ranking metric](https://osu.ppy.sh/p/pp) in osu!.
 
+# Current Versions
+
+The `master` branch of this repository tracks ongoing developments, and may be newer than what is used for the live osu! systems. If looking to use the correct version for matching live values, the correct version is:
+
+| `osu-performance` |
+| -- |
+| [2022.929.0](https://github.com/ppy/osu-performance/releases/tag/2022.929.0) |
+
 # Compiling
 
 All that is required for building osu!performance is a C++11-compatible compiler. Begin by cloning this repository and all its submodules using the following command:
@@ -83,7 +91,7 @@ Configuration options beyond these parameters, such as various API hooks, can be
 
 osu!performance can also be run in Docker.
 
-Configuration is provided via environment variables _or_ by mounting the config file at _/srv/config.json_.  
+Configuration is provided via environment variables _or_ by mounting the config file at _/srv/config.json_.
 Availables environment variables:
 ```
 MYSQL_HOST
@@ -118,7 +126,7 @@ DATADOG_PORT
 Example:
 ```sh
 docker build -t osu-performance .
-docker run --rm -it \        
+docker run --rm -it \
   -e MYSQL_HOST=172.17.0.1 \
   -e MYSQL_USER=osu \
   -e MYSQL_PASSWORD=changeme \
@@ -126,7 +134,7 @@ docker run --rm -it \
   osu-performance all -m osu
 ```
 
-A `docker-compose.yml` file is also provided, with a built-in MySQL and phpMyAdmin server provided for convenience.  
+A `docker-compose.yml` file is also provided, with a built-in MySQL and phpMyAdmin server provided for convenience.
 It supports having *.sql files in a dump folder, such as those found at https://data.ppy.sh, for import at first start.
 
 # Licence
