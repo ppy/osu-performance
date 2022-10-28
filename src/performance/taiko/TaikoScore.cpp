@@ -73,7 +73,7 @@ void TaikoScore::computeDifficultyValue(const Beatmap &beatmap)
 	if ((_mods & EMods::Easy) > 0)
 		_difficultyValue *= 0.985f;
 
-	if ((_mods & EMods::Hidden) > 0 && beatmap.Mode() == EGamemode::Taiko)
+	if ((_mods & EMods::Hidden) > 0 && beatmap.PlayMode() == EGamemode::Taiko)
 		_difficultyValue *= 1.025f;
 
 	if ((_mods & EMods::HardRock) > 0)
@@ -100,7 +100,7 @@ void TaikoScore::computeAccuracyValue(const Beatmap &beatmap)
 	_accuracyValue *= lengthBonus;
 
 	// Slight HDFL Bonus for accuracy. A clamp is used to prevent against negative values.
-	if ((_mods & (EMods::Hidden | EMods::Flashlight)) == (EMods::Hidden | EMods::Flashlight) && beatmap.Mode() == EGamemode::Taiko)
+	if ((_mods & (EMods::Hidden | EMods::Flashlight)) == (EMods::Hidden | EMods::Flashlight) && beatmap.PlayMode() == EGamemode::Taiko)
 		_accuracyValue *= std::max(1.0f, 1.1f * lengthBonus);
 }
 

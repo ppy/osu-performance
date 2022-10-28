@@ -52,7 +52,7 @@ public:
 	s32 NumSliders() const { return _numSliders; }
 	s32 NumSpinners() const { return _numSpinners; }
 	f32 DifficultyAttribute(EMods mods, EDifficultyAttributeType type) const;
-	EGamemode Mode() const { return _mode; }
+	EGamemode PlayMode() const { return _playmode; }
 
 	void SetRankedStatus(ERankedStatus rankedStatus) { _rankedStatus = rankedStatus; }
 	void SetScoreVersion(EScoreVersion scoreVersion) { _scoreVersion = scoreVersion; }
@@ -61,6 +61,7 @@ public:
 	void SetNumSpinners(s32 numSpinners) { _numSpinners = numSpinners; }
 	void SetDifficultyAttribute(EMods mods, EDifficultyAttributeType type, f32 value);
 	void SetMode(EGamemode mode) { _mode = mode; }
+	void SetPlayMode(EGamemode mode) { _playmode = mode; }
 
 	static bool ContainsAttribute(const std::string &difficultyAttributeName)
 	{
@@ -77,7 +78,12 @@ private:
 
 	// General information
 	s32 _id;
+
+	// The mode being processed. NOT the beatmap's playmode!
 	EGamemode _mode = EGamemode::Osu;
+
+	// The beatmap's playmode. This may differ from the mode currently being processed in the case of converted beatmaps.
+	EGamemode _playmode = EGamemode::Osu;
 
 	// Calculated difficulty
 	using difficulty_t = std::unordered_map<
