@@ -54,6 +54,10 @@ if [ ! -f config.json ]; then
       TEMPLATE+='
         "data-dog.port": (env.DATADOG_PORT // 8125) | tonumber,'
     fi
+    if [[ -v WRITE_USER_TOTALS ]]; then
+      TEMPLATE+='
+	    "write-user-totals": ((env.WRITE_USER_TOTALS | ascii_downcase) == "true" or env.WRITE_USER_TOTALS == "1"),'
+	fi
 
     TEMPLATE+="}"
     jq -n "$TEMPLATE" > config.json
