@@ -1,6 +1,8 @@
 # osu!performance ![](https://github.com/ppy/osu-performance/workflows/CI/badge.svg) [![dev chat](https://discordapp.com/api/guilds/188630481301012481/widget.png?style=shield)](https://discord.gg/ppy)
 
-This is the program computing "performance points" (__pp__), which are used as the official [player ranking metric](https://osu.ppy.sh/p/pp) in osu!.
+This was the program computing "performance points" (__pp__), which are used as the official [player ranking metric](https://osu.ppy.sh/p/pp) in osu!.
+
+**This project is no longer used, and has been replaced by the two [new](https://github.com/ppy/osu-queue-score-statistics/blob/master/osu.Server.Queues.ScoreStatisticsProcessor/Processors/UserTotalPerformanceProcessor.cs) [processors](https://github.com/ppy/osu-queue-score-statistics/blob/master/osu.Server.Queues.ScoreStatisticsProcessor/Processors/ScorePerformanceProcessor.cs) in the newer infrastructure model.
 
 # Current Versions
 
